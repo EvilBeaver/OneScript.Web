@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using Nustache.Core;
 using Nustache.Mvc;
+using OneScript.Mvc.Infrastructure;
 
 namespace OneScript.Mvc
 {
@@ -18,6 +20,9 @@ namespace OneScript.Mvc
                 // But it also means that ViewData/ViewBag is inaccessible.
                 RootContext = NustacheViewEngineRootContext.Model
             });
+
+            ValueGetterFactories.Factories.Clear();
+            ValueGetterFactories.Factories.Add(new OscriptContextPropertyGetterFactory());
         }
     }
 }

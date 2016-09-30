@@ -39,8 +39,20 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Ionic.Zip, Version=1.9.3.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\DotNetZip.1.9.3\lib\net20\Ionic.Zip.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Web.Infrastructure, Version=1.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="ScriptEngine, Version=1.0.14.195, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\OneScript.1.0.14\lib\net40\ScriptEngine.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="ScriptEngine.HostedScript, Version=1.0.14.195, Culture=neutral, processorArchitecture=x86">
+      <HintPath>..\packages\OneScript.StandardLibrary.1.0.14\lib\net40\ScriptEngine.HostedScript.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.DataAnnotations" />
     <Reference Include="System.Core" />
@@ -93,10 +105,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="App_Start\OneScript.cs" />
     <Compile Include="App_Start\ViewConfig.cs" />
+    <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Infrastructure\OScriptContextPropertyGetter.cs" />
+    <Compile Include="Infrastructure\OscriptContextPropertyGetterFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -114,17 +130,24 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
-    <Folder Include="Controllers\" />
-    <Folder Include="Infrastructure\" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Nustache\Nustache.Core\Nustache.Core.csproj">
+      <Project>{3A725CD9-6024-441F-84B5-4226D78352C5}</Project>
+      <Name>Nustache.Core</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Nustache\Nustache.Mvc3\Nustache.Mvc3.csproj">
       <Project>{BB62330D-3604-40EB-9B76-39CE36F1AD6F}</Project>
       <Name>Nustache.Mvc3</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Views\Home\Index.mustache" />
+    <Content Include="Views\_ViewStart.cshtml" />
+    <Content Include="Views\Shared\_Layout.cshtml" />
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>

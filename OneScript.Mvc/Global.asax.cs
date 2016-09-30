@@ -19,6 +19,7 @@ namespace OneScript.Mvc
             FilterConfig.RegisterGlobalFilters(GlobalFilters.Filters);
             RouteConfig.RegisterRoutes(RouteTable.Routes);
             ViewConfig.RegisterViewEngines(ViewEngines.Engines);
+            OneScript.Initialize();
         }
     }
 }
