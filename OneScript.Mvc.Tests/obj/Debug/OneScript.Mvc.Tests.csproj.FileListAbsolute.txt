@@ -1,5 +1,0 @@
-c:\Users\aovsyankin\Documents\GITs\1ServerPages\OneScript.Mvc.Tests\bin\Debug\MvcProcessingEngine.Tests.dll
-c:\Users\aovsyankin\Documents\GITs\1ServerPages\OneScript.Mvc.Tests\bin\Debug\MvcProcessingEngine.Tests.pdb
-c:\Users\aovsyankin\Documents\GITs\1ServerPages\OneScript.Mvc.Tests\obj\Debug\OneScript.Mvc.Tests.csprojResolveAssemblyReference.cache
-c:\Users\aovsyankin\Documents\GITs\1ServerPages\OneScript.Mvc.Tests\obj\Debug\MvcProcessingEngine.Tests.dll
-c:\Users\aovsyankin\Documents\GITs\1ServerPages\OneScript.Mvc.Tests\obj\Debug\MvcProcessingEngine.Tests.pdb
