@@ -56,7 +56,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\1ServerPages\MvcProcessingEngine\OneScript.Mvc.csproj">
+    <ProjectReference Include="..\OneScript.Mvc\OneScript.Mvc.csproj">
       <Project>{be6f2167-5edc-4a05-835b-ab2ea48966aa}</Project>
       <Name>OneScript.Mvc</Name>
     </ProjectReference>
