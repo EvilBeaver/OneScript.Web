@@ -28,7 +28,7 @@ namespace OneScript.Mvc.Infrastructure
             }
             catch (PropertyAccessException e)
             {
-                value = e.ErrorDescription;
+                value = null;
             }
 
             return value;

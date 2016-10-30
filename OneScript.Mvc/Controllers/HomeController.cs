@@ -23,7 +23,7 @@ namespace OneScript.Mvc.Controllers
             model.Insert("DoesInternationalCharacterEncodingWork", ValueFactory.Create("Iñtërnâtiônàlizætiøn"));
             model.Insert("DoesRussianCharacterEncodingWork", ValueFactory.Create("Привет, как дела"));
 
-            return View(model);
+            return View("Index","_Layout", model);
         }
 
     }
