@@ -27,6 +27,8 @@ namespace OneScript.WebEngine
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            
         }
     }
 }

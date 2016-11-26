@@ -1,10 +1,12 @@
 ﻿{
   "dependencies": {
     "Microsoft.AspNetCore.Diagnostics": "1.0.0",
-    
+    "Handlebars.NetStandard": "1.0.0-*",
     "Microsoft.AspNetCore.Server.IISIntegration": "1.0.0",
     "Microsoft.AspNetCore.Server.Kestrel": "1.0.1",
-    "Microsoft.Extensions.Logging.Console": "1.0.0"
+    "Microsoft.Extensions.Logging.Console": "1.0.0",
+    "OneScript": "1.0.14",
+    "OneScript.StandardLibrary": "1.0.14"
   },
 
   "tools": {
@@ -12,7 +14,7 @@
   },
 
   "frameworks": {
-    "net461": { }
+    "net451": {}
   },
 
   "buildOptions": {
@@ -31,3 +33,4 @@
     "postpublish": [ "dotnet publish-iis --publish-folder %publish:OutputPath% --framework %publish:FullTargetFramework%" ]
   }
 }
+
