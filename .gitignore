@@ -2,3 +2,5 @@ OneScript.Mvc/bin/
 packages/
 OneScript.Mvc/obj/
 OneScript.Mvc.Tests/bin/
+OneScript.Mvc.Tests/obj/
+.vs/

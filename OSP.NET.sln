@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.40629.0
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneScript.Mvc", "OneScript.Mvc\OneScript.Mvc.csproj", "{BE6F2167-5EDC-4A05-835B-AB2EA48966AA}"
 EndProject
@@ -10,6 +10,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Nustache.Core", "Nustache\Nustache.Core\Nustache.Core.csproj", "{3A725CD9-6024-441F-84B5-4226D78352C5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneScript.Mvc.Tests", "OneScript.Mvc.Tests\OneScript.Mvc.Tests.csproj", "{C2EBCDB1-2BEA-4CE3-856A-E7DEB5613331}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Handlebars", "Handlebars.Net\source\Handlebars\Handlebars.csproj", "{A09CFF95-B671-48FE-96A8-D3CBDC110B75}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{C2EBCDB1-2BEA-4CE3-856A-E7DEB5613331}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C2EBCDB1-2BEA-4CE3-856A-E7DEB5613331}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C2EBCDB1-2BEA-4CE3-856A-E7DEB5613331}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A09CFF95-B671-48FE-96A8-D3CBDC110B75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A09CFF95-B671-48FE-96A8-D3CBDC110B75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A09CFF95-B671-48FE-96A8-D3CBDC110B75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A09CFF95-B671-48FE-96A8-D3CBDC110B75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
