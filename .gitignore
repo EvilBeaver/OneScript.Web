@@ -6,3 +6,4 @@ OneScript.Mvc.Tests/obj/
 .vs/
 OneScript.WebEngine/bin/
 OneScript.WebEngine/obj/
+OneScript.WebEngine/project.lock.json
