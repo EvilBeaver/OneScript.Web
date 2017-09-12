@@ -10,7 +10,9 @@ namespace OneScript.WebHost.Infrastructure
     {
         public static void AddOneScript(this IServiceCollection services)
         {
+            services.AddRouting();
 
+            
         }
     }
 }

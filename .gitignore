@@ -2,3 +2,6 @@
 *.ide
 .vs/*
 *.suo
+src/.vs/
+src/OneScript/bin/
+src/OneScript/obj/
