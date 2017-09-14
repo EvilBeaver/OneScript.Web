@@ -14,25 +14,34 @@ namespace OneScript
 {
     public class Startup
     {
+        private IHostingEnvironment _hostingEnv;
+        public Startup(IHostingEnvironment hostingEnv)
+        {
+            _hostingEnv = hostingEnv;
+        }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddOneScript();
+            services.AddOneScript(_hostingEnv.ContentRootPath);
+            services.AddMvcCore(opts =>
+            {
+                //opts.Conventions.Add();
+            });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider sp)
         {
-            loggerFactory.AddConsole();
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
             app.UseOscriptMvc();
-            
+            app.UseMvcWithDefaultRoute();
+
         }
     }
 }
