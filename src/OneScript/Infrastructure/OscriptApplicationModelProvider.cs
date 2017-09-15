@@ -1,21 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 
 namespace OneScript.WebHost.Infrastructure
 {
     public class OscriptApplicationModelProvider : IApplicationModelProvider
     {
+        
         public void OnProvidersExecuting(ApplicationModelProviderContext context)
         {
-            throw new NotImplementedException();
+
+            var list = new List<string>();
+            list.Add("wtf are attributes?");
+
+            var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), list.AsReadOnly());
+            cm.ControllerName = "c1";
+            cm.Properties["script"] = "dummysource.os";
+
+            var cm1 = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), list.AsReadOnly());
+            cm1.Properties["script"] = "dummysource2.os";
+            cm1.ControllerName = "c2";
+            //cm.Actions.Add();
+
+            context.Result.Controllers.Add(cm);
+            context.Result.Controllers.Add(cm1);
+
         }
 
         public void OnProvidersExecuted(ApplicationModelProviderContext context)
         {
-            throw new NotImplementedException();
+            
         }
 
         public int Order => -850;

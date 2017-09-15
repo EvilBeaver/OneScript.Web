@@ -15,10 +15,11 @@ namespace OneScript.WebHost.Infrastructure
         public static void AddOneScript(this IServiceCollection services, string applicationRoot)
         {
             services.TryAddEnumerable(
-                ServiceDescriptor.Transient<IApplicationModelProvider, >()););
+                ServiceDescriptor.Transient<IApplicationModelProvider, OscriptApplicationModelProvider>());
 
-            var hse = new HostedScriptEngine();
-            hse.CreateProcess(new WebApplicationHost(), hse.Loader.FromFile(Path.Combine(applicationRoot, "server.os")));
+            var factory = new OneScriptScriptFactory(applicationRoot);
+            services.AddSingleton(factory);
+            
         }
     }
 }
