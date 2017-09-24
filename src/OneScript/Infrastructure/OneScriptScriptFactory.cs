@@ -1,37 +1,47 @@
 ﻿using ScriptEngine.Environment;
+using ScriptEngine;
 using ScriptEngine.HostedScript;
 using ScriptEngine.Machine.Contexts;
 using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using ScriptEngine;
+using System;
 
 namespace OneScript.WebHost.Infrastructure
 {
     public class OneScriptScriptFactory
     {
-        private HostedScriptEngine _hse= new HostedScriptEngine();
+        private ScriptingEngine _eng = new ScriptingEngine();
+        private RuntimeEnvironment _globalEnv = new RuntimeEnvironment();
 
-        private class DummyStartupSource : ICodeSource
+        public OneScriptScriptFactory()
         {
-            public DummyStartupSource()
-            {
-                Code = "startup.os";
-                SourceDescription = "startup.os";
-            }
-
-            public string Code { get; }
-            public string SourceDescription { get; }
+            _eng.Environment = _globalEnv;
         }
 
-        public OneScriptScriptFactory(string applicationRoot)
+        public OneScriptScriptFactory(IScriptsProvider scriptsProvider) : this()
         {
-            ApplicationRoot = applicationRoot;
-            _hse.SetGlobalEnvironment(new WebApplicationHost(), new DummyStartupSource());
-            _hse.Initialize();
+            SourceProvider = scriptsProvider;
         }
 
-        public string ApplicationRoot { get; }
-        
+        public IScriptsProvider SourceProvider { get; }
+
+        public LoadedModuleHandle PrepareModule(string virtualPath)
+        {
+            throw new NotImplementedException();
+
+            var src = _eng.Loader.FromFile(virtualPath);
+            return PrepareModule(src);
+        }
+
+        public LoadedModuleHandle PrepareModule(ICodeSource src)
+        {
+            var compiler = _eng.GetCompilerService();
+            var image = compiler.CreateModule(src);
+
+            return _eng.LoadModuleImage(image);
+        }
+
     }
 }

@@ -6,3 +6,7 @@ src/.vs/
 src/OneScript/bin/
 src/OneScript/obj/
 src/packages
+src/OsWebTests/bin/
+src/OsWebTests/obj/
+src/WebhostTests/bin/
+src/WebhostTests/obj/

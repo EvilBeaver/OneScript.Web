@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ScriptEngine.HostedScript;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using OneScript.WebHost.Application;
 
 namespace OneScript.WebHost.Infrastructure
 {
@@ -17,8 +18,6 @@ namespace OneScript.WebHost.Infrastructure
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApplicationModelProvider, OscriptApplicationModelProvider>());
 
-            var factory = new OneScriptScriptFactory(applicationRoot);
-            services.AddSingleton(factory);
             
         }
     }

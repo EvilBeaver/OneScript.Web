@@ -5,6 +5,8 @@ VisualStudioVersion = 15.0.26730.12
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OneScriptWeb", "OneScript\OneScriptWeb.csproj", "{082351A7-DB5F-41F3-8337-CBAA7C877EC6}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OsWebTests", "OsWebTests\OsWebTests.csproj", "{91E03896-9E8B-4898-B328-964EC26E9109}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{082351A7-DB5F-41F3-8337-CBAA7C877EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{082351A7-DB5F-41F3-8337-CBAA7C877EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{082351A7-DB5F-41F3-8337-CBAA7C877EC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{91E03896-9E8B-4898-B328-964EC26E9109}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{91E03896-9E8B-4898-B328-964EC26E9109}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{91E03896-9E8B-4898-B328-964EC26E9109}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{91E03896-9E8B-4898-B328-964EC26E9109}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
