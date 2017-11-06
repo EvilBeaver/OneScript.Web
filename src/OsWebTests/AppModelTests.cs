@@ -28,8 +28,11 @@ namespace OsWebTests
             var result = resultContainer.Result;
 
             Assert.AreEqual(1, result.Controllers.Count);
-            Assert.AreEqual(1, result.Controllers[0]);
+            Assert.AreEqual("mycontroller", result.Controllers[0].ControllerType.Name);
             Assert.AreEqual("mycontroller", result.Controllers[0].ControllerName);
+
+            Assert.AreEqual(1, result.Controllers[0].Actions.Count);
+            Assert.AreEqual("Метод1", result.Controllers[0].Actions[0].ActionName);
 
         }
     }

@@ -1,4 +1,5 @@
 ﻿using ScriptEngine.Environment;
+using ScriptEngine.Machine.Contexts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,9 @@ namespace OneScript.WebHost.Infrastructure
     {
         public Type Reflect(LoadedModuleHandle module, string asTypeName)
         {
-            
+            var type = ReflectedClassType.ReflectModule(module, asTypeName);
+
+            return type;
         }
     }
 }

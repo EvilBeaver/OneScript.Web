@@ -27,14 +27,6 @@ namespace OneScript.WebHost.Infrastructure
 
         public IScriptsProvider SourceProvider { get; }
 
-        public LoadedModuleHandle PrepareModule(string virtualPath)
-        {
-            throw new NotImplementedException();
-
-            var src = _eng.Loader.FromFile(virtualPath);
-            return PrepareModule(src);
-        }
-
         public LoadedModuleHandle PrepareModule(ICodeSource src)
         {
             var compiler = _eng.GetCompilerService();

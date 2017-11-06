@@ -18,17 +18,18 @@ namespace OsWebTests
             _loader = e.Loader;
         }
 
-        public ICodeSource GetCodeSource(string content)
+        private ICodeSource CreateCodeSource(string virtualPath, string content)
         {
-            return _loader.FromString(content);
+            var src = _loader.FromString(content);
+            return new FakeCodeSource(src, virtualPath);
         }
 
         public void Add(string virtualPath, string content)
         {
-            _sources.Add(virtualPath, GetCodeSource(content));
+            _sources.Add(virtualPath, CreateCodeSource(virtualPath, content));
         }
 
-        public IEnumerable<string> EnumerateEntries(string prefix)
+        public IEnumerable<string> EnumerateFiles(string prefix)
         {
             return _sources.Keys.Where(x => x.StartsWith(prefix));
         }
@@ -38,4 +39,21 @@ namespace OsWebTests
             return _sources[virtualPath];
         }
     }
+
+    class FakeCodeSource : ICodeSource
+    {
+        ICodeSource _original;
+        string _name;
+
+        public FakeCodeSource(ICodeSource original, string fakeFileName)
+        {
+            _original = original;
+            _name = fakeFileName;
+        }
+
+        public string Code => _original.Code;
+
+        public string SourceDescription => _name;
+    }
+
 }

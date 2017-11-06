@@ -12,13 +12,14 @@ namespace OsWebTests
         {
             var factory = new OneScriptScriptFactory();
             var srcProvider = new FakeScriptsProvider();
-            return factory.PrepareModule(srcProvider.GetCodeSource(source));
+            srcProvider.Add("/somedir/dummy.os", source);
+            return factory.PrepareModule(srcProvider.Get("/somedir/dummy.os"));
         }
 
         [TestMethod]
         public void ReflectExportedVariablesAsPublicProperties()
         {
-            var code = "Перем А; Перем Б Экспорт";
+            var code = "Перем А; Перем Б Экспорт;";
             var module = CreateModule(code);
             
             var r = new TypeReflectionEngine();

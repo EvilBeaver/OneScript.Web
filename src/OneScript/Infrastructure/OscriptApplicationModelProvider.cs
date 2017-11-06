@@ -18,31 +18,36 @@ namespace OneScript.WebHost.Infrastructure
 
         public void OnProvidersExecuting(ApplicationModelProviderContext context)
         {
-            var type = typeof(ScriptedController).GetTypeInfo();
             var attrList = new List<string>();
-            var sources = _fw.SourceProvider.EnumerateEntries("/controllers");
-            foreach (var item in sources)
+            var sources = _fw.SourceProvider.EnumerateFiles("/controllers");
+            var reflector = new TypeReflectionEngine();
+            foreach (var virtualPath in sources)
             {
-                var cm = new ControllerModel(type, null);
-                
+                var codeSrc = _fw.SourceProvider.Get(virtualPath);
+                var module = _fw.PrepareModule(codeSrc);
+                var baseFileName = System.IO.Path.GetFileNameWithoutExtension(codeSrc.SourceDescription);
+                var type = reflector.Reflect(module, baseFileName);
+                var cm = new ControllerModel(type.GetTypeInfo(), attrList.AsReadOnly());
+                cm.ControllerName = type.Name;
+                cm.Properties.Add("module", module);
+                FillActions(cm, type);
+
+                context.Result.Controllers.Add(cm);
             }
-
-            //var list = new List<string>();
-            //list.Add("wtf are attributes?");
-
-            //var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), list.AsReadOnly());
-            //cm.ControllerName = "c1";
-            //cm.Properties["script"] = "dummysource.os";
-
-            //var cm1 = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), list.AsReadOnly());
-            //cm1.Properties["script"] = "dummysource2.os";
-            //cm1.ControllerName = "c2";
-           
-            //context.Result.Controllers.Add(cm);
-            //context.Result.Controllers.Add(cm1);
-
         }
 
+        private void FillActions(ControllerModel cm, Type type)
+        {
+            var attrList = new List<object>() { 0 };
+            foreach (var method in type.GetMethods())
+            {
+                var actionModel = new ActionModel(method, attrList.AsReadOnly());
+                actionModel.ActionName = method.Name;
+                actionModel.Controller = cm;
+                cm.Actions.Add(actionModel);
+            }
+
+        }
         public void OnProvidersExecuted(ApplicationModelProviderContext context)
         {
             
