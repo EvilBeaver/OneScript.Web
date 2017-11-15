@@ -10,8 +10,8 @@ namespace OneScript.WebHost.Infrastructure
 {
     public class OscriptApplicationModelProvider : IApplicationModelProvider
     {
-        private readonly OneScriptScriptFactory _fw;
-        public OscriptApplicationModelProvider(OneScriptScriptFactory framework)
+        private readonly IApplicationModulesLocator _fw;
+        public OscriptApplicationModelProvider(IApplicationModulesLocator framework)
         {
             _fw = framework;
         }

@@ -2,6 +2,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ScriptEngine.Environment;
 using OneScript.WebHost.Infrastructure;
+using OneScript.WebHost.Infrastructure.Implementations;
 
 namespace OsWebTests
 {
@@ -10,9 +11,9 @@ namespace OsWebTests
     {
         private LoadedModuleHandle CreateModule(string source)
         {
-            var factory = new OneScriptScriptFactory();
             var srcProvider = new FakeScriptsProvider();
             srcProvider.Add("/somedir/dummy.os", source);
+            var factory = new OneScriptModuleFactory(srcProvider);
             return factory.PrepareModule(srcProvider.Get("/somedir/dummy.os"));
         }
 

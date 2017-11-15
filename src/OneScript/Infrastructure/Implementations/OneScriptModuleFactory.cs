@@ -5,23 +5,18 @@ using ScriptEngine.Machine.Contexts;
 using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
-using ScriptEngine;
 using System;
 
-namespace OneScript.WebHost.Infrastructure
+namespace OneScript.WebHost.Infrastructure.Implementations
 {
-    public class OneScriptScriptFactory
+    public class OneScriptModuleFactory : IApplicationModulesLocator
     {
         private ScriptingEngine _eng = new ScriptingEngine();
         private RuntimeEnvironment _globalEnv = new RuntimeEnvironment();
-
-        public OneScriptScriptFactory()
+        
+        public OneScriptModuleFactory(IScriptsProvider scriptsProvider)
         {
             _eng.Environment = _globalEnv;
-        }
-
-        public OneScriptScriptFactory(IScriptsProvider scriptsProvider) : this()
-        {
             SourceProvider = scriptsProvider;
         }
 

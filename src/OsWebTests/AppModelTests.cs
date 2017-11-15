@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OneScript.WebHost.Infrastructure;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using OneScript.WebHost.Infrastructure.Implementations;
 
 namespace OsWebTests
 {
@@ -17,7 +18,7 @@ namespace OsWebTests
             var scriptsProvider = new FakeScriptsProvider();
             scriptsProvider.Add("/controllers/mycontroller.os", testControllerSrc);
 
-            var factory = new OneScriptScriptFactory(scriptsProvider);
+            var factory = new OneScriptModuleFactory(scriptsProvider);
             var provider = new OscriptApplicationModelProvider(factory);
 
             var types = new TypeInfo[0];
