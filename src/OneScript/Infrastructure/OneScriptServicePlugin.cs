@@ -23,10 +23,7 @@ namespace OneScript.WebHost.Infrastructure
 
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApplicationModelProvider, OscriptApplicationModelProvider>());
-
-            //services.TryAddEnumerable(
-            //    ServiceDescriptor.Transient<IActionDescriptorProvider, OneScriptActionDescriptorProvider>());
-
+            
             services.AddTransient<IControllerActivator, ScriptedControllerActivator>();
 
             

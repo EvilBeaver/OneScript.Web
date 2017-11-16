@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using ScriptEngine.Environment;
 
 namespace OneScript.WebHost.Infrastructure.Implementations
 {
@@ -11,12 +12,13 @@ namespace OneScript.WebHost.Infrastructure.Implementations
     {
         public object Create(ControllerContext context)
         {
-            throw new NotImplementedException();
+            var instance = new ScriptedController(context, (LoadedModuleHandle)context.ActionDescriptor.Properties["module"]);
+            return instance;
         }
 
         public void Release(ControllerContext context, object controller)
         {
-            throw new NotImplementedException();
+            //throw new NotImplementedException();
         }
     }
 }
