@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using ScriptEngine.HostedScript;
@@ -26,7 +27,23 @@ namespace OneScript.WebHost.Infrastructure
             
             services.AddTransient<IControllerActivator, ScriptedControllerActivator>();
 
-            
+            InitializeScriptedLayer(services);
+
+        }
+
+        private static void InitializeScriptedLayer(IServiceCollection services)
+        {
+            var webEng = new WebApplicationEngine();
+            services.AddSingleton(typeof(WebApplicationEngine), webEng);
+            services.AddTransient<IApplicationFactory, AppStarter>();
+        }
+
+        public static IApplicationBuilder UseOneScript(this IApplicationBuilder app)
+        {
+            var appFactory = (IApplicationFactory)app.ApplicationServices.GetService(typeof(IApplicationFactory));
+            var oscriptApp = appFactory.CreateApp();
+            app.Properties["OneScriptApplication"] = oscriptApp;
+            return app;
         }
     }
 }

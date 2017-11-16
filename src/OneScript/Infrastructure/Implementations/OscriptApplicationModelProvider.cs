@@ -1,14 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
-using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine.Machine.Contexts;
 
-namespace OneScript.WebHost.Infrastructure
+namespace OneScript.WebHost.Infrastructure.Implementations
 {
     public class OscriptApplicationModelProvider : IApplicationModelProvider
     {

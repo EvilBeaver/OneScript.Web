@@ -4,12 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OneScript.WebHost.Infrastructure;
-using Microsoft.AspNetCore.Mvc;
 using System.IO;
+using OneScript.WebHost.Application;
 
 namespace OneScript
 {
@@ -18,8 +17,7 @@ namespace OneScript
         public Startup(IHostingEnvironment hostingEnv, ILoggerFactory logs)
         {
             hostingEnv.ContentRootPath = Path.Combine(hostingEnv.ContentRootPath, "resources");
-            logs.AddConsole(LogLevel.Trace)
-                .AddDebug(LogLevel.Trace);
+            logs.AddConsole();
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -28,7 +26,7 @@ namespace OneScript
         {
             services.AddMvcCore();
             services.AddOneScript();
-            
+            services.AddSession();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -39,8 +37,13 @@ namespace OneScript
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseMvcWithDefaultRoute();
-
+            app.UseOneScript();
+            app.UseStaticFiles()
+               .UseMvc(routes =>
+                {
+                    var osApp = (ApplicationInstance)app.Properties["OneScriptApplication"];
+                    osApp.ConfigureRoutes(routes);
+                });
         }
     }
 }
