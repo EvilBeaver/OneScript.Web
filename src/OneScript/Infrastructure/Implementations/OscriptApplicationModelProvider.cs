@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using OneScript.WebHost.Infrastructure.Implementations;
+using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Infrastructure
 {
@@ -27,9 +29,10 @@ namespace OneScript.WebHost.Infrastructure
                 var module = _fw.PrepareModule(codeSrc);
                 var baseFileName = System.IO.Path.GetFileNameWithoutExtension(codeSrc.SourceDescription);
                 var type = reflector.Reflect(module, baseFileName);
-                var cm = new ControllerModel(type.GetTypeInfo(), attrList.AsReadOnly());
+                var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), attrList.AsReadOnly());
                 cm.ControllerName = type.Name;
                 cm.Properties.Add("module", module);
+                cm.Properties.Add("type", type);
                 FillActions(cm, type);
 
                 context.Result.Controllers.Add(cm);
@@ -41,9 +44,13 @@ namespace OneScript.WebHost.Infrastructure
             var attrList = new List<object>() { 0 };
             foreach (var method in type.GetMethods())
             {
-                var actionModel = new ActionModel(method, attrList.AsReadOnly());
+                var scriptMethodInfo = method as ReflectedMethodInfo;
+                var clrMethodInfo = typeof(ScriptedController).GetMethod("VoidAction");
+                var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
                 actionModel.ActionName = method.Name;
                 actionModel.Controller = cm;
+                actionModel.Properties.Add("actionMethod", scriptMethodInfo);
+                actionModel.Selectors.Add(new SelectorModel());
                 cm.Actions.Add(actionModel);
             }
 

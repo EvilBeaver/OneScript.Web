@@ -15,9 +15,11 @@ namespace OneScript
 {
     public class Startup
     {
-        public Startup(IHostingEnvironment hostingEnv)
+        public Startup(IHostingEnvironment hostingEnv, ILoggerFactory logs)
         {
             hostingEnv.ContentRootPath = Path.Combine(hostingEnv.ContentRootPath, "resources");
+            logs.AddConsole(LogLevel.Trace)
+                .AddDebug(LogLevel.Trace);
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -26,6 +28,7 @@ namespace OneScript
         {
             services.AddMvcCore();
             services.AddOneScript();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -37,7 +40,6 @@ namespace OneScript
             }
 
             app.UseMvcWithDefaultRoute();
-            app.UseOscriptMvc();
 
         }
     }

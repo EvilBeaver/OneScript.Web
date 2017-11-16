@@ -10,3 +10,5 @@ src/OsWebTests/bin/
 src/OsWebTests/obj/
 src/WebhostTests/bin/
 src/WebhostTests/obj/
+
+src/OneScript/OneScriptWeb\.csproj\.user
