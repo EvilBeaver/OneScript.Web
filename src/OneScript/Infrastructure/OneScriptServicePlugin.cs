@@ -37,13 +37,5 @@ namespace OneScript.WebHost.Infrastructure
             services.AddSingleton(typeof(WebApplicationEngine), webEng);
             services.AddTransient<IApplicationFactory, AppStarter>();
         }
-
-        public static IApplicationBuilder UseOneScript(this IApplicationBuilder app)
-        {
-            var appFactory = (IApplicationFactory)app.ApplicationServices.GetService(typeof(IApplicationFactory));
-            var oscriptApp = appFactory.CreateApp();
-            app.Properties["OneScriptApplication"] = oscriptApp;
-            return app;
-        }
     }
 }

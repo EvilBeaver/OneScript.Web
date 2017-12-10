@@ -4,11 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 
 namespace OneScript.WebHost.Application
 {
-    public class ApplicationInstance : ScriptDrivenObject
+    public partial class ApplicationInstance : ScriptDrivenObject
     {
         public ApplicationInstance(LoadedModuleHandle module): base(module)
         {
@@ -17,7 +18,7 @@ namespace OneScript.WebHost.Application
 
         protected override int GetOwnMethodCount()
         {
-            return 0;
+            return 1;
         }
 
         protected override int GetOwnVariableCount()
@@ -30,13 +31,24 @@ namespace OneScript.WebHost.Application
             
         }
 
-        internal void OnStartup()
+        [ContextMethod("ИспользоватьСтатическиеФайлы")]
+        public void UseStaticFiles()
         {
-            //throw new NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public void ConfigureRoutes(IRouteBuilder routes)
+        [ContextMethod("ИспользоватьМаршруты")]
+        public void UseMvcRoutes()
         {
+            throw new NotImplementedException();
+        }
+
+        internal void OnStartup(IApplicationBuilder aspAppBuilder)
+        {
+            int startup = GetScriptMethod("ПриНачалеРаботыСистемы", "OnSystemStartup");
+            if(startup == -1)
+                return;
+
             throw new NotImplementedException();
         }
     }
