@@ -26,7 +26,7 @@ namespace OneScriptWeb.Tests
             var result = resultContainer.Result;
 
             Assert.Equal(1, result.Controllers.Count);
-            Assert.Equal("mycontroller", result.Controllers[0].ControllerType.Name);
+            Assert.Equal("ScriptedController", result.Controllers[0].ControllerType.Name);
             Assert.Equal("mycontroller", result.Controllers[0].ControllerName);
 
             Assert.Equal(1, result.Controllers[0].Actions.Count);

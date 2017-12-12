@@ -16,9 +16,9 @@ namespace OneScript.WebHost.Infrastructure
             Environment = new RuntimeEnvironment();
             Engine.Environment = Environment;
 
-            Environment.InjectObject(new WebGlobalContext());
             Engine.AttachAssembly(System.Reflection.Assembly.GetExecutingAssembly(), Environment);
             Engine.AttachAssembly(typeof(SystemGlobalContext).Assembly, Environment);
+            Environment.InjectObject(new WebGlobalContext());
         }
         
         public ScriptingEngine Engine { get; }

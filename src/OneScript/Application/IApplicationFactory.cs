@@ -6,7 +6,7 @@ using OneScript.WebHost.Infrastructure;
 
 namespace OneScript.WebHost.Application
 {
-    interface IApplicationFactory
+    public interface IApplicationFactory
     {
         ApplicationInstance CreateApp();
     }

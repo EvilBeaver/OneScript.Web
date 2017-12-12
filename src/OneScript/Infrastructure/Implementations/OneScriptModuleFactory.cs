@@ -6,6 +6,7 @@ using System.IO;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using System;
+using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure.Implementations
 {
@@ -29,6 +30,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
             return _eng.LoadModuleImage(image);
         }
-
+        
     }
 }

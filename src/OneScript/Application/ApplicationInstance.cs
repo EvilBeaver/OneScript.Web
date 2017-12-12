@@ -66,7 +66,7 @@ namespace OneScript.WebHost.Application
             throw new NotImplementedException();
         }
 
-        internal void OnStartup(IApplicationBuilder aspAppBuilder)
+        public void OnStartup(IApplicationBuilder aspAppBuilder)
         {
             int startup = GetScriptMethod("ПриНачалеРаботыСистемы", "OnSystemStartup");
             if(startup == -1)
