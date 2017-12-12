@@ -6,11 +6,14 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Application
 {
-    public partial class ApplicationInstance : ScriptDrivenObject
+    public class ApplicationInstance : ScriptDrivenObject
     {
+        private readonly ContextMethodsMapper<ApplicationInstance> _ownMethods = new ContextMethodsMapper<ApplicationInstance>();
+
         public ApplicationInstance(LoadedModuleHandle module): base(module)
         {
             
@@ -18,7 +21,7 @@ namespace OneScript.WebHost.Application
 
         protected override int GetOwnMethodCount()
         {
-            return 1;
+            return _ownMethods.Count;
         }
 
         protected override int GetOwnVariableCount()
@@ -29,6 +32,26 @@ namespace OneScript.WebHost.Application
         protected override void UpdateState()
         {
             
+        }
+
+        protected override int FindOwnMethod(string name)
+        {
+            return _ownMethods.FindMethod(name);
+        }
+
+        protected override MethodInfo GetOwnMethod(int index)
+        {
+            return _ownMethods.GetMethodInfo(index);
+        }
+
+        protected override void CallOwnProcedure(int index, IValue[] arguments)
+        {
+            _ownMethods.GetMethod(index)(this, arguments);
+        }
+
+        protected override IValue CallOwnFunction(int index, IValue[] arguments)
+        {
+            return _ownMethods.GetMethod(index)(this, arguments);
         }
 
         [ContextMethod("ИспользоватьСтатическиеФайлы")]
@@ -48,7 +71,7 @@ namespace OneScript.WebHost.Application
             int startup = GetScriptMethod("ПриНачалеРаботыСистемы", "OnSystemStartup");
             if(startup == -1)
                 return;
-
+            
             throw new NotImplementedException();
         }
     }
