@@ -8,7 +8,5 @@ src/OneScript/obj/
 src/packages
 src/OsWebTests/bin/
 src/OsWebTests/obj/
-src/WebhostTests/bin/
-src/WebhostTests/obj/
-
-src/OneScript/OneScriptWeb\.csproj\.user
+src/OneScriptWeb.Tests/bin/
+src/OneScriptWeb.Tests/obj/

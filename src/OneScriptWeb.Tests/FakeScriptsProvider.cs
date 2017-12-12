@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
-using OneScript.WebHost.Infrastructure;
-using ScriptEngine.Environment;
-using ScriptEngine;
 using System.Linq;
+using OneScript.WebHost.Infrastructure;
+using ScriptEngine;
+using ScriptEngine.Environment;
 
-namespace OsWebTests
+namespace OneScriptWeb.Tests
 {
     internal class FakeScriptsProvider : IScriptsProvider
     {

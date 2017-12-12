@@ -19,8 +19,8 @@ namespace OneScript.WebHost.Infrastructure
     {
         public static void AddOneScript(this IServiceCollection services)
         {
-            services.AddSingleton<IScriptsProvider, FilesystemScriptsProvider>();
-            services.AddSingleton<IApplicationModulesLocator, OneScriptModuleFactory>();
+            services.TryAddSingleton<IScriptsProvider, FilesystemScriptsProvider>();
+            services.TryAddSingleton<IApplicationModulesLocator, OneScriptModuleFactory>();
 
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApplicationModelProvider, OscriptApplicationModelProvider>());

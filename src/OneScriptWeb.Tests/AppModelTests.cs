@@ -1,17 +1,14 @@
-﻿using System;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using OneScript.WebHost.Infrastructure;
-using System.Reflection;
+﻿using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using OneScript.WebHost.Infrastructure.Implementations;
+using Xunit;
 
-namespace OsWebTests
+namespace OneScriptWeb.Tests
 {
-    [TestClass]
     public class AppModelTests
     {
-        [TestMethod]
-        public void TestAppModelFromSDO()
+        [Fact]
+        public void CreateAppModelFromSDOTest()
         {
             string testControllerSrc = "Процедура Метод1() КонецПроцедуры";
 
@@ -28,12 +25,12 @@ namespace OsWebTests
 
             var result = resultContainer.Result;
 
-            Assert.AreEqual(1, result.Controllers.Count);
-            Assert.AreEqual("mycontroller", result.Controllers[0].ControllerType.Name);
-            Assert.AreEqual("mycontroller", result.Controllers[0].ControllerName);
+            Assert.Equal(1, result.Controllers.Count);
+            Assert.Equal("mycontroller", result.Controllers[0].ControllerType.Name);
+            Assert.Equal("mycontroller", result.Controllers[0].ControllerName);
 
-            Assert.AreEqual(1, result.Controllers[0].Actions.Count);
-            Assert.AreEqual("Метод1", result.Controllers[0].Actions[0].ActionName);
+            Assert.Equal(1, result.Controllers[0].Actions.Count);
+            Assert.Equal("Метод1", result.Controllers[0].Actions[0].ActionName);
 
         }
     }
