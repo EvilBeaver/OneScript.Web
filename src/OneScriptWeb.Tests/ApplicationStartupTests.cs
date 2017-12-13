@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Xunit;
 using Moq;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
+using ScriptEngine;
 
 namespace OneScriptWeb.Tests
 {
@@ -16,42 +18,64 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void CheckThatApplicationInstanceIsCreatedOnMain()
         {
-            var services = new ServiceCollection();
-            services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
-            services.AddMvcCore();
-            services.AddOneScript();
+            lock (TestOrderingLock.Lock)
+            {
+                var services = new ServiceCollection();
+                services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
 
-            var provider = services.BuildServiceProvider();
-            var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
-            fakeFS.Add("/main.os", "");
+                var webAppMoq = CreateWebEngineMock();
+                services.TryAddSingleton<IApplicationRuntime>(webAppMoq);
 
-            var appBuilder = provider.GetService<IApplicationFactory>();
-            Assert.NotNull(appBuilder);
+                services.AddMvcCore();
+                services.AddOneScript();
 
-            appBuilder.CreateApp();
+                var provider = services.BuildServiceProvider();
+                var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
+                fakeFS.Add("/main.os", "");
+
+                var appBuilder = provider.GetService<IApplicationFactory>();
+                Assert.NotNull(appBuilder);
+                Assert.NotNull(appBuilder.CreateApp()); 
+            }
+        }
+
+        private static IApplicationRuntime CreateWebEngineMock()
+        {
+            var webAppMoq = new Mock<IApplicationRuntime>();
+            var engine = new ScriptingEngine()
+            {
+                Environment = new RuntimeEnvironment()
+            };
+            webAppMoq.SetupGet(x => x.Engine).Returns(engine);
+            webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
+            return webAppMoq.Object;
         }
 
         [Fact]
         public void CheckThatAppMethodsAreCalled()
         {
-            var services = new ServiceCollection();
-            services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
-            services.AddMvcCore();
-            services.AddOneScript();
-            
-            var provider = services.BuildServiceProvider();
-            var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
-            fakeFS.Add("/main.os", "Процедура ПриНачалеРаботыСистемы()\n" +
-                                   "    ИспользоватьСтатическиеФайлы()" +
-                                   "КонецПроцедуры");
+            lock (TestOrderingLock.Lock)
+            {
+                var services = new ServiceCollection();
+                services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
+                services.AddMvcCore();
+                services.AddOneScript();
 
-            var locator = provider.GetService<IApplicationModulesLocator>();
-            var app = new ApplicationInstance(locator.PrepareModule(fakeFS.Get("/main.os")));
+                var provider = services.BuildServiceProvider();
+                var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
+                fakeFS.Add("/main.os", "Процедура ПриНачалеРаботыСистемы()\n" +
+                                       "    ИспользоватьСтатическиеФайлы();\n" +
+                                       "    ИспользоватьМаршруты();" +
+                                       "КонецПроцедуры");
 
-            var appMock = Mock.Get(app);
-            appMock.Verify(x => x.UseStaticFiles());
+                var webApp = provider.GetService<IApplicationRuntime>();
+                var app = ApplicationInstance.Create(fakeFS.Get("/main.os"), webApp);
+                var mvcAppBuilder = new Mock<IApplicationBuilder>();
+                
+                app.OnStartup(mvcAppBuilder.Object);
+                mvcAppBuilder.Verify(x=>x.Use(It.IsAny<Func<RequestDelegate,RequestDelegate>>()), Times.Exactly(2));
 
-            appMock.Object.OnStartup(Mock.Of<IApplicationBuilder>());
+            }
         }
     }
 }

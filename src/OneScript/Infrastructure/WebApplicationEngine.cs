@@ -8,7 +8,7 @@ using ScriptEngine.HostedScript.Library;
 
 namespace OneScript.WebHost.Infrastructure
 {
-    public class WebApplicationEngine
+    public class WebApplicationEngine : IApplicationRuntime
     {
         public WebApplicationEngine()
         {
@@ -19,6 +19,8 @@ namespace OneScript.WebHost.Infrastructure
             Engine.AttachAssembly(System.Reflection.Assembly.GetExecutingAssembly(), Environment);
             Engine.AttachAssembly(typeof(SystemGlobalContext).Assembly, Environment);
             Environment.InjectObject(new WebGlobalContext());
+
+            Engine.UpdateContexts();
         }
         
         public ScriptingEngine Engine { get; }

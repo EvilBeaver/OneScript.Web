@@ -13,23 +13,19 @@ namespace OneScript.WebHost.Application
 
     class AppStarter : IApplicationFactory
     {
-        private IApplicationModulesLocator _modFactory;
-        private WebApplicationEngine _webEng;
+        private IScriptsProvider _scripts;
+        private IApplicationRuntime _webEng;
 
-        public AppStarter(IApplicationModulesLocator modFactory, WebApplicationEngine webEng)
+        public AppStarter(IScriptsProvider scripts, IApplicationRuntime webEng)
         {
-            _modFactory = modFactory;
+            _scripts = scripts;
             _webEng = webEng;
         }
 
         public ApplicationInstance CreateApp()
         {
-            var codeSrc = _modFactory.SourceProvider.Get("/main.os");
-            var module = _modFactory.PrepareModule(codeSrc);
-            var app = new ApplicationInstance(module);
-            _webEng.Engine.InitializeSDO(app);
-
-            return app;
+            var codeSrc = _scripts.Get("/main.os");
+            return ApplicationInstance.Create(codeSrc, _webEng);
         }
     }
     

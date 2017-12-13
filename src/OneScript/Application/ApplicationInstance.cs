@@ -6,13 +6,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using OneScript.WebHost.Infrastructure;
+using ScriptEngine;
 using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Application
 {
     public class ApplicationInstance : ScriptDrivenObject
     {
-        private readonly ContextMethodsMapper<ApplicationInstance> _ownMethods = new ContextMethodsMapper<ApplicationInstance>();
+        private static readonly ContextMethodsMapper<ApplicationInstance> OwnMethods = new ContextMethodsMapper<ApplicationInstance>();
+
+
+        private IApplicationBuilder _startupBuilder;
 
         public ApplicationInstance(LoadedModuleHandle module): base(module)
         {
@@ -21,7 +26,7 @@ namespace OneScript.WebHost.Application
 
         protected override int GetOwnMethodCount()
         {
-            return _ownMethods.Count;
+            return OwnMethods.Count;
         }
 
         protected override int GetOwnVariableCount()
@@ -36,28 +41,28 @@ namespace OneScript.WebHost.Application
 
         protected override int FindOwnMethod(string name)
         {
-            return _ownMethods.FindMethod(name);
+            return OwnMethods.FindMethod(name);
         }
 
         protected override MethodInfo GetOwnMethod(int index)
         {
-            return _ownMethods.GetMethodInfo(index);
+            return OwnMethods.GetMethodInfo(index);
         }
 
         protected override void CallOwnProcedure(int index, IValue[] arguments)
         {
-            _ownMethods.GetMethod(index)(this, arguments);
+            OwnMethods.GetMethod(index)(this, arguments);
         }
 
         protected override IValue CallOwnFunction(int index, IValue[] arguments)
         {
-            return _ownMethods.GetMethod(index)(this, arguments);
+            return OwnMethods.GetMethod(index)(this, arguments);
         }
 
         [ContextMethod("ИспользоватьСтатическиеФайлы")]
         public void UseStaticFiles()
         {
-            throw new NotImplementedException();
+            _startupBuilder.UseStaticFiles();
         }
 
         [ContextMethod("ИспользоватьМаршруты")]
@@ -71,8 +76,26 @@ namespace OneScript.WebHost.Application
             int startup = GetScriptMethod("ПриНачалеРаботыСистемы", "OnSystemStartup");
             if(startup == -1)
                 return;
+
+            _startupBuilder = aspAppBuilder;
+
+            CallScriptMethod(startup, new IValue[] { });
+        }
+
+        public static ApplicationInstance Create(ICodeSource src, IApplicationRuntime webApp)
+        {
+            var compiler = webApp.Engine.GetCompilerService();
+
+            for (int i = 0; i < OwnMethods.Count; i++)
+            {
+                compiler.DefineMethod(OwnMethods.GetMethodInfo(i));
+            }
             
-            throw new NotImplementedException();
+            var bc = compiler.CreateModule(src);
+            var app = new ApplicationInstance(webApp.Engine.LoadModuleImage(bc));
+            webApp.Engine.InitializeSDO(app);
+
+            return app;
         }
     }
 }

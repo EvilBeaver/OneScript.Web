@@ -2,27 +2,30 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using ScriptEngine.Environment;
 using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Infrastructure.Implementations
 {
     public class OscriptApplicationModelProvider : IApplicationModelProvider
     {
-        private readonly IApplicationModulesLocator _fw;
-        public OscriptApplicationModelProvider(IApplicationModulesLocator framework)
+        private readonly IApplicationRuntime _fw;
+        private readonly IScriptsProvider _scriptsProvider;
+        public OscriptApplicationModelProvider(IApplicationRuntime framework, IScriptsProvider sourceProvider)
         {
             _fw = framework;
+            _scriptsProvider = sourceProvider;
         }
 
         public void OnProvidersExecuting(ApplicationModelProviderContext context)
         {
             var attrList = new List<string>();
-            var sources = _fw.SourceProvider.EnumerateFiles("/controllers");
+            var sources = _scriptsProvider.EnumerateFiles("/controllers");
             var reflector = new TypeReflectionEngine();
             foreach (var virtualPath in sources)
             {
-                var codeSrc = _fw.SourceProvider.Get(virtualPath);
-                var module = _fw.PrepareModule(codeSrc);
+                var codeSrc = _scriptsProvider.Get(virtualPath);
+                var module = LoadControllerCode(codeSrc);
                 var baseFileName = System.IO.Path.GetFileNameWithoutExtension(codeSrc.SourceDescription);
                 var type = reflector.Reflect(module, baseFileName);
                 var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), attrList.AsReadOnly());
@@ -33,6 +36,14 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
                 context.Result.Controllers.Add(cm);
             }
+        }
+
+        private LoadedModuleHandle LoadControllerCode(ICodeSource src)
+        {
+            var compiler = _fw.Engine.GetCompilerService();
+            // TODO: inject compiler own symbols
+            var byteCode = compiler.CreateModule(src);
+            return _fw.Engine.LoadModuleImage(byteCode);
         }
 
         private void FillActions(ControllerModel cm, Type type)

@@ -20,8 +20,6 @@ namespace OneScript.WebHost.Infrastructure
         public static void AddOneScript(this IServiceCollection services)
         {
             services.TryAddSingleton<IScriptsProvider, FilesystemScriptsProvider>();
-            services.TryAddSingleton<IApplicationModulesLocator, OneScriptModuleFactory>();
-
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApplicationModelProvider, OscriptApplicationModelProvider>());
             
@@ -33,8 +31,7 @@ namespace OneScript.WebHost.Infrastructure
 
         private static void InitializeScriptedLayer(IServiceCollection services)
         {
-            var webEng = new WebApplicationEngine();
-            services.AddSingleton(typeof(WebApplicationEngine), webEng);
+            services.TryAddSingleton<IApplicationRuntime, WebApplicationEngine>();
             services.AddTransient<IApplicationFactory, AppStarter>();
         }
     }
