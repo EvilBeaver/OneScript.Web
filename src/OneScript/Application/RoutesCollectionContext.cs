@@ -9,6 +9,7 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    [ContextClass("КоллекцияМаршрутов","RoutesCollection")]
     public class RoutesCollectionContext : AutoContext<RoutesCollectionContext>, IEnumerable<RouteDescriptionContext>, ICollectionContext
     {
         List<RouteDescriptionContext> _routes = new List<RouteDescriptionContext>();

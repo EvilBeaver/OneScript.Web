@@ -41,7 +41,14 @@ namespace OneScript.WebHost.Application
 
         protected override int FindOwnMethod(string name)
         {
-            return OwnMethods.FindMethod(name);
+            try
+            {
+                return OwnMethods.FindMethod(name);
+            }
+            catch (RuntimeException)
+            {
+                return -1;
+            }
         }
 
         protected override MethodInfo GetOwnMethod(int index)
@@ -66,9 +73,49 @@ namespace OneScript.WebHost.Application
         }
 
         [ContextMethod("ИспользоватьМаршруты")]
-        public void UseMvcRoutes()
+        public void UseMvcRoutes(string handler = null)
         {
-            throw new NotImplementedException();
+            if (handler == null)
+                _startupBuilder.UseMvcWithDefaultRoute();
+            else
+                CallRoutesRegistrationHandler(handler);
+        }
+
+        private void CallRoutesRegistrationHandler(string handler)
+        {
+            var handlerIndex = FindMethod(handler);
+
+            var routesCol = new RoutesCollectionContext();
+
+            CallAsProcedure(handlerIndex, new IValue[]{routesCol});
+
+            _startupBuilder.UseMvc(routes =>
+            {
+                foreach (var route in routesCol)
+                {
+                    routes.MapRoute(route.Name, route.Template);
+                }
+            });
+        }
+
+        private int FindInternalMethod(string handler)
+        {
+            // TODO: нет адекватного API для поиска неэкспортного метода (прямо как в ОбработкеОповещения 1С)
+            int handlerIndex = -1;
+            var mCount = GetMethodsCount();
+            for (int i = 0; i < mCount; i++)
+            {
+                var mi = GetMethodInfo(i);
+                if (StringComparer.OrdinalIgnoreCase.Compare(mi.Name, handler) == 0)
+                {
+                    handlerIndex = i;
+                    break;
+                }
+            }
+
+            if (handlerIndex < 0)
+                throw RuntimeException.MethodNotFoundException(handler);
+            return handlerIndex;
         }
 
         public void OnStartup(IApplicationBuilder aspAppBuilder)

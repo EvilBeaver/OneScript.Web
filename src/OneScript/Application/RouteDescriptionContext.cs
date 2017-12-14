@@ -7,6 +7,7 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    [ContextClass("ОписаниеМаршрута", "RouteDescription")]
     public class RouteDescriptionContext : AutoContext<RouteDescriptionContext>
     {
         [ContextProperty("Имя")]
