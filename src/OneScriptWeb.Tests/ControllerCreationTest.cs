@@ -45,7 +45,8 @@ namespace OneScriptWeb.Tests
                 ad.Properties["type"] = context.Result.Controllers[0].Properties["type"];
                 ad.Properties["module"] = context.Result.Controllers[0].Properties["module"];
                 cc.ActionDescriptor = ad;
-                var activator = new ScriptedControllerActivator();
+                
+                var activator = new ScriptedControllerActivator(app);
                 var controller = (ScriptedController)activator.Create(cc);
 
                 Assert.Equal("test", controller.SystemType.Name);

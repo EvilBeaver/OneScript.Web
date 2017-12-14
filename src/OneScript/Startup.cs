@@ -1,18 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.IO;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OneScript.WebHost.Infrastructure;
-using System.IO;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using OneScript.WebHost.Application;
+using OneScript.WebHost.Infrastructure;
 
-namespace OneScript
+namespace OneScript.WebHost
 {
     public class Startup
     {
