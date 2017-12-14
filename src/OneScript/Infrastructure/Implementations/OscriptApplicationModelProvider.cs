@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using ScriptEngine.Environment;
@@ -32,10 +34,33 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 cm.ControllerName = type.Name;
                 cm.Properties.Add("module", module);
                 cm.Properties.Add("type", type);
-                FillActions(cm, type);
+                FillActions(cm, type, GetExportedMethods(module));
 
                 context.Result.Controllers.Add(cm);
             }
+        }
+
+        // TODO: костыль для борьбы с https://github.com/EvilBeaver/OneScript/issues/626
+        private IEnumerable<string> GetExportedMethods(LoadedModuleHandle module)
+        {
+            var type = typeof(LoadedModuleHandle);
+            var reflectedModule = type.InvokeMember("Module", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.GetProperty, null, module, new object[]{});
+
+            var modType = reflectedModule.GetType();
+            var propMethods = modType.GetProperty("ExportedMethods");
+            var exports = propMethods.GetValue(reflectedModule) as Array;
+            Debug.Assert(exports != null);
+
+            var names = new List<string>();
+
+            foreach (var obj in exports)
+            {
+                var exportType = obj.GetType();
+                var propName = exportType.GetField("SymbolicName");
+                names.Add((string)propName.GetValue(obj));
+            }
+
+            return names;
         }
 
         private LoadedModuleHandle LoadControllerCode(ICodeSource src)
@@ -46,10 +71,10 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             return _fw.Engine.LoadModuleImage(byteCode);
         }
 
-        private void FillActions(ControllerModel cm, Type type)
+        private void FillActions(ControllerModel cm, Type type, IEnumerable<string> exports)
         {
             var attrList = new List<object>() { 0 };
-            foreach (var method in type.GetMethods())
+            foreach (var method in type.GetMethods().Where(x=>exports.Contains(x.Name)))
             {
                 var scriptMethodInfo = method as ReflectedMethodInfo;
                 var clrMethodInfo = typeof(ScriptedController).GetMethod("VoidAction");

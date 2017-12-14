@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ScriptEngine.Environment;
+using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
+using MethodInfo = System.Reflection.MethodInfo;
 
 namespace OneScript.WebHost.Infrastructure
 {
@@ -23,10 +25,14 @@ namespace OneScript.WebHost.Infrastructure
             meth.Invoke(this, parameters);
         }
 
-        public ScriptedController(ControllerContext context, LoadedModuleHandle module) : base(module)
+        public ScriptedController(ControllerContext context, LoadedModuleHandle module) : base(module, true)
         {
             _ctx = context;
             _mod = module;
+
+            var typeClr = (Type) context.ActionDescriptor.Properties["type"];
+            var type = TypeManager.RegisterType(typeClr.Name, typeof(ScriptedController));
+            DefineType(type);
         }
         
         protected override int GetOwnVariableCount()

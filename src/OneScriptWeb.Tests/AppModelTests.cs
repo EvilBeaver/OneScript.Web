@@ -17,24 +17,12 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                string testControllerSrc = "Процедура Метод1() КонецПроцедуры";
+                string testControllerSrc = "Процедура Метод1() Экспорт КонецПроцедуры";
 
                 var scriptsProvider = new FakeScriptsProvider();
                 scriptsProvider.Add("/controllers/mycontroller.os", testControllerSrc);
 
-                var services = new ServiceCollection();
-                services.TryAddSingleton<IScriptsProvider>(scriptsProvider);
-                services.AddOneScript();
-
-                var serviceProvider = services.BuildServiceProvider();
-                var modelProvider = serviceProvider.GetService<IApplicationModelProvider>();
-
-                var types = new TypeInfo[0];
-                var resultContainer = new ApplicationModelProviderContext(types);
-
-                modelProvider.OnProvidersExecuting(resultContainer);
-
-                var result = resultContainer.Result;
+                var result = CreateApplicationModel(scriptsProvider);
 
                 Assert.Equal(1, result.Controllers.Count);
                 Assert.Equal("ScriptedController", result.Controllers[0].ControllerType.Name);
@@ -44,6 +32,47 @@ namespace OneScriptWeb.Tests
                 Assert.Equal("Метод1", result.Controllers[0].Actions[0].ActionName); 
             }
 
+        }
+
+        [Fact]
+        public void CheckIfOnlyExportedMethods_AreActions()
+        {
+            lock (TestOrderingLock.Lock)
+            {
+                string testControllerSrc = "Процедура Метод1() Экспорт КонецПроцедуры\n" +
+                                           "Процедура Метод2() КонецПроцедуры";
+
+                var scriptsProvider = new FakeScriptsProvider();
+                scriptsProvider.Add("/controllers/mycontroller.os", testControllerSrc);
+
+                var result = CreateApplicationModel(scriptsProvider);
+
+                Assert.Equal(1, result.Controllers.Count);
+                Assert.Equal("ScriptedController", result.Controllers[0].ControllerType.Name);
+                Assert.Equal("mycontroller", result.Controllers[0].ControllerName);
+
+                Assert.Equal(1, result.Controllers[0].Actions.Count);
+                Assert.Equal("Метод1", result.Controllers[0].Actions[0].ActionName);
+            }
+
+        }
+
+        private static ApplicationModel CreateApplicationModel(FakeScriptsProvider scriptsProvider)
+        {
+            var services = new ServiceCollection();
+            services.TryAddSingleton<IScriptsProvider>(scriptsProvider);
+            services.AddOneScript();
+
+            var serviceProvider = services.BuildServiceProvider();
+            var modelProvider = serviceProvider.GetService<IApplicationModelProvider>();
+
+            var types = new TypeInfo[0];
+            var resultContainer = new ApplicationModelProviderContext(types);
+
+            modelProvider.OnProvidersExecuting(resultContainer);
+
+            var result = resultContainer.Result;
+            return result;
         }
     }
 }
