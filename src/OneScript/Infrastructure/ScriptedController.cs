@@ -33,6 +33,7 @@ namespace OneScript.WebHost.Infrastructure
             var typeClr = (Type) context.ActionDescriptor.Properties["type"];
             var type = TypeManager.RegisterType(typeClr.Name, typeof(ScriptedController));
             DefineType(type);
+            InitOwnData();
         }
         
         protected override int GetOwnVariableCount()
