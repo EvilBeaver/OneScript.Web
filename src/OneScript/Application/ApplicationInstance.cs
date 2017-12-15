@@ -93,7 +93,11 @@ namespace OneScript.WebHost.Application
             {
                 foreach (var route in routesCol)
                 {
-                    routes.MapRoute(route.Name, route.Template);
+                    routes.MapRoute(route.Name, route.Template, route.Defaults.Select(x=>
+                    {
+                        var kv = new KeyValuePair<string,object>(x.Key.AsString(),ContextValuesMarshaller.ConvertToCLRObject(x.Value));
+                        return kv;
+                    }));
                 }
             });
         }
