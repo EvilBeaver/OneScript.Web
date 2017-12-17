@@ -77,7 +77,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             foreach (var method in type.GetMethods().Where(x=>exports.Contains(x.Name)))
             {
                 var scriptMethodInfo = method as ReflectedMethodInfo;
-                var clrMethodInfo = typeof(ScriptedController).GetMethod("VoidAction");
+                var clrMethodInfo = MapToActionMethod(scriptMethodInfo);
                 var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
                 actionModel.ActionName = method.Name;
                 actionModel.Controller = cm;
@@ -87,6 +87,21 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             }
 
         }
+
+        private static MethodInfo MapToActionMethod(ReflectedMethodInfo reflectedMethodInfo)
+        {
+            MethodInfo clrMethodInfo;
+            if (reflectedMethodInfo.IsFunction)
+            {
+                clrMethodInfo = typeof(ScriptedController).GetMethod("ResultAction");
+            }
+            else
+            {
+                clrMethodInfo = typeof(ScriptedController).GetMethod("VoidAction");
+            }
+            return clrMethodInfo;
+        }
+
         public void OnProvidersExecuted(ApplicationModelProviderContext context)
         {
             

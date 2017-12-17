@@ -30,6 +30,26 @@ namespace OneScriptWeb.Tests
 
                 Assert.Equal(1, result.Controllers[0].Actions.Count);
                 Assert.Equal("Метод1", result.Controllers[0].Actions[0].ActionName); 
+                Assert.Equal("VoidAction", result.Controllers[0].Actions[0].ActionMethod.Name);
+            }
+
+        }
+
+        [Fact]
+        public void CheckThatActionsMappedToFunctions()
+        {
+            lock (TestOrderingLock.Lock)
+            {
+                string testControllerSrc = "Функция ВозвращающийМетод() Экспорт КонецФункции";
+
+                var scriptsProvider = new FakeScriptsProvider();
+                scriptsProvider.Add("/controllers/mycontroller.os", testControllerSrc);
+
+                var result = CreateApplicationModel(scriptsProvider);
+                
+                Assert.Equal(1, result.Controllers[0].Actions.Count);
+                Assert.Equal("ВозвращающийМетод", result.Controllers[0].Actions[0].ActionName);
+                Assert.Equal("ResultAction", result.Controllers[0].Actions[0].ActionMethod.Name);
             }
 
         }
