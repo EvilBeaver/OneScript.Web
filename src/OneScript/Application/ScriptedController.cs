@@ -25,6 +25,16 @@ namespace OneScript.WebHost.Infrastructure
             meth.Invoke(this, parameters);
         }
 
+        public IActionResult ResultAction(params object[] parameters)
+        {
+            var meth = (MethodInfo)_ctx.ActionDescriptor.Properties["actionMethod"];
+            if (parameters == null)
+                parameters = new object[0];
+            var result = (IActionResult)meth.Invoke(this, parameters);
+
+            return result;
+        }
+
         public ScriptedController(ControllerContext context, LoadedModuleHandle module) : base(module, true)
         {
             _ctx = context;
