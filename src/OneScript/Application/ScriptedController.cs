@@ -30,7 +30,9 @@ namespace OneScript.WebHost.Infrastructure
             var meth = (MethodInfo)_ctx.ActionDescriptor.Properties["actionMethod"];
             if (parameters == null)
                 parameters = new object[0];
-            var result = (IActionResult)meth.Invoke(this, parameters);
+            var result = meth.Invoke(this, parameters) as IActionResult;
+            if(result == null)
+                throw new InvalidOperationException("Function must return an IActionResult value");
 
             return result;
         }
