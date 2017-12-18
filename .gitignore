@@ -10,3 +10,5 @@ src/OsWebTests/bin/
 src/OsWebTests/obj/
 src/OneScriptWeb.Tests/bin/
 src/OneScriptWeb.Tests/obj/
+.vagrant/
+*.user
