@@ -66,8 +66,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private LoadedModuleHandle LoadControllerCode(ICodeSource src)
         {
             var compiler = _fw.Engine.GetCompilerService();
-            // TODO: inject compiler own symbols
-            var byteCode = compiler.CreateModule(src);
+            var byteCode = ScriptedController.CompileModule(compiler, src);
             return _fw.Engine.LoadModuleImage(byteCode);
         }
 
