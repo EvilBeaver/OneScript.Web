@@ -19,8 +19,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Include="resources\controllers\home.os" />
-    <Content Include="resources\main.os" />
+    <Folder Include="resources\" />
   </ItemGroup>
 
   <ItemGroup>
