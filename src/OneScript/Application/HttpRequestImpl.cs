@@ -26,20 +26,13 @@ namespace OneScript.WebHost.Application
             Headers = new FixedMapImpl(mapHdrs);
         }
 
+        // для внутреннего пользования
+        public HttpRequest RealObject => _realObject;
+
+
         [ContextProperty("Заголовки")]
-        public FixedMapImpl Headers { get; private set; }
-
-        [ContextMethod("УстановитьЗаголовки")]
-        public void SetHeaders(MapImpl headers)
-        {
-            _realObject.Headers.Clear();
-            foreach (var header in headers)
-            {
-                _realObject.Headers.Add(header.Key.AsString(), header.Value.AsString());
-            }
-            Headers = new FixedMapImpl(headers);
-        }
-
+        public FixedMapImpl Headers { get; }
+        
         [ContextMethod("ПолучитьТелоКакПоток")]
         public GenericStream GetBodyAsStream()
         {
