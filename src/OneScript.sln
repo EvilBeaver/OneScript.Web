@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27004.2006
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OneScriptWeb", "OneScript\OneScriptWeb.csproj", "{082351A7-DB5F-41F3-8337-CBAA7C877EC6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneScriptWeb.Tests", "OneScriptWeb.Tests\OneScriptWeb.Tests.csproj", "{894A3A1B-D6FC-4FA2-8712-953A1CA96875}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OneScriptWeb.Tests", "OneScriptWeb.Tests\OneScriptWeb.Tests.csproj", "{894A3A1B-D6FC-4FA2-8712-953A1CA96875}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
