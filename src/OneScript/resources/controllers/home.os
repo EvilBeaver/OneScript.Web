@@ -1,7 +1,9 @@
 ﻿
-Procedure Index() Export
+Function Index() Export
 	
-	ОтветHttp.ТипСодержимого = "text/plain; charset=utf-8";
-	ОтветHttp.УстановитьТелоИзСтроки("Привет");
+	Ответ = Новый РезультатДействияСодержимое();
+	Ответ.Содержимое = "Привет";
 
-EndProcedure
+	Возврат Ответ;
+
+EndFunction

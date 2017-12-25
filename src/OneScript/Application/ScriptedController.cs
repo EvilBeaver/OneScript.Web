@@ -58,6 +58,8 @@ namespace OneScript.WebHost.Infrastructure
         [ContextProperty("ОтветHttp")]
         public HttpResponseImpl HttpResponse { get; }
 
+        #region SDO Methods
+
         protected override string GetOwnPropName(int index)
         {
             return _ownProperties.GetProperty(index).Name;
@@ -121,6 +123,8 @@ namespace OneScript.WebHost.Infrastructure
         {
             _ownMethods.GetMethod(index)(this, arguments);
         }
+
+        #endregion
 
         public static ScriptModuleHandle CompileModule(CompilerService compiler, ICodeSource src)
         {
