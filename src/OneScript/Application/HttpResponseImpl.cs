@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using ScriptEngine.HostedScript.Library;
@@ -67,6 +69,23 @@ namespace OneScript.WebHost.Application
         public GenericStream GetBodyAsStream()
         {
             return new GenericStream(_realObject.Body);
+        }
+
+        [ContextMethod("УстановитьТелоИзСтроки")]
+        public void SetBodyFromString(string body, IValue encoding = null)
+        {
+            var enc = encoding == null? new UTF8Encoding(false) : TextEncodingEnum.GetEncoding(encoding, false);
+
+            using (var writer = new StreamWriter(_realObject.Body, enc))
+            {
+                writer.Write(body);
+            }
+        }
+
+        [ContextMethod("УстановитьТелоИзДвоичныхДанных")]
+        public void SetBodyFromBinaryData(BinaryDataContext data)
+        {
+            _realObject.Body.Write(data.Buffer, 0, data.Buffer.Length);
         }
     }
 }

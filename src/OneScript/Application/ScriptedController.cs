@@ -24,6 +24,7 @@ namespace OneScript.WebHost.Infrastructure
             _ctx = context;
 
             HttpRequest = new HttpRequestImpl(_ctx.HttpContext.Request);
+            HttpResponse = new HttpResponseImpl(_ctx.HttpContext.Response);
 
             var typeClr = (Type)context.ActionDescriptor.Properties["type"];
             var type = TypeManager.RegisterType(typeClr.Name, typeof(ScriptedController));
@@ -51,8 +52,11 @@ namespace OneScript.WebHost.Infrastructure
             return result;
         }
 
-        [ContextProperty("ВебЗапрос")]
+        [ContextProperty("ЗапросHttp")]
         public HttpRequestImpl HttpRequest { get; }
+
+        [ContextProperty("ОтветHttp")]
+        public HttpResponseImpl HttpResponse { get; }
 
         protected override string GetOwnPropName(int index)
         {
