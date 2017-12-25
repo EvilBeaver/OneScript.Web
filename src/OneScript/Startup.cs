@@ -15,6 +15,7 @@ namespace OneScript.WebHost
         public Startup(IHostingEnvironment hostingEnv, ILoggerFactory logs)
         {
             hostingEnv.ContentRootPath = Path.Combine(hostingEnv.ContentRootPath, "resources");
+            hostingEnv.WebRootPath = Path.Combine(hostingEnv.ContentRootPath, "wwwroot");
             logs.AddConsole();
         }
 
