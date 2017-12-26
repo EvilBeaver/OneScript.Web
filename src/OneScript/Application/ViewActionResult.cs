@@ -14,10 +14,11 @@ namespace OneScript.WebHost.Application
     public class ViewActionResult : AutoContext<ViewActionResult>, IObjectWrapper
     {
         private ViewResult _result = new ViewResult();
+        private ViewDataDictionaryWrapper _scriptViewData;
 
         public ViewActionResult()
         {
-            ViewData = new ViewDataDictionaryWrapper(_result.ViewData);
+            _scriptViewData = new ViewDataDictionaryWrapper(_result.ViewData);
         }
 
         [ContextProperty("ИмяШаблона")]
@@ -30,7 +31,15 @@ namespace OneScript.WebHost.Application
         public int StatusCode { get => _result.StatusCode??200; set => _result.StatusCode = value; }
 
         [ContextProperty("ДанныеПредставления")]
-        public ViewDataDictionaryWrapper ViewData { get; set; }
+        public ViewDataDictionaryWrapper ViewData
+        {
+            get => _scriptViewData;
+            set
+            {
+                _scriptViewData = value;
+                _result.ViewData = (ViewDataDictionary) _scriptViewData.UnderlyingObject;
+            }
+        }
         
         public object UnderlyingObject => _result;
 
@@ -51,6 +60,12 @@ namespace OneScript.WebHost.Application
             _source = source;
         }
 
+        public IValue this[string index]
+        {
+            get { return (IValue)_source[index]; }
+            set { _source[index] = value; }
+        }
+
         public override bool IsIndexed => true;
 
         public override IValue GetIndexedValue(IValue index)
@@ -61,6 +76,12 @@ namespace OneScript.WebHost.Application
         public override void SetIndexedValue(IValue index, IValue val)
         {
             _source[index.AsString()] = val.GetRawValue();
+        }
+
+        public object Model
+        {
+            get => _source.Model;
+            set => _source.Model = value;
         }
 
         public object UnderlyingObject => _source;
