@@ -22,7 +22,8 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         public IEnumerable<string> EnumerateFiles(string prefix)
         {
-            return Directory.EnumerateFiles(_contentRoot + prefix, "*.os");
+            return Directory.EnumerateFiles(_contentRoot + prefix, "*.os")
+                .Select(x=>x.Substring(_contentRoot.Length));
         }
 
         public ICodeSource Get(string virtualPath)
