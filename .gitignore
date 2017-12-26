@@ -12,3 +12,5 @@ src/OneScriptWeb.Tests/bin/
 src/OneScriptWeb.Tests/obj/
 .vagrant/
 *.user
+
+src/OneScript/Properties/launchSettings\.json
