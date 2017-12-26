@@ -1,10 +1,12 @@
 FROM evilbeaver/mono-ru:5.4
 
-ARG PREFIX=/var/osp.net
+ENV BINPREFIX=/var/osp.net
+ENV ASPNETCORE_ENVIRONMENT=Production
 
-ADD bin/Release/PublishOutput $PREFIX/
-RUN cp $PREFIX/runtimes/debian-x64/native/*.so /usr/lib
+ADD bin/Release/PublishOutput $BINPREFIX/
+RUN cp $BINPREFIX/runtimes/debian-x64/native/*.so /usr/lib
 
 EXPOSE 5000
 
-ENTRYPOINT mono /var/osp.net/OneScript.WebHost.exe
+WORKDIR $BINPREFIX
+ENTRYPOINT mono $BINPREFIX/OneScript.WebHost.exe
