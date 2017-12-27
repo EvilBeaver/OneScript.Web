@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine.Machine;
+using ScriptEngine.Machine.Contexts;
 using Xunit;
 
 namespace OneScriptWeb.Tests
@@ -39,9 +40,9 @@ namespace OneScriptWeb.Tests
             var osResult = new ViewActionResult();
             osResult.ViewData = InitViewData();
             osResult.ViewData["MyData"] = ValueFactory.Create("string data");
-            osResult.ViewData = InitViewData();
 
-            Assert.Equal("string data", (string)((ViewDataDictionary)osResult.ViewData.UnderlyingObject)["MyData"]);
+            var objectFromRealDict = ((ViewDataDictionary) osResult.ViewData.UnderlyingObject)["MyData"];
+            Assert.Equal("string data", ((IValue)objectFromRealDict).AsString());
         }
 
         [Fact]
@@ -51,7 +52,7 @@ namespace OneScriptWeb.Tests
             osResult.ViewData = InitViewData();
             osResult.ViewData.Model = "HELLO";
             var result = (ViewResult) osResult.UnderlyingObject;
-            Assert.Equal("string data", (string)result.Model);
+            Assert.Equal("HELLO", (string)result.Model);
         }
     }
 }
