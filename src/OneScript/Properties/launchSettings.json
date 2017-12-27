@@ -17,6 +17,7 @@
     },
     "OneScript": {
       "commandName": "Project",
+      "workingDirectory": "F:\\GITS\\1Script\\OneScript.Web\\examples\\hello",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
