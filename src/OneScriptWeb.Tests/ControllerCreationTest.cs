@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -23,18 +24,9 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                
-                var webAppMoq = new Mock<IApplicationRuntime>();
-                var engine = new ScriptingEngine()
-                {
-                    Environment = new RuntimeEnvironment()
-                };
-                webAppMoq.SetupGet(x => x.Engine).Returns(engine);
-                webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
-                
                 var fakefs = new FakeScriptsProvider();
                 fakefs.Add("/controllers/test.os","");
-                var app = webAppMoq.Object;
+                var app = new WebApplicationEngine();
                 var provider = new OscriptApplicationModelProvider(app, fakefs);
 
                 var context = new ApplicationModelProviderContext(new TypeInfo[0]);
@@ -45,6 +37,7 @@ namespace OneScriptWeb.Tests
                 ad.Properties["type"] = context.Result.Controllers[0].Properties["type"];
                 ad.Properties["module"] = context.Result.Controllers[0].Properties["module"];
                 cc.ActionDescriptor = ad;
+                cc.HttpContext = new DefaultHttpContext();
                 
                 var activator = new ScriptedControllerActivator(app);
                 var controller = (ScriptedController)activator.Create(cc);

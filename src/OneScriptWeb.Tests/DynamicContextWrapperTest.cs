@@ -14,62 +14,81 @@ namespace OneScriptWeb.Tests
 {
     public class DynamicContextWrapperTest
     {
-        private static WebApplicationEngine wa = new WebApplicationEngine();
 
         [Fact]
         public void WrapStructureProperties()
         {
-            var structure = new StructureImpl("Свойство1,Свойство2",
-                ValueFactory.Create(1),
-                ValueFactory.Create("Hello"));
+            lock (TestOrderingLock.Lock)
+            {
+                WebApplicationEngine wa = new WebApplicationEngine();
 
-            dynamic dynStructure = new DynamicContextWrapper(structure);
-            Assert.Equal<int>(1, (int)dynStructure.Свойство1);
-            Assert.Equal<string>("Hello", dynStructure.Свойство2);
+                var structure = new StructureImpl("Свойство1,Свойство2",
+                    ValueFactory.Create(1),
+                    ValueFactory.Create("Hello"));
+
+                dynamic dynStructure = new DynamicContextWrapper(structure);
+                Assert.Equal<int>(1, (int)dynStructure.Свойство1);
+                Assert.Equal<string>("Hello", dynStructure.Свойство2); 
+            }
         }
 
         [Fact]
         public void WrapStructureIndices()
         {
-            var structure = new StructureImpl("Свойство1,Свойство2",
-                ValueFactory.Create(1),
-                ValueFactory.Create("Hello"));
+            lock (TestOrderingLock.Lock)
+            {
+                WebApplicationEngine wa = new WebApplicationEngine();
 
-            dynamic dynStructure = new DynamicContextWrapper(structure);
-            Assert.Equal<int>(1, (int)dynStructure["Свойство1"]);
-            Assert.Equal<string>("Hello", dynStructure["Свойство2"]);
+                var structure = new StructureImpl("Свойство1,Свойство2",
+                    ValueFactory.Create(1),
+                    ValueFactory.Create("Hello"));
+
+                dynamic dynStructure = new DynamicContextWrapper(structure);
+                Assert.Equal<int>(1, (int)dynStructure["Свойство1"]);
+                Assert.Equal<string>("Hello", dynStructure["Свойство2"]); 
+            }
         }
 
         [Fact]
         public void WrapStructureMethodsCall()
         {
-            var structure = new StructureImpl();
-            dynamic dynStructure = new DynamicContextWrapper(structure);
+            lock (TestOrderingLock.Lock)
+            {
+                WebApplicationEngine wa = new WebApplicationEngine();
 
-            dynStructure.Вставить("Свойство1", 1);
-            dynStructure.Вставить("Свойство2", "Hello");
+                var structure = new StructureImpl();
+                dynamic dynStructure = new DynamicContextWrapper(structure);
 
-            Assert.Equal<int>(1, (int)dynStructure["Свойство1"]);
-            Assert.Equal<string>("Hello", dynStructure["Свойство2"]);
+                dynStructure.Вставить("Свойство1", 1);
+                dynStructure.Вставить("Свойство2", "Hello");
+
+                Assert.Equal<int>(1, (int)dynStructure["Свойство1"]);
+                Assert.Equal<string>("Hello", dynStructure["Свойство2"]); 
+            }
         }
 
         [Fact]
         public void WrapStructureEnumeration()
         {
-            var structure = new StructureImpl();
-            dynamic dynStructure = new DynamicContextWrapper(structure);
-
-            dynStructure.Вставить("Свойство1", 1);
-            dynStructure.Вставить("Свойство2", "Hello");
-
-            int cnt = 0;
-            foreach (var kv in dynStructure)
+            lock (TestOrderingLock.Lock)
             {
-                ++cnt;
-                Assert.IsType(typeof(DynamicContextWrapper), kv);
-            }
+                WebApplicationEngine wa = new WebApplicationEngine();
 
-            Assert.Equal(2, cnt);
+                var structure = new StructureImpl();
+                dynamic dynStructure = new DynamicContextWrapper(structure);
+
+                dynStructure.Вставить("Свойство1", 1);
+                dynStructure.Вставить("Свойство2", "Hello");
+
+                int cnt = 0;
+                foreach (var kv in dynStructure)
+                {
+                    ++cnt;
+                    Assert.IsType(typeof(DynamicContextWrapper), kv);
+                }
+
+                Assert.Equal(2, cnt); 
+            }
         }
     }
 }

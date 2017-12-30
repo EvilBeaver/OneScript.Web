@@ -26,14 +26,20 @@ namespace OneScript.WebHost.Infrastructure
             HttpRequest = new HttpRequestImpl(_ctx.HttpContext.Request);
             HttpResponse = new HttpResponseImpl(_ctx.HttpContext.Response);
 
-            RouteValues = new MapImpl();
-            foreach (var routeData in _ctx.RouteData.Values)
+            if (_ctx.RouteData != null)
             {
-                RouteValues.SetIndexedValue(
-                    ValueFactory.Create(routeData.Key),
-                    CustomMarshaller.ConvertToIValueSafe(routeData.Value, routeData.Value.GetType())
+                RouteValues = new MapImpl();
+                foreach (var routeData in _ctx.RouteData.Values)
+                {
+                    var rv = RouteValues.AsObject();
+                    rv.SetIndexedValue(
+                        ValueFactory.Create(routeData.Key),
+                        CustomMarshaller.ConvertToIValueSafe(routeData.Value, routeData.Value.GetType())
                     );
+                }
             }
+            else
+                RouteValues = ValueFactory.Create();
 
             var typeClr = (Type)context.ActionDescriptor.Properties["type"];
             var type = TypeManager.RegisterType(typeClr.Name, typeof(ScriptedController));
@@ -68,7 +74,7 @@ namespace OneScript.WebHost.Infrastructure
         public HttpResponseImpl HttpResponse { get; }
 
         [ContextProperty("ЗначенияМаршрута")]
-        public MapImpl RouteValues { get; }
+        public IValue RouteValues { get; }
 
         #region SDO Methods
 

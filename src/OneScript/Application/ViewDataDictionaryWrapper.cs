@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using OneScript.WebHost.Infrastructure;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
@@ -37,7 +38,25 @@ namespace OneScript.WebHost.Application
         public object Model
         {
             get => _source.Model;
-            set => _source.Model = value as IValue;
+            set => _source.Model = MapValueToModelType(value);
+        }
+
+        private object MapValueToModelType(object value)
+        {
+            if (value is IValue)
+            {
+                var iValue = value as IValue;
+                if (iValue.DataType == DataType.Object)
+                {
+                    return new DynamicContextWrapper(iValue.AsObject());
+                }
+                else
+                {
+                    return ContextValuesMarshaller.ConvertToCLRObject(iValue.GetRawValue());
+                }
+            }
+
+            return value;
         }
 
         public object UnderlyingObject => _source;

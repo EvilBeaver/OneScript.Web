@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
+using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 using Xunit;
@@ -15,17 +16,18 @@ namespace OneScriptWeb.Tests
 {
     public class ActionResultTests
     {
-        // инициализирует систему типов
-        private static WebApplicationEngine wa = new WebApplicationEngine();
-
         [Fact]
         public void ViewResultDataAccessibleThroughScript()
         {
-            var osResult = new ViewActionResult();
-            osResult.ViewData = InitViewData();
-            osResult.ViewData["MyData"] = ValueFactory.Create("string data");
+            lock (TestOrderingLock.Lock)
+            {
+                WebApplicationEngine wa = new WebApplicationEngine();
+                var osResult = new ViewActionResult();
+                osResult.ViewData = InitViewData();
+                osResult.ViewData["MyData"] = ValueFactory.Create("string data");
 
-            Assert.Equal("string data", osResult.ViewData.GetIndexedValue(ValueFactory.Create("MyData")).AsString());
+                Assert.Equal("string data", osResult.ViewData.GetIndexedValue(ValueFactory.Create("MyData")).AsString()); 
+            }
         }
 
         private ViewDataDictionaryWrapper InitViewData()
@@ -37,22 +39,44 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void ViewResultDataChangedInRealObject()
         {
-            var osResult = new ViewActionResult();
-            osResult.ViewData = InitViewData();
-            osResult.ViewData["MyData"] = ValueFactory.Create("string data");
+            lock (TestOrderingLock.Lock)
+            {
+                WebApplicationEngine wa = new WebApplicationEngine();
+                var osResult = new ViewActionResult();
+                osResult.ViewData = InitViewData();
+                osResult.ViewData["MyData"] = ValueFactory.Create("string data");
 
-            var objectFromRealDict = ((ViewDataDictionary) osResult.ViewData.UnderlyingObject)["MyData"];
-            Assert.Equal("string data", ((IValue)objectFromRealDict).AsString());
+                var objectFromRealDict = ((ViewDataDictionary)osResult.ViewData.UnderlyingObject)["MyData"];
+                Assert.Equal("string data", ((IValue)objectFromRealDict).AsString()); 
+            }
         }
 
         [Fact]
-        public void ViewResultModelIsSet()
+        public void ViewResultModelIsSetAsPrimitive()
         {
-            var osResult = new ViewActionResult();
-            osResult.ViewData = InitViewData();
-            osResult.ViewData.Model = "HELLO";
-            var result = (ViewResult) osResult.UnderlyingObject;
-            Assert.Equal("HELLO", (string)result.Model);
+            lock (TestOrderingLock.Lock)
+            {
+                WebApplicationEngine wa = new WebApplicationEngine();
+                var osResult = new ViewActionResult();
+                osResult.ViewData = InitViewData();
+                osResult.ViewData.Model = "HELLO";
+                var result = (ViewResult)osResult.UnderlyingObject;
+                Assert.Equal("HELLO", (string)result.Model); 
+            }
+        }
+
+        [Fact]
+        public void ViewResultModelIsSetAsComplexObject()
+        {
+            lock (TestOrderingLock.Lock)
+            {
+                WebApplicationEngine wa = new WebApplicationEngine();
+                var osResult = new ViewActionResult();
+                osResult.ViewData = InitViewData();
+                osResult.ViewData.Model = new StructureImpl();
+                var result = (ViewResult)osResult.UnderlyingObject;
+                Assert.IsType(typeof(DynamicContextWrapper), result.Model); 
+            }
         }
     }
 }
