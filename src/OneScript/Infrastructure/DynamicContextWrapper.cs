@@ -54,7 +54,7 @@ namespace OneScript.WebHost.Infrastructure
                     return false;
                 }
 
-                _context.SetPropValue(propIdx, ConvertReturnValue(value, value.GetType()));
+                _context.SetPropValue(propIdx, CustomMarshaller.ConvertReturnValue(value, value.GetType()));
 
                 return true;
             }
@@ -76,7 +76,7 @@ namespace OneScript.WebHost.Infrastructure
                 return false;
             }
 
-            var index = ConvertReturnValue(indexes[0], indexes[0].GetType());
+            var index = CustomMarshaller.ConvertReturnValue(indexes[0], indexes[0].GetType());
             result = ContextValuesMarshaller.ConvertToCLRObject(_context.GetIndexedValue(index));
             return true;
         }
@@ -88,8 +88,8 @@ namespace OneScript.WebHost.Infrastructure
                 return false;
             }
 
-            var index = ConvertReturnValue(indexes[0], indexes[0].GetType());
-            _context.SetIndexedValue(index, ConvertReturnValue(value, value.GetType()));
+            var index = CustomMarshaller.ConvertReturnValue(indexes[0], indexes[0].GetType());
+            _context.SetIndexedValue(index, CustomMarshaller.ConvertReturnValue(value, value.GetType()));
             return true;
         }
 
@@ -106,7 +106,7 @@ namespace OneScript.WebHost.Infrastructure
                 return false;
             }
 
-            var valueArgs = args.Select(x => ConvertReturnValue(x, x.GetType())).ToArray();
+            var valueArgs = args.Select(x => CustomMarshaller.ConvertReturnValue(x, x.GetType())).ToArray();
             IValue methResult;
             _context.CallAsFunction(methIdx, valueArgs, out methResult);
             result = ContextValuesMarshaller.ConvertToCLRObject(methResult);
@@ -134,70 +134,6 @@ namespace OneScript.WebHost.Infrastructure
                     yield return ContextValuesMarshaller.ConvertToCLRObject(iValue);
                 }
             }
-        }
-
-        // TODO - перенести в основной движок
-        private static IValue ConvertReturnValue(object objParam, Type type)
-        {
-            if (objParam == null)
-                return ValueFactory.Create();
-
-            if (type == typeof(IValue))
-            {
-                return (IValue)objParam;
-            }
-            else if (type == typeof(string))
-            {
-                return ValueFactory.Create((string)objParam);
-            }
-            else if (type == typeof(int))
-            {
-                return ValueFactory.Create((int)objParam);
-            }
-            else if (type == typeof(uint))
-            {
-                return ValueFactory.Create((uint)objParam);
-            }
-            else if (type == typeof(long))
-            {
-                return ValueFactory.Create((long)objParam);
-            }
-            else if (type == typeof(ulong))
-            {
-                return ValueFactory.Create((ulong)objParam);
-            }
-            else if (type == typeof(decimal))
-            {
-                return ValueFactory.Create((decimal)objParam);
-            }
-            else if (type == typeof(double))
-            {
-                return ValueFactory.Create((decimal)(double)objParam);
-            }
-            else if (type == typeof(DateTime))
-            {
-                return ValueFactory.Create((DateTime)objParam);
-            }
-            else if (type == typeof(bool))
-            {
-                return ValueFactory.Create((bool)objParam);
-            }
-            else if (type.IsEnum)
-            {
-                var wrapperType = typeof(CLREnumValueWrapper<>).MakeGenericType(new Type[] { type });
-                var constructor = wrapperType.GetConstructor(new Type[] { typeof(EnumerationContext), type, typeof(DataType) });
-                var osValue = (EnumerationValue)constructor.Invoke(new object[] { null, objParam, DataType.Enumeration });
-                return osValue;
-            }
-            else if (typeof(IRuntimeContextInstance).IsAssignableFrom(type))
-            {
-                return ValueFactory.Create((IRuntimeContextInstance)objParam);
-            }
-            else
-            {
-                throw new NotSupportedException("Type is not supported");
-            }
-
         }
     }
 }

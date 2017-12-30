@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine.Contexts;
@@ -17,6 +18,9 @@ namespace OneScript.WebHost.Application
 
         public ViewActionResult()
         {
+            if (_result.ViewData == null)
+                _result.ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
+
             _scriptViewData = new ViewDataDictionaryWrapper(_result.ViewData);
         }
 

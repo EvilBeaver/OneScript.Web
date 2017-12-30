@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using OneScript.WebHost.Application;
 using ScriptEngine;
 using ScriptEngine.Environment;
+using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
@@ -22,9 +23,17 @@ namespace OneScript.WebHost.Infrastructure
         public ScriptedController(ControllerContext context, LoadedModuleHandle module) : base(module, true)
         {
             _ctx = context;
-
             HttpRequest = new HttpRequestImpl(_ctx.HttpContext.Request);
             HttpResponse = new HttpResponseImpl(_ctx.HttpContext.Response);
+
+            RouteValues = new MapImpl();
+            foreach (var routeData in _ctx.RouteData.Values)
+            {
+                RouteValues.SetIndexedValue(
+                    ValueFactory.Create(routeData.Key),
+                    CustomMarshaller.ConvertToIValueSafe(routeData.Value, routeData.Value.GetType())
+                    );
+            }
 
             var typeClr = (Type)context.ActionDescriptor.Properties["type"];
             var type = TypeManager.RegisterType(typeClr.Name, typeof(ScriptedController));
@@ -57,6 +66,9 @@ namespace OneScript.WebHost.Infrastructure
 
         [ContextProperty("ОтветHttp")]
         public HttpResponseImpl HttpResponse { get; }
+
+        [ContextProperty("ЗначенияМаршрута")]
+        public MapImpl RouteValues { get; }
 
         #region SDO Methods
 

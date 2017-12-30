@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc.ModelBinding;
+﻿using System;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
@@ -12,10 +13,7 @@ namespace OneScript.WebHost.Application
 
         public ViewDataDictionaryWrapper(ViewDataDictionary source)
         {
-            if(_source == null)
-                _source = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
-
-            _source = source;
+            _source = source ?? throw new ArgumentNullException();
         }
 
         public IValue this[string index]
@@ -36,7 +34,6 @@ namespace OneScript.WebHost.Application
             _source[index.AsString()] = val.GetRawValue();
         }
 
-        [ContextProperty("Модель")]
         public object Model
         {
             get => _source.Model;
