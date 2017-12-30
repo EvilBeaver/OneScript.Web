@@ -130,7 +130,8 @@ namespace OneScript.WebHost.Infrastructure
         {
             for (int i = 0; i < _ownProperties.Count; i++)
             {
-                compiler.DefineVariable(_ownProperties.GetProperty(i).Name, SymbolType.ContextProperty);
+                var currentProp = _ownProperties.GetProperty(i);
+                compiler.DefineVariable(currentProp.Name, currentProp.Alias, SymbolType.ContextProperty);
             }
 
             for (int i = 0; i < _ownMethods.Count; i++)
