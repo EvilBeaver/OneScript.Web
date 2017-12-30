@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using ScriptEngine.HostedScript.Library;
-using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
@@ -49,45 +47,5 @@ namespace OneScript.WebHost.Application
         {
             return new ViewActionResult();
         }
-    }
-
-    [ContextClass("КоллекцияДанныхПредставления")]
-    public class ViewDataDictionaryWrapper : ContextIValueImpl, IObjectWrapper
-    {
-        private readonly ViewDataDictionary _source;
-
-        public ViewDataDictionaryWrapper(ViewDataDictionary source)
-        {
-            if(_source == null)
-                _source = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
-
-            _source = source;
-        }
-
-        public IValue this[string index]
-        {
-            get { return (IValue)_source[index]; }
-            set { _source[index] = value; }
-        }
-
-        public override bool IsIndexed => true;
-
-        public override IValue GetIndexedValue(IValue index)
-        {
-            return (IValue)_source[index.AsString()];
-        }
-
-        public override void SetIndexedValue(IValue index, IValue val)
-        {
-            _source[index.AsString()] = val.GetRawValue();
-        }
-
-        public object Model
-        {
-            get => _source.Model;
-            set => _source.Model = value;
-        }
-
-        public object UnderlyingObject => _source;
     }
 }
