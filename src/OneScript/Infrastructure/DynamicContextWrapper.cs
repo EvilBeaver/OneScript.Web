@@ -9,7 +9,7 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Infrastructure
 {
-    public class DynamicContextWrapper : DynamicObject, IEnumerable
+    public class DynamicContextWrapper : DynamicObject, IEnumerable, IObjectWrapper
     {
         private readonly IRuntimeContextInstance _context;
 
@@ -135,5 +135,7 @@ namespace OneScript.WebHost.Infrastructure
                 }
             }
         }
+
+        public object UnderlyingObject => _context;
     }
 }

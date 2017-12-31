@@ -32,50 +32,34 @@ namespace OneScriptWeb.Tests
 
         private ViewDataDictionaryWrapper InitViewData()
         {
-            var dict = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
-            return new ViewDataDictionaryWrapper(dict);
+            return new ViewDataDictionaryWrapper();
         }
 
         [Fact]
-        public void ViewResultDataChangedInRealObject()
+        public void CanGetViewResult()
         {
             lock (TestOrderingLock.Lock)
             {
                 WebApplicationEngine wa = new WebApplicationEngine();
                 var osResult = new ViewActionResult();
+                
                 osResult.ViewData = InitViewData();
                 osResult.ViewData["MyData"] = ValueFactory.Create("string data");
+                osResult.ViewData["MyObject"] = new StructureImpl();
 
-                var objectFromRealDict = ((ViewDataDictionary)osResult.ViewData.UnderlyingObject)["MyData"];
-                Assert.Equal("string data", ((IValue)objectFromRealDict).AsString()); 
-            }
-        }
+                osResult.ViewData.Model = new ArrayImpl();
 
-        [Fact]
-        public void ViewResultModelIsSetAsPrimitive()
-        {
-            lock (TestOrderingLock.Lock)
-            {
-                WebApplicationEngine wa = new WebApplicationEngine();
-                var osResult = new ViewActionResult();
-                osResult.ViewData = InitViewData();
-                osResult.ViewData.Model = "HELLO";
-                var result = (ViewResult)osResult.UnderlyingObject;
-                Assert.Equal("HELLO", (string)result.Model); 
-            }
-        }
+                var realAction = osResult.CreateExecutableResult();
+                Assert.IsType(typeof(string), realAction.ViewData["MyData"]);
+                Assert.IsType(typeof(DynamicContextWrapper), realAction.ViewData["MyObject"]);
+                Assert.IsType(typeof(DynamicContextWrapper), realAction.ViewData.Model);
 
-        [Fact]
-        public void ViewResultModelIsSetAsComplexObject()
-        {
-            lock (TestOrderingLock.Lock)
-            {
-                WebApplicationEngine wa = new WebApplicationEngine();
-                var osResult = new ViewActionResult();
-                osResult.ViewData = InitViewData();
-                osResult.ViewData.Model = new StructureImpl();
-                var result = (ViewResult)osResult.UnderlyingObject;
-                Assert.IsType(typeof(DynamicContextWrapper), result.Model); 
+                var structWrap = realAction.ViewData["MyObject"] as DynamicContextWrapper;
+                var arrayWrap = realAction.ViewData.Model as DynamicContextWrapper;
+
+                Assert.Equal(osResult.ViewData["MyObject"], structWrap.UnderlyingObject);
+                Assert.Equal(osResult.ViewData.Model, structWrap.UnderlyingObject);
+
             }
         }
     }

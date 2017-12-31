@@ -1,64 +1,55 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using OneScript.WebHost.Infrastructure;
+using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
-    [ContextClass("КоллекцияДанныхПредставления")]
-    public class ViewDataDictionaryWrapper : ContextIValueImpl, IObjectWrapper
+    [ContextClass("СловарьДанныхПредставления")]
+    public class ViewDataDictionaryWrapper : AutoContext<ViewDataDictionaryWrapper>, IEnumerable<KeyValuePair<string, IValue>>
     {
-        private readonly ViewDataDictionary _source;
-
-        public ViewDataDictionaryWrapper(ViewDataDictionary source)
-        {
-            _source = source ?? throw new ArgumentNullException();
-        }
+        private readonly Dictionary<string, IValue> _dictMap = new Dictionary<string, IValue>();
 
         public IValue this[string index]
         {
-            get { return (IValue)_source[index]; }
-            set { _source[index] = value; }
+            get { return _dictMap[index]; }
+            set { _dictMap[index] = value; }
         }
 
         public override bool IsIndexed => true;
 
         public override IValue GetIndexedValue(IValue index)
         {
-            return (IValue)_source[index.AsString()];
+            return _dictMap[index.AsString()];
         }
 
         public override void SetIndexedValue(IValue index, IValue val)
         {
-            _source[index.AsString()] = val.GetRawValue();
+            _dictMap[index.AsString()] = val;
         }
 
-        public object Model
+        [ContextProperty("Модель")]
+        public IValue Model { get; set; }
+
+        public IEnumerator<KeyValuePair<string, IValue>> GetEnumerator()
         {
-            get => _source.Model;
-            set => _source.Model = MapValueToModelType(value);
+            return _dictMap.GetEnumerator();
         }
 
-        private object MapValueToModelType(object value)
+        IEnumerator IEnumerable.GetEnumerator()
         {
-            if (value is IValue)
-            {
-                var iValue = value as IValue;
-                if (iValue.DataType == DataType.Object)
-                {
-                    return new DynamicContextWrapper(iValue.AsObject());
-                }
-                else
-                {
-                    return ContextValuesMarshaller.ConvertToCLRObject(iValue.GetRawValue());
-                }
-            }
-
-            return value;
+            return ((IEnumerable) _dictMap).GetEnumerator();
         }
 
-        public object UnderlyingObject => _source;
+        [ScriptConstructor]
+        public static ViewDataDictionaryWrapper Create()
+        {
+            return new ViewDataDictionaryWrapper();
+        }
     }
 }

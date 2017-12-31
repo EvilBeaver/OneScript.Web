@@ -5,51 +5,88 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using OneScript.WebHost.Infrastructure;
 using ScriptEngine.HostedScript.Library;
+using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
     [ContextClass("РезультатДействияСтраница")]
-    public class ViewActionResult : AutoContext<ViewActionResult>, IObjectWrapper
+    public class ViewActionResult : AutoContext<ViewActionResult>, IActionResult, IObjectWrapper
     {
-        private ViewResult _result = new ViewResult();
-        private ViewDataDictionaryWrapper _scriptViewData;
-
-        public ViewActionResult()
-        {
-            if (_result.ViewData == null)
-                _result.ViewData = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
-
-            _scriptViewData = new ViewDataDictionaryWrapper(_result.ViewData);
-        }
-
         [ContextProperty("ИмяШаблона")]
-        public string ViewName { get=>_result.ViewName; set=>_result.ViewName = value; }
+        public string ViewName { get; set; }
 
         [ContextProperty("ТипСодержимого")]
-        public string ContentType { get => _result.ContentType; set => _result.ContentType = value; }
+        public string ContentType { get; set; }
 
-        [ContextProperty("ТипСодержимого")]
-        public int StatusCode { get => _result.StatusCode??200; set => _result.StatusCode = value; }
+        [ContextProperty("КодСостояния")]
+        public int StatusCode { get; set; }
 
         [ContextProperty("ДанныеПредставления")]
-        public ViewDataDictionaryWrapper ViewData
-        {
-            get => _scriptViewData;
-            set
-            {
-                _scriptViewData = value;
-                _result.ViewData = (ViewDataDictionary) _scriptViewData.UnderlyingObject;
-            }
-        }
+        public ViewDataDictionaryWrapper ViewData { get; set; }
         
-        public object UnderlyingObject => _result;
+        public ViewResult CreateExecutableResult()
+        {
+            var result = new ViewResult();
+            result.ViewName = ViewName;
+            result.ContentType = ContentType;
+            result.StatusCode = StatusCode == 0 ? default(int?) : StatusCode;
+            result.ViewData = GetDictionary();
+
+            return result;
+        }
+
+        private ViewDataDictionary GetDictionary()
+        {
+            if (ViewData == null)
+                return null;
+
+            var model = ViewData.Model;
+            var realDict = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
+            if (model != null)
+            {
+                if (model.DataType == DataType.Object)
+                {
+                    realDict.Model = new DynamicContextWrapper(model.AsObject());
+                }
+                else
+                {
+                    realDict.Model = ContextValuesMarshaller.ConvertToCLRObject(model.GetRawValue());
+                }
+            }
+
+            foreach (var iValItem in ViewData)
+            {
+                var iVal = iValItem.Value as IValue;
+                if (iVal.DataType == DataType.Object)
+                {
+                    realDict[iValItem.Key] = new DynamicContextWrapper(iVal.AsObject());
+                }
+                else
+                {
+                    realDict[iValItem.Key] = ContextValuesMarshaller.ConvertToCLRObject(iVal.GetRawValue());
+                }
+            }
+
+            return realDict;
+        }
 
         [ScriptConstructor]
         public static ViewActionResult Constructor()
         {
             return new ViewActionResult();
         }
+
+        public Task ExecuteResultAsync(ActionContext context)
+        {
+            var viewRes = CreateExecutableResult();
+            return viewRes.ExecuteResultAsync(context);
+        }
+
+        // TODO: Костыль. Маршаллер выдает исключение при возврате через Invoke, если тип не Wrapper.
+        public object UnderlyingObject => this;
+        
     }
 }
