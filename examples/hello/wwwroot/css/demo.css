@@ -10,6 +10,10 @@ h1 {
     border-bottom: 1px solid gray;
 }
 
+th {
+    text-align: left; background-color: lightgray;
+}
+
 .term {
     background-color: rgb(224, 238, 255);
     font-family: Courier New, Courier, monospace;
