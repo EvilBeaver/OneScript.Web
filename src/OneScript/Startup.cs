@@ -13,9 +13,10 @@ namespace OneScript.WebHost
 {
     public class Startup
     {
-        public Startup(ILoggerFactory logs)
+        public Startup(IHostingEnvironment env, ILoggerFactory logs)
         {
-            logs.AddConsole();
+            if(env.IsDevelopment())
+                logs.AddConsole();
         }
         
         // This method gets called by the runtime. Use this method to add services to the container.
