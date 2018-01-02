@@ -1,14 +1,13 @@
-<h1>Параметры сервера</h1>
+<h1>Параметры приложения</h1>
 
-<table>
-    <tr>
-        <th>Ключ</th>
-        <th>Значение</th>
-    </tr>
-    @foreach(var kv in Model) {
-        <tr>
-            <td>@kv.Ключ</td>
-            <td>@kv.Значение</td>
-        </tr>
+<h2>Конфигурационный файл</h2>
+@foreach(var kv in Model) {
+    <h3>Секция @kv.Key (@kv.Value)</h3>
+
+    @foreach (var item in kv.Value) {
+        <p>@item.Key : @item.Value</p>
     }
-</table>
+}
+
+<h2>Параметры сервера</h2>
+<a asp-action="Environment">Нажми для просмотра окружения</a>
