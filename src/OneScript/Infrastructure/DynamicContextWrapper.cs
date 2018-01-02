@@ -29,7 +29,7 @@ namespace OneScript.WebHost.Infrastructure
                     return false;
                 }
 
-                result = ContextValuesMarshaller.ConvertToCLRObject(_context.GetPropValue(propIdx));
+                result = CustomMarshaller.ConvertToDynamicCLRObject(_context.GetPropValue(propIdx));
                 return true;
             }
             catch (PropertyAccessException)
@@ -77,7 +77,7 @@ namespace OneScript.WebHost.Infrastructure
             }
 
             var index = CustomMarshaller.ConvertReturnValue(indexes[0], indexes[0].GetType());
-            result = ContextValuesMarshaller.ConvertToCLRObject(_context.GetIndexedValue(index));
+            result = CustomMarshaller.ConvertToDynamicCLRObject(_context.GetIndexedValue(index));
             return true;
         }
 
@@ -109,7 +109,7 @@ namespace OneScript.WebHost.Infrastructure
             var valueArgs = args.Select(x => CustomMarshaller.ConvertReturnValue(x, x.GetType())).ToArray();
             IValue methResult;
             _context.CallAsFunction(methIdx, valueArgs, out methResult);
-            result = ContextValuesMarshaller.ConvertToCLRObject(methResult);
+            result = CustomMarshaller.ConvertToDynamicCLRObject(methResult);
 
             return true;
 
@@ -125,15 +125,13 @@ namespace OneScript.WebHost.Infrastructure
             var enumer = (IEnumerable<IValue>) _context;
             foreach (var iValue in enumer)
             {
-                if (iValue.DataType == DataType.Object)
-                {
-                    yield return new DynamicContextWrapper((IRuntimeContextInstance)iValue);
-                }
-                else
-                {
-                    yield return ContextValuesMarshaller.ConvertToCLRObject(iValue);
-                }
+                yield return CustomMarshaller.ConvertToDynamicCLRObject(iValue);
             }
+        }
+
+        public override string ToString()
+        {
+            return UnderlyingObject.ToString();
         }
 
         public object UnderlyingObject => _context;

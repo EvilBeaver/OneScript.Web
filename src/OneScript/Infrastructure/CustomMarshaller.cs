@@ -81,5 +81,29 @@ namespace OneScript.WebHost.Infrastructure
             }
 
         }
+
+        public static object ConvertToDynamicCLRObject(IValue value)
+        {
+            if (value.DataType == DataType.Object && !(value.AsObject() is IObjectWrapper))
+            {
+                return new DynamicContextWrapper(value.AsObject());
+            }
+            else
+            {
+                return ContextValuesMarshaller.ConvertToCLRObject(value);
+            }
+        }
+
+        public static object ConvertToCLRObject(IValue value)
+        {
+            if (value.DataType == DataType.Object && !(value.AsObject() is IObjectWrapper))
+            {
+                return value.GetRawValue();
+            }
+            else
+            {
+                return ContextValuesMarshaller.ConvertToCLRObject(value);
+            }
+        }
     }
 }
