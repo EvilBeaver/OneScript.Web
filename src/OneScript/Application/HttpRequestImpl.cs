@@ -14,6 +14,7 @@ namespace OneScript.WebHost.Application
     public class HttpRequestImpl : AutoContext<HttpRequestImpl>
     {
         private readonly HttpRequest _realObject;
+        private FormDataCollectionContext _formData;
 
         public HttpRequestImpl(HttpRequest request)
         {
@@ -37,6 +38,23 @@ namespace OneScript.WebHost.Application
         public GenericStream GetBodyAsStream()
         {
             return new GenericStream(_realObject.Body);
+        }
+
+        [ContextProperty("ДанныеФормы")]
+        public FormDataCollectionContext FormData
+        {
+            get
+            {
+                if (_realObject.Form == null)
+                    return null;
+
+                if (_formData == null)
+                {
+                    _formData = new FormDataCollectionContext(_realObject.Form);
+                }
+
+                return _formData;
+            }
         }
 
         [ContextProperty("Метод")]
