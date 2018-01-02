@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Razor;
@@ -17,12 +18,24 @@ namespace OneScript.WebHost
         {
             if(env.IsDevelopment())
                 logs.AddConsole();
+
+            var confBuilder = new ConfigurationBuilder();
+            var location = Assembly.GetExecutingAssembly().Location;
+            confBuilder.AddJsonFile(Path.Combine(Path.GetDirectoryName(location), "appsettings.json"), optional:true);
+            confBuilder.SetBasePath(Directory.GetCurrentDirectory());
+            confBuilder.AddJsonFile("appsettings.json", optional: true);
+
+            Configuration = confBuilder.Build();
         }
         
+        private IConfigurationRoot Configuration { get; set; }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSingleton<IConfigurationRoot>(Configuration);
+
             services.Configure<RazorViewEngineOptions>(options =>
             {
                 options.ViewLocationExpanders.Add(new OscriptViewsOverride());

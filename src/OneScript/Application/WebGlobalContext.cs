@@ -31,6 +31,7 @@ namespace OneScript.WebHost.Application
             _osGlobal.PublishMethod("НайтиПроцессПоИдентификатору", "FindProcessById");
             _osGlobal.PublishMethod("НайтиПроцессыПоИмени", "FindProcessesByName");
             _osGlobal.PublishMethod("КраткоеПредставлениеОшибки", "BriefErrorDescription");
+            _osGlobal.PublishMethod("КаталогПрограммы", "ProgramDirectory");
             _osGlobal.PublishMethod("ПодробноеПредставлениеОшибки", "DetailErrorDescription");
             _osGlobal.PublishMethod("ТекущаяДата", "CurrentDate");
             _osGlobal.PublishMethod("ТекущаяУниверсальнаяДатаВМиллисекундах", "CurrentUniversalDateInMilliseconds");

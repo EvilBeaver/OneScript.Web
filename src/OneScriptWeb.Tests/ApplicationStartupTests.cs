@@ -4,10 +4,12 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -31,8 +33,12 @@ namespace OneScriptWeb.Tests
                 services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
 
                 var webAppMoq = CreateWebEngineMock();
+                var cfgBuilder = new ConfigurationBuilder();
+                var memData = new Dictionary<string, string>(){ {"OneScript:lib.system", "bla"}};
+                cfgBuilder.AddInMemoryCollection(memData);
+                services.TryAddSingleton<IConfigurationRoot>(cfgBuilder.Build());
                 services.TryAddSingleton<IApplicationRuntime>(webAppMoq);
-
+                services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
                 services.AddMvcCore();
                 services.AddOneScript();
 

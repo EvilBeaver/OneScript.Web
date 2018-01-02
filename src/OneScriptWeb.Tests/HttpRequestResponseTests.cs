@@ -23,7 +23,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
                 var request = new Mock<HttpRequest>();
                 var headers = new HeaderDictionary();
                 headers.Add("Content-Length", "12312");
@@ -43,7 +43,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
                 var response = new Mock<HttpResponse>();
                 var headers = new MapImpl();
                 headers.SetIndexedValue(ValueFactory.Create("Content-Length"), ValueFactory.Create("123456"));
@@ -65,7 +65,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
                 var context = new DefaultHttpContext();
                 var response = new DefaultHttpResponse(context);
 
@@ -82,7 +82,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
                 var context = new DefaultHttpContext();
                 var response = new DefaultHttpResponse(context);
 
@@ -96,13 +96,13 @@ namespace OneScriptWeb.Tests
                 Assert.Equal("text/plain", scriptRequest.RealObject.ContentType); 
             }
         }
-
+        
         [Fact]
         public void FormDataIsAccessible()
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
 
                 var fileMock = new Mock<IFormFile>();
                 fileMock.SetupGet(x => x.Name).Returns("uploaded");

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
+using ScriptEngine;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
@@ -21,7 +22,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
                 var osResult = new ViewActionResult();
                 osResult.ViewData = InitViewData();
                 osResult.ViewData["MyData"] = ValueFactory.Create("string data");
@@ -40,7 +41,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
                 var osResult = new ViewActionResult();
                 
                 osResult.ViewData = InitViewData();

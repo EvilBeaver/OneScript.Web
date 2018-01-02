@@ -1,4 +1,6 @@
 ﻿using System.Reflection;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -81,6 +83,7 @@ namespace OneScriptWeb.Tests
         {
             var services = new ServiceCollection();
             services.TryAddSingleton<IScriptsProvider>(scriptsProvider);
+            services.TryAddScoped<IHostingEnvironment>(x=>new HostingEnvironment());
             services.AddOneScript();
 
             var serviceProvider = services.BuildServiceProvider();

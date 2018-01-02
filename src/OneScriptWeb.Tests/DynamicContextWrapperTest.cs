@@ -9,6 +9,7 @@ using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using Xunit;
 using System.Dynamic;
+using ScriptEngine;
 
 namespace OneScriptWeb.Tests
 {
@@ -20,7 +21,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
 
                 var structure = new StructureImpl("Свойство1,Свойство2",
                     ValueFactory.Create(1),
@@ -37,7 +38,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
 
                 var structure = new StructureImpl("Свойство1,Свойство2",
                     ValueFactory.Create(1),
@@ -54,7 +55,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
 
                 var structure = new StructureImpl();
                 dynamic dynStructure = new DynamicContextWrapper(structure);
@@ -72,7 +73,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                WebApplicationEngine wa = new WebApplicationEngine();
+                var se = new MinimalTypeSystemHack();
 
                 var structure = new StructureImpl();
                 dynamic dynStructure = new DynamicContextWrapper(structure);
