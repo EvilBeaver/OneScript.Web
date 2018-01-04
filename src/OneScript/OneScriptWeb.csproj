@@ -16,6 +16,7 @@
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <DocumentationFile>bin\Release\net461\OneScript.WebHost.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>
