@@ -8,6 +8,8 @@ using OneScript.WebHost.Application;
 using ScriptEngine;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.HostedScript;
+using ScriptEngine.Machine;
+using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Infrastructure
 {
@@ -23,6 +25,8 @@ namespace OneScript.WebHost.Infrastructure
             Engine.AttachAssembly(typeof(SystemGlobalContext).Assembly, Environment);
             Environment.InjectObject(new WebGlobalContext());
             Engine.Initialize();
+            // TODO Убрать после реализации https://github.com/EvilBeaver/OneScript/issues/641
+            TypeManager.RegisterType("Сценарий", typeof(UserScriptContextInstance));
             Engine.UpdateContexts();
         }
         
