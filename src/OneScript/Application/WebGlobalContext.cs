@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
+using ScriptEngine.Environment;
+using ScriptEngine.HostedScript;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 
@@ -15,9 +16,11 @@ namespace OneScript.WebHost.Application
         // а пока, спрячем его здесь и выставим только некоторые вещи
         private readonly RCIRedirector _osGlobal;
 
-        public WebGlobalContext()
+        public WebGlobalContext(IHostApplication host, ICodeSource entryScript)
         {
             var sys = new SystemGlobalContext();
+            sys.ApplicationHost = host;
+            sys.CodeSource = entryScript;
             _osGlobal = new RCIRedirector(sys);
             _osGlobal.PublishProperty("Символы",null);
             _osGlobal.PublishProperty("Chars",null);
@@ -43,6 +46,9 @@ namespace OneScript.WebHost.Application
             _osGlobal.PublishMethod("ЗагрузитьСценарий", "LoadScript");
             _osGlobal.PublishMethod("ЗагрузитьСценарийИзСтроки", "LoadScriptFromString");
             _osGlobal.PublishMethod("ПодключитьСценарий", "AttachScript");
+            _osGlobal.PublishMethod("Сообщить", "Message");
+
+            sys.InitInstance();
             
         }
 

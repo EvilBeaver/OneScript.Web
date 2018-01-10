@@ -21,13 +21,11 @@ namespace OneScript.WebHost.Infrastructure
             Environment = new RuntimeEnvironment();
             Engine.Environment = Environment;
 
-            Engine.AttachAssembly(System.Reflection.Assembly.GetExecutingAssembly(), Environment);
+            Engine.AttachAssembly(Assembly.GetExecutingAssembly(), Environment);
             Engine.AttachAssembly(typeof(SystemGlobalContext).Assembly, Environment);
-            Environment.InjectObject(new WebGlobalContext());
-            Engine.Initialize();
             // TODO Убрать после реализации https://github.com/EvilBeaver/OneScript/issues/641
             TypeManager.RegisterType("Сценарий", typeof(UserScriptContextInstance));
-            Engine.UpdateContexts();
+            Engine.Initialize();
         }
         
         public ScriptingEngine Engine { get; }

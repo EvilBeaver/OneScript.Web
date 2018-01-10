@@ -32,13 +32,13 @@ namespace OneScriptWeb.Tests
                 var services = new ServiceCollection();
                 services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
 
-                var webAppMoq = CreateWebEngineMock();
                 var cfgBuilder = new ConfigurationBuilder();
                 var memData = new Dictionary<string, string>(){ {"OneScript:lib.system", "bla"}};
                 cfgBuilder.AddInMemoryCollection(memData);
                 services.TryAddSingleton<IConfigurationRoot>(cfgBuilder.Build());
-                services.TryAddSingleton<IApplicationRuntime>(webAppMoq);
+                services.TryAddSingleton<IApplicationRuntime,WebApplicationEngine>();
                 services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
+                services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
                 services.AddMvcCore();
                 services.AddOneScript();
 
@@ -143,6 +143,37 @@ namespace OneScriptWeb.Tests
             }
         }
 
+        [Fact]
+        public void MethodEchoWritesLog()
+        {
+            lock (TestOrderingLock.Lock)
+            {
+                var services = new ServiceCollection();
+                services.AddSingleton<IScriptsProvider, FakeScriptsProvider>();
+                services.AddSingleton<IApplicationRuntime, WebApplicationEngine>();
+                services.AddSingleton<IConfigurationRoot>(Mock.Of<Func<IServiceProvider, IConfigurationRoot>>());
+                var fakeFS = new FakeScriptsProvider();
+                fakeFS.Add("/main.os", "Сообщить(\"Я строка лога\")");
+                services.AddSingleton<IScriptsProvider>(fakeFS);
+                
+                var loggerMock = new Mock<ILogger<ApplicationInstance>>();
+                services.TryAddSingleton(loggerMock.Object);
+                services.AddTransient<IApplicationFactory, AppStarter>();
+
+                var provider = services.BuildServiceProvider();
+                var starter  = provider.GetService<IApplicationFactory>();
+
+                var app = starter.CreateApp();
+                loggerMock.Verify(x => 
+                    x.Log(
+                        LogLevel.Debug,
+                        It.IsAny<EventId>(),
+                        It.IsAny<object>(),
+                        null,
+                        It.IsAny<Func<object, Exception, string>>()),
+                    Times.Once);
+            }
+        }
 
     }
 }
