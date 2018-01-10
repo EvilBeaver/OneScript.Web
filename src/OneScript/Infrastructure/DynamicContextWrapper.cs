@@ -109,7 +109,7 @@ namespace OneScript.WebHost.Infrastructure
             var valueArgs = args.Select(x => CustomMarshaller.ConvertReturnValue(x, x.GetType())).ToArray();
             IValue methResult;
             _context.CallAsFunction(methIdx, valueArgs, out methResult);
-            result = CustomMarshaller.ConvertToDynamicCLRObject(methResult);
+            result = methResult == null? null : CustomMarshaller.ConvertToDynamicCLRObject(methResult);
 
             return true;
 
