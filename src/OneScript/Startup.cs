@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 
 namespace OneScript.WebHost
@@ -20,12 +19,13 @@ namespace OneScript.WebHost
                 logs.AddConsole();
 
             var confBuilder = new ConfigurationBuilder();
-            var location = Assembly.GetExecutingAssembly().Location;
-            confBuilder.AddJsonFile(Path.Combine(Path.GetDirectoryName(location), "appsettings.json"), optional:true);
+            var location = Directory.GetCurrentDirectory();
+            confBuilder.AddJsonFile(Path.Combine(location, "appsettings.json"), optional:true);
             confBuilder.SetBasePath(Directory.GetCurrentDirectory());
             confBuilder.AddJsonFile("appsettings.json", optional: true);
 
             Configuration = confBuilder.Build();
+            logs.AddConsole(Configuration);
         }
         
         private IConfigurationRoot Configuration { get; set; }
