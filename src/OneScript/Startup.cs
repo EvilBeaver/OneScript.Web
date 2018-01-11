@@ -20,7 +20,7 @@ namespace OneScript.WebHost
                 logs.AddConsole();
 
             var confBuilder = new ConfigurationBuilder();
-            var location = Directory.GetCurrentDirectory();
+            var location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             confBuilder.AddJsonFile(Path.Combine(location, "appsettings.json"), optional:true);
             confBuilder.SetBasePath(Directory.GetCurrentDirectory());
             confBuilder.AddJsonFile("appsettings.json", optional: true);
