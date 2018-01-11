@@ -81,6 +81,12 @@ namespace OneScript.WebHost.Application
                 CallRoutesRegistrationHandler(handler);
         }
 
+        [ContextMethod("ИспользоватьСессии")]
+        public void UseSessions()
+        {
+            _startupBuilder.UseSession();
+        }
+
         private void CallRoutesRegistrationHandler(string handler)
         {
             var handlerIndex = FindMethod(handler);

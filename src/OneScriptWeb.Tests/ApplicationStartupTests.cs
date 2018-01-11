@@ -76,6 +76,7 @@ namespace OneScriptWeb.Tests
                 fakeFS.Add("/main.os", "Процедура ПриНачалеРаботыСистемы()\n" +
                                        "    ИспользоватьСтатическиеФайлы();\n" +
                                        "    ИспользоватьМаршруты();\n" +
+                                       "    ИспользоватьСессии()" +
                                        "КонецПроцедуры");
 
                 var webApp = provider.GetService<IApplicationRuntime>();
@@ -84,7 +85,7 @@ namespace OneScriptWeb.Tests
                 mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
 
                 app.OnStartup(mvcAppBuilder.Object);
-                mvcAppBuilder.Verify(x=>x.Use(It.IsAny<Func<RequestDelegate,RequestDelegate>>()), Times.Exactly(2));
+                mvcAppBuilder.Verify(x=>x.Use(It.IsAny<Func<RequestDelegate,RequestDelegate>>()), Times.Exactly(3));
 
             }
         }

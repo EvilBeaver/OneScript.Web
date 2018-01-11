@@ -25,6 +25,7 @@ namespace OneScript.WebHost.Infrastructure
             _ctx = context;
             HttpRequest = new HttpRequestImpl(_ctx.HttpContext.Request);
             HttpResponse = new HttpResponseImpl(_ctx.HttpContext.Response);
+            Session = new SessionImpl(_ctx.HttpContext.Session);
 
             if (_ctx.RouteData != null)
             {
@@ -75,6 +76,9 @@ namespace OneScript.WebHost.Infrastructure
 
         [ContextProperty("ЗначенияМаршрута")]
         public IValue RouteValues { get; }
+
+        [ContextProperty("Сессия")]
+        public SessionImpl Session { get; }
 
         #region SDO Methods
 

@@ -32,6 +32,7 @@ namespace OneScriptWeb.Tests
                 ad.Properties["module"] = context.Result.Controllers[0].Properties["module"];
                 cc.ActionDescriptor = ad;
                 cc.HttpContext = new DefaultHttpContext();
+                cc.HttpContext.Session = null;
                 
                 var activator = new ScriptedControllerActivator(app);
                 var controller = (ScriptedController)activator.Create(cc);
