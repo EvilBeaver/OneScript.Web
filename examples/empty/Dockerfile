@@ -1,3 +1,3 @@
 FROM evilbeaver/oscript-web:dev
 
-COPY hello /var/osp.net/
+COPY src /var/osp.net/
