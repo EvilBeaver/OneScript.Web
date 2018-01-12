@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 
 namespace OneScript.WebHost
@@ -57,8 +58,7 @@ namespace OneScript.WebHost
                 app.UseDeveloperExceptionPage();
             }
 
-            var appFactory = (IApplicationFactory)services.GetService(typeof(IApplicationFactory));
-            var oscriptApp = appFactory.CreateApp();
+            var oscriptApp = services.GetService<ApplicationInstance>();
             oscriptApp.OnStartup(app);
         }
     }

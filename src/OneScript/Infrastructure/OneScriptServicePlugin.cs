@@ -33,6 +33,11 @@ namespace OneScript.WebHost.Infrastructure
         {
             services.TryAddSingleton<IApplicationRuntime, WebApplicationEngine>();
             services.AddTransient<IApplicationFactory, AppStarter>();
+            services.AddSingleton<ApplicationInstance>((sp) => 
+            {
+                var appFactory = (IApplicationFactory)sp.GetService(typeof(IApplicationFactory));
+                return appFactory.CreateApp();
+            });
         }
     }
 }
