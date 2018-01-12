@@ -17,6 +17,7 @@ namespace OneScript.WebHost.Infrastructure
     public class ScriptedController : ScriptDrivenObject
     {
         private ControllerContext _ctx;
+        private ViewDataDictionaryWrapper _osViewData;
         private static ContextPropertyMapper<ScriptedController> _ownProperties = new ContextPropertyMapper<ScriptedController>();
         private static ContextMethodsMapper<ScriptedController> _ownMethods = new ContextMethodsMapper<ScriptedController>();
         
@@ -79,6 +80,58 @@ namespace OneScript.WebHost.Infrastructure
 
         [ContextProperty("Сессия")]
         public SessionImpl Session { get; }
+
+        [ContextProperty("ДанныеПредставления")]
+        public ViewDataDictionaryWrapper ViewData
+        {
+            get => _osViewData ?? (_osViewData = new ViewDataDictionaryWrapper());
+            set => _osViewData = value ?? throw new ArgumentException();
+        }
+
+        [ContextMethod("Представление")]
+        public ViewActionResult View(IValue nameOrModel = null, IValue model = null)
+        {
+            if (nameOrModel == null && model == null)
+            {
+                return DefaultViewResult();
+            }
+
+            if (model == null)
+            {
+                if (nameOrModel.DataType == DataType.String)
+                {
+                    return ViewResultByName(nameOrModel.AsString(), null);
+                }
+                else
+                {
+                    return ViewResultByName(null, nameOrModel);
+                }
+            }
+
+            if (nameOrModel == null)
+                return ViewResultByName(null, model);
+
+            return ViewResultByName(nameOrModel.AsString(), model);
+        }
+
+        private ViewActionResult ViewResultByName(string viewname, IValue model)
+        {
+            if(model != null)
+                ViewData.Model = model;
+
+            var va = new ViewActionResult()
+            {
+                ViewName = viewname,
+                ViewData = ViewData
+            };
+
+            return va;
+        }
+
+        private ViewActionResult DefaultViewResult()
+        {
+            return new ViewActionResult();
+        }
 
         #region SDO Methods
 
