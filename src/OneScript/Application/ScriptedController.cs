@@ -19,6 +19,9 @@ namespace OneScript.WebHost.Infrastructure
     public class ScriptedController : ScriptDrivenObject
     {
         private ControllerContext _ctx;
+
+        private SessionImpl _session;
+
         private ViewDataDictionaryWrapper _osViewData;
         private static ContextPropertyMapper<ScriptedController> _ownProperties = new ContextPropertyMapper<ScriptedController>();
         private static ContextMethodsMapper<ScriptedController> _ownMethods = new ContextMethodsMapper<ScriptedController>();
@@ -28,8 +31,7 @@ namespace OneScript.WebHost.Infrastructure
             _ctx = context;
             HttpRequest = new HttpRequestImpl(_ctx.HttpContext.Request);
             HttpResponse = new HttpResponseImpl(_ctx.HttpContext.Response);
-            Session = new SessionImpl(_ctx.HttpContext.Session);
-
+            
             if (_ctx.RouteData != null)
             {
                 RouteValues = new MapImpl();
@@ -91,7 +93,15 @@ namespace OneScript.WebHost.Infrastructure
         public IValue RouteValues { get; }
 
         [ContextProperty("Сессия")]
-        public SessionImpl Session { get; }
+        public SessionImpl Session
+        {
+            get
+            {
+                if(_session == null)
+                    _session = new SessionImpl(_ctx.HttpContext.Session);
+                return _session;
+            }
+        }
 
         [ContextProperty("ДанныеПредставления")]
         public ViewDataDictionaryWrapper ViewData
