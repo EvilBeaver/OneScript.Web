@@ -9,6 +9,7 @@ using OneScript.WebHost.Application;
 using ScriptEngine;
 using ScriptEngine.Environment;
 using ScriptEngine.HostedScript.Library;
+using ScriptEngine.HostedScript.Library.Binary;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
@@ -123,6 +124,47 @@ namespace OneScript.WebHost.Infrastructure
                 return ViewResultByName(null, model);
 
             return ViewResultByName(nameOrModel.AsString(), model);
+        }
+
+        [ContextMethod("Содержимое")]
+        public ContentActionResult Content(string content, string contentType = null)
+        {
+            var ctResult = new ContentActionResult()
+            {
+                Content = content,
+                ContentType = contentType
+            };
+
+            return ctResult;
+        }
+
+        [ContextMethod("Файл")]
+        public FileActionResult File(IValue data, string contentType = null, string downloadFileName = null)
+        {
+            FileActionResult fileResult;
+            if (data.DataType == DataType.String)
+            {
+                fileResult = new FileActionResult(data.AsString(), contentType);
+            }
+            else
+            {
+                var obj = data.AsObject() as BinaryDataContext;
+                if (obj == null)
+                    throw RuntimeException.InvalidArgumentType(nameof(data));
+
+                fileResult = new FileActionResult(obj, contentType);
+            }
+
+            if (downloadFileName != null)
+                fileResult.DownloadFileName = downloadFileName;
+
+            return fileResult;
+        }
+
+        [ContextMethod("КодСостояния")]
+        public StatusCodeActionResult StatusCode(int code)
+        {
+            return StatusCodeActionResult.Constructor(code);
         }
 
         private ViewActionResult ViewResultByName(string viewname, IValue model)
