@@ -4,6 +4,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using OneScript.WebHost.Application;
 using ScriptEngine;
 using ScriptEngine.Environment;
@@ -67,6 +68,16 @@ namespace OneScript.WebHost.Infrastructure
                 throw new InvalidOperationException("Function must return an IActionResult value");
 
             return result;
+        }
+
+        [ViewDataDictionary]
+        public ViewDataDictionary FrameworkViewData
+        {
+            get { return ViewData?.GetDictionary();}
+            set
+            {
+                ViewData = new ViewDataDictionaryWrapper(value);
+            }
         }
 
         [ContextProperty("ЗапросHttp")]

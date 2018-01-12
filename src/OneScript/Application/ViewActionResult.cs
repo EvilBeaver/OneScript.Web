@@ -33,44 +33,9 @@ namespace OneScript.WebHost.Application
             result.ViewName = ViewName;
             result.ContentType = ContentType;
             result.StatusCode = StatusCode == 0 ? default(int?) : StatusCode;
-            result.ViewData = GetDictionary();
+            result.ViewData = ViewData.GetDictionary();
 
             return result;
-        }
-
-        private ViewDataDictionary GetDictionary()
-        {
-            if (ViewData == null)
-                return null;
-
-            var model = ViewData.Model;
-            var realDict = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
-            if (model != null)
-            {
-                if (model.DataType == DataType.Object)
-                {
-                    realDict.Model = new DynamicContextWrapper(model.AsObject());
-                }
-                else
-                {
-                    realDict.Model = ContextValuesMarshaller.ConvertToCLRObject(model.GetRawValue());
-                }
-            }
-
-            foreach (var iValItem in ViewData)
-            {
-                var iVal = iValItem.Value as IValue;
-                if (iVal.DataType == DataType.Object)
-                {
-                    realDict[iValItem.Key] = new DynamicContextWrapper(iVal.AsObject());
-                }
-                else
-                {
-                    realDict[iValItem.Key] = ContextValuesMarshaller.ConvertToCLRObject(iVal.GetRawValue());
-                }
-            }
-
-            return realDict;
         }
 
         [ScriptConstructor]

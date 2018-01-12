@@ -14,6 +14,14 @@ namespace OneScript.WebHost.Application
     public class ViewDataDictionaryWrapper : AutoContext<ViewDataDictionaryWrapper>, IEnumerable<KeyValuePair<string, IValue>>
     {
         private readonly Dictionary<string, IValue> _dictMap = new Dictionary<string, IValue>();
+        
+        public ViewDataDictionaryWrapper()
+        {
+        }
+
+        public ViewDataDictionaryWrapper(ViewDataDictionary value)
+        {
+        }
 
         public IValue this[string index]
         {
@@ -50,6 +58,38 @@ namespace OneScript.WebHost.Application
         public static ViewDataDictionaryWrapper Create()
         {
             return new ViewDataDictionaryWrapper();
+        }
+
+        public ViewDataDictionary GetDictionary()
+        {
+            var model = Model;
+            var realDict = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
+            if (model != null)
+            {
+                if (model.DataType == DataType.Object)
+                {
+                    realDict.Model = new DynamicContextWrapper(model.AsObject());
+                }
+                else
+                {
+                    realDict.Model = ContextValuesMarshaller.ConvertToCLRObject(model.GetRawValue());
+                }
+            }
+
+            foreach (var iValItem in _dictMap)
+            {
+                var iVal = iValItem.Value as IValue;
+                if (iVal.DataType == DataType.Object)
+                {
+                    realDict[iValItem.Key] = new DynamicContextWrapper(iVal.AsObject());
+                }
+                else
+                {
+                    realDict[iValItem.Key] = ContextValuesMarshaller.ConvertToCLRObject(iVal.GetRawValue());
+                }
+            }
+
+            return realDict;
         }
     }
 }
