@@ -13,10 +13,13 @@ namespace OneScript.WebHost.Infrastructure.Implementations
     {
         private readonly IApplicationRuntime _fw;
         private readonly IScriptsProvider _scriptsProvider;
+        private readonly int _controllersMethodOffset;
+
         public OscriptApplicationModelProvider(IApplicationRuntime framework, IScriptsProvider sourceProvider)
         {
             _fw = framework;
             _scriptsProvider = sourceProvider;
+            _controllersMethodOffset = ScriptedController.GetOwnMethodsRelectionOffset();
         }
 
         public void OnProvidersExecuting(ApplicationModelProviderContext context)
@@ -76,6 +79,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             foreach (var method in type.GetMethods().Where(x=>exports.Contains(x.Name)))
             {
                 var scriptMethodInfo = method as ReflectedMethodInfo;
+                CorrectDispId(scriptMethodInfo);
                 var clrMethodInfo = MapToActionMethod(scriptMethodInfo);
                 var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
                 actionModel.ActionName = method.Name;
@@ -85,6 +89,16 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 cm.Actions.Add(actionModel);
             }
 
+        }
+
+        private void CorrectDispId(ReflectedMethodInfo scriptMethodInfo)
+        {
+            var fieldId = typeof(ReflectedMethodInfo).GetField("_dispId",
+                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
+
+            var currId = (int)fieldId.GetValue(scriptMethodInfo);
+            currId += _controllersMethodOffset;
+            fieldId.SetValue(scriptMethodInfo, currId);
         }
 
         private static MethodInfo MapToActionMethod(ReflectedMethodInfo reflectedMethodInfo)

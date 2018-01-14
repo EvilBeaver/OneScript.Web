@@ -210,7 +210,7 @@ namespace OneScript.WebHost.Infrastructure
 
         protected override int GetOwnMethodCount()
         {
-            return 0;
+            return _ownMethods.Count;
         }
 
         protected override void UpdateState()
@@ -278,6 +278,12 @@ namespace OneScript.WebHost.Infrastructure
             }
 
             return compiler.CreateModule(src);
+        }
+
+        // TODO: Костыль вызванный ошибкой https://github.com/EvilBeaver/OneScript/issues/660
+        internal static int GetOwnMethodsRelectionOffset()
+        {
+            return _ownMethods.Count;
         }
     }
 }
