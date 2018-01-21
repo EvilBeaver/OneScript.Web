@@ -193,7 +193,7 @@ namespace OneScript.WebHost.Infrastructure
 
         private ViewActionResult DefaultViewResult()
         {
-            return new ViewActionResult();
+            return new ViewActionResult() { ViewData = ViewData };
         }
 
         #region SDO Methods
