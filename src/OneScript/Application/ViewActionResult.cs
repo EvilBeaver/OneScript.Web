@@ -33,7 +33,7 @@ namespace OneScript.WebHost.Application
             result.ViewName = ViewName;
             result.ContentType = ContentType;
             result.StatusCode = StatusCode == 0 ? default(int?) : StatusCode;
-            result.ViewData = ViewData.GetDictionary();
+            result.ViewData = ViewData?.GetDictionary();
 
             return result;
         }
