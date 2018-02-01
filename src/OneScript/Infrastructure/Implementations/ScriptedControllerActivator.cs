@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using ScriptEngine;
 using ScriptEngine.Environment;
+using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure.Implementations
 {
@@ -20,6 +21,8 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         public object Create(ControllerContext context)
         {
             var instance = new ScriptedController(context, (LoadedModuleHandle)context.ActionDescriptor.Properties["module"]);
+            var machine = MachineInstance.Current;
+            _engine.Environment.LoadMemory(machine);
             _engine.InitializeSDO(instance);
             return instance;
         }
