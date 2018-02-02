@@ -177,6 +177,12 @@ namespace OneScript.WebHost.Infrastructure
             return StatusCodeActionResult.Constructor(code);
         }
 
+        [ContextMethod("Перенаправление")]
+        public RedirectActionResult Redirect(string url, bool permanent = false)
+        {
+            return RedirectActionResult.Create(url, permanent);
+        }
+
         private ViewActionResult ViewResultByName(string viewname, IValue model)
         {
             if(model != null)
