@@ -13,7 +13,7 @@ pipeline {
 				dir('src'){
 					bat '''
 					@echo off
-					dotnet build OneScript/OneScriptWeb.csproj -c Release
+					dotnet publish OneScript/OneScriptWeb.csproj -c Release -o ../artifact -r win7-x64
 					'''
 				}
 				
