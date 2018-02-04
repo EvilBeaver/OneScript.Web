@@ -20,15 +20,11 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void ViewResultDataAccessibleThroughScript()
         {
-            lock (TestOrderingLock.Lock)
-            {
-                var se = new MinimalTypeSystemHack();
-                var osResult = new ViewActionResult();
-                osResult.ViewData = InitViewData();
-                osResult.ViewData["MyData"] = ValueFactory.Create("string data");
+            var osResult = new ViewActionResult();
+            osResult.ViewData = InitViewData();
+            osResult.ViewData["MyData"] = ValueFactory.Create("string data");
 
-                Assert.Equal("string data", osResult.ViewData.GetIndexedValue(ValueFactory.Create("MyData")).AsString()); 
-            }
+            Assert.Equal("string data", osResult.ViewData.GetIndexedValue(ValueFactory.Create("MyData")).AsString());    
         }
 
         private ViewDataDictionaryWrapper InitViewData()
@@ -39,29 +35,24 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void CanGetViewResult()
         {
-            lock (TestOrderingLock.Lock)
-            {
-                var se = new MinimalTypeSystemHack();
-                var osResult = new ViewActionResult();
+            var osResult = new ViewActionResult();
                 
-                osResult.ViewData = InitViewData();
-                osResult.ViewData["MyData"] = ValueFactory.Create("string data");
-                osResult.ViewData["MyObject"] = new StructureImpl();
+            osResult.ViewData = InitViewData();
+            osResult.ViewData["MyData"] = ValueFactory.Create("string data");
+            osResult.ViewData["MyObject"] = new StructureImpl();
 
-                osResult.ViewData.Model = new ArrayImpl();
+            osResult.ViewData.Model = new ArrayImpl();
 
-                var realAction = osResult.CreateExecutableResult();
-                Assert.IsType(typeof(string), realAction.ViewData["MyData"]);
-                Assert.IsType(typeof(DynamicContextWrapper), realAction.ViewData["MyObject"]);
-                Assert.IsType(typeof(DynamicContextWrapper), realAction.ViewData.Model);
+            var realAction = osResult.CreateExecutableResult();
+            Assert.IsType(typeof(string), realAction.ViewData["MyData"]);
+            Assert.IsType(typeof(DynamicContextWrapper), realAction.ViewData["MyObject"]);
+            Assert.IsType(typeof(DynamicContextWrapper), realAction.ViewData.Model);
 
-                var structWrap = realAction.ViewData["MyObject"] as DynamicContextWrapper;
-                var arrayWrap = realAction.ViewData.Model as DynamicContextWrapper;
+            var structWrap = realAction.ViewData["MyObject"] as DynamicContextWrapper;
+            var arrayWrap = realAction.ViewData.Model as DynamicContextWrapper;
 
-                Assert.Equal(osResult.ViewData["MyObject"], structWrap.UnderlyingObject);
-                Assert.Equal(osResult.ViewData.Model, structWrap.UnderlyingObject);
-
-            }
+            Assert.Equal(osResult.ViewData["MyObject"], structWrap.UnderlyingObject);
+            Assert.Equal(osResult.ViewData.Model, structWrap.UnderlyingObject);
         }
     }
 }
