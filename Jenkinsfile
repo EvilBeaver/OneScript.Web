@@ -24,7 +24,7 @@ pipeline {
 					dotnet xunit -nunit testresult.xml -configuration Release
 					'''
 					
-					nunit testResultsPattern: 'TestResult.xml'
+					nunit testResultsPattern: 'testresult.xml'
 				}
 				
 				archiveArtifacts 'artifact/**'
