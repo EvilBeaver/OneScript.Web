@@ -47,7 +47,6 @@ namespace OneScript.WebHost
             services.AddSession();
             services.AddMvc();
             services.AddOneScript();
-            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

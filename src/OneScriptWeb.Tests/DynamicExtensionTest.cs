@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -42,16 +43,6 @@ namespace OneScriptWeb.Tests
             var result = extensionsCompiler.CompileAssemblyFromStrings();
 
             Assert.False(result.Errors.HasErrors, ErrorMessages(result.Errors));
-
-        }
-
-        [Fact]
-        public void StartupCanExtendConfigureServices()
-        {
-            var services = new ServiceCollection();
-            services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
-
-            var startup = new Startup(Mock.Of<IHostingEnvironment>(), Mock.Of<ILoggerFactory>());
 
         }
 
