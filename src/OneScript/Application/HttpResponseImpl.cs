@@ -32,7 +32,7 @@ namespace OneScript.WebHost.Application
             }
             Headers = new FixedMapImpl(mapHdrs);
         }
-
+        
         [ContextProperty("Заголовки")]
         public FixedMapImpl Headers { get; private set; }
 
@@ -64,7 +64,25 @@ namespace OneScript.WebHost.Application
             }
             Headers = new FixedMapImpl(headers);
         }
-        
+
+        [ContextMethod("УстановитьCookie")]
+        public void SetCookie(string key, string value, CookieOptionsWraper options = null)
+        {
+            if (options == null)
+                _realObject.Cookies.Append(key, value);
+            else
+                _realObject.Cookies.Append(key, value, (CookieOptions)options.UnderlyingObject);
+        }
+
+        [ContextMethod("УдалитьCookie")]
+        public void RemoveCookie(string key, CookieOptionsWraper options = null)
+        {
+            if (options == null)
+                _realObject.Cookies.Delete(key);
+            else
+                _realObject.Cookies.Delete(key, (CookieOptions)options.UnderlyingObject);
+        }
+
         [ContextMethod("ПолучитьТелоКакПоток")]
         public GenericStream GetBodyAsStream()
         {

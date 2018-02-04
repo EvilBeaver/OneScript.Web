@@ -15,16 +15,41 @@ namespace OneScript.WebHost.Application
     {
         private readonly HttpRequest _realObject;
         private FormDataCollectionContext _formData;
-
+        
         public HttpRequestImpl(HttpRequest request)
         {
             _realObject = request;
+            UpdateHeaders();
+            UpdateCookies();
+        }
+
+        private void UpdateHeaders()
+        {
             var mapHdrs = new MapImpl();
-            foreach (var realObjectHeader in _realObject.Headers)
+            if (_realObject.Headers != null)
             {
-                mapHdrs.SetIndexedValue(ValueFactory.Create(realObjectHeader.Key),ValueFactory.Create(realObjectHeader.Value));
+                foreach (var realObjectHeader in _realObject.Headers)
+                {
+                    mapHdrs.SetIndexedValue(ValueFactory.Create(realObjectHeader.Key), ValueFactory.Create(realObjectHeader.Value));
+                }                 
             }
+
             Headers = new FixedMapImpl(mapHdrs);
+        }
+
+        private void UpdateCookies()
+        {
+            var cookieMap = new MapImpl();
+            if (_realObject.Cookies != null)
+            {
+                foreach (var cookie in _realObject.Cookies)
+                {
+                    cookieMap.SetIndexedValue(ValueFactory.Create(cookie.Key),
+                        ValueFactory.Create(cookie.Value));
+                } 
+            }
+
+            Cookies = new FixedMapImpl(cookieMap);
         }
 
         // для внутреннего пользования
@@ -32,8 +57,11 @@ namespace OneScript.WebHost.Application
 
 
         [ContextProperty("Заголовки")]
-        public FixedMapImpl Headers { get; }
-        
+        public FixedMapImpl Headers { get; private set; }
+
+        [ContextProperty("Cookies")]
+        public FixedMapImpl Cookies { get; private set; }
+
         [ContextMethod("ПолучитьТелоКакПоток")]
         public GenericStream GetBodyAsStream()
         {
@@ -65,5 +93,8 @@ namespace OneScript.WebHost.Application
 
         [ContextProperty("Путь")]
         public string Path => _realObject.Path;
+
+        //[ContextProperty("Cookies")]
+        //public object Cookies
     }
 }

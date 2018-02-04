@@ -117,5 +117,20 @@ namespace OneScriptWeb.Tests
 
             Assert.Equal(fFile, fFileInt);
         }
+
+        [Fact]
+        public void CookiesAreAccessible()
+        {
+            var fakeCookies = new Dictionary<string,string>();
+            fakeCookies["test"] = "test";
+            var reqCookies = new Mock<IRequestCookieCollection>();
+            reqCookies.Setup(x => x.GetEnumerator()).Returns(fakeCookies.GetEnumerator());
+            var requestMock = new Mock<HttpRequest>();
+            requestMock.SetupGet(x => x.Cookies).Returns(reqCookies.Object);
+
+            var request = new HttpRequestImpl(requestMock.Object);
+
+            Assert.Equal(request.Cookies.GetIndexedValue(ValueFactory.Create("test")).AsString(), "test");
+        }
     }
 }
