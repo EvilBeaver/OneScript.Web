@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using OneScript.WebHost.Application;
+using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.Environment;
 using ScriptEngine.HostedScript.Library;
@@ -13,7 +9,7 @@ using ScriptEngine.HostedScript.Library.Binary;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
-namespace OneScript.WebHost.Infrastructure
+namespace OneScript.WebHost.Application
 {
     [NonController]
     public class ScriptedController : ScriptDrivenObject
