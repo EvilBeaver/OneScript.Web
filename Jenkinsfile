@@ -20,6 +20,7 @@ pipeline {
 				dir('src/OneScriptWeb.Tests'){
 					bat '''
 					@echo off
+					dotnet restore
 					dotnet xunit -nunit testresult.xml -configuration Release
 					'''
 					
