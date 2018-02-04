@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Moq;
+using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using Xunit;

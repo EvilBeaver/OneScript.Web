@@ -10,6 +10,9 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    /// <summary>
+    /// Описание входящего запроса HTTP
+    /// </summary>
     [ContextClass("HTTPЗапросВходящий", "HTTPIncomingRequest")]
     public class HttpRequestImpl : AutoContext<HttpRequestImpl>
     {
@@ -55,19 +58,31 @@ namespace OneScript.WebHost.Application
         // для внутреннего пользования
         public HttpRequest RealObject => _realObject;
 
-
+        /// <summary>
+        /// ФиксированноеСоответствие. Заголовки входящего запроса
+        /// </summary>
         [ContextProperty("Заголовки")]
         public FixedMapImpl Headers { get; private set; }
 
+        /// <summary>
+        /// ФиксированноеСоответствие. Cookies входящего запроса
+        /// </summary>
         [ContextProperty("Cookies")]
         public FixedMapImpl Cookies { get; private set; }
 
+        /// <summary>
+        /// Получение тела запроса в виде потока для чтения
+        /// </summary>
+        /// <returns>Поток</returns>
         [ContextMethod("ПолучитьТелоКакПоток")]
         public GenericStream GetBodyAsStream()
         {
             return new GenericStream(_realObject.Body);
         }
 
+        /// <summary>
+        /// Коллекция переменных, переданных в качестве данных формы
+        /// </summary>
         [ContextProperty("ДанныеФормы")]
         public FormDataCollectionContext FormData
         {
@@ -85,16 +100,22 @@ namespace OneScript.WebHost.Application
             }
         }
 
+        /// <summary>
+        /// Текущий метод HTTP
+        /// </summary>
         [ContextProperty("Метод")]
         public string Method => _realObject.Method;
 
+        /// <summary>
+        /// Текущая строка запроса (QueryString)
+        /// </summary>
         [ContextProperty("СтрокаЗапроса")]
         public string QueryString => _realObject.QueryString.Value;
 
+        /// <summary>
+        /// Путь текущего ресурса
+        /// </summary>
         [ContextProperty("Путь")]
         public string Path => _realObject.Path;
-
-        //[ContextProperty("Cookies")]
-        //public object Cookies
     }
 }

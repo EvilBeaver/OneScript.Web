@@ -12,6 +12,9 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    /// <summary>
+    /// Описание исходящего HTTP-ответа
+    /// </summary>
     [ContextClass("HttpОтветИсходящий","HttpOutgoingResponse")]
     public class HttpResponseImpl : AutoContext<HttpResponseImpl>
     {
@@ -32,13 +35,23 @@ namespace OneScript.WebHost.Application
             }
             Headers = new FixedMapImpl(mapHdrs);
         }
-        
+
+        /// <summary>
+        /// Фиксированное соответствие. Заголовки исходящего запроса.
+        /// Для установки заголовков см. метод УстановитьЗаголовки.
+        /// </summary>
         [ContextProperty("Заголовки")]
         public FixedMapImpl Headers { get; private set; }
 
+        /// <summary>
+        /// Возвращаемый код состояния.
+        /// </summary>
         [ContextProperty("КодСостояния")]
         public int StatusCode { get=>_realObject.StatusCode; set => _realObject.StatusCode = value; }
 
+        /// <summary>
+        /// Возвращаемый тип содержимого (Content-type)
+        /// </summary>
         [ContextProperty("ТипСодержимого")]
         public string ContentType
         {
@@ -54,6 +67,10 @@ namespace OneScript.WebHost.Application
         // для внутреннего пользования
         public HttpResponse RealObject => _realObject;
 
+        /// <summary>
+        /// Устанавливает заголовки текущего ответа
+        /// </summary>
+        /// <param name="headers">Соответствие. Устанавливаемые заголовки</param>
         [ContextMethod("УстановитьЗаголовки")]
         public void SetHeaders(MapImpl headers)
         {
@@ -65,6 +82,12 @@ namespace OneScript.WebHost.Application
             Headers = new FixedMapImpl(headers);
         }
 
+        /// <summary>
+        /// Добавляет значение Cookie в ответ
+        /// </summary>
+        /// <param name="key">Имя параметра</param>
+        /// <param name="value">Значение параметра</param>
+        /// <param name="options">Опции Cookie</param>
         [ContextMethod("УстановитьCookie")]
         public void SetCookie(string key, string value, CookieOptionsWraper options = null)
         {
@@ -74,6 +97,11 @@ namespace OneScript.WebHost.Application
                 _realObject.Cookies.Append(key, value, (CookieOptions)options.UnderlyingObject);
         }
 
+        /// <summary>
+        /// Удаление значения Cookie
+        /// </summary>
+        /// <param name="key">Имя параметра</param>
+        /// <param name="options">Опции Cookie</param>
         [ContextMethod("УдалитьCookie")]
         public void RemoveCookie(string key, CookieOptionsWraper options = null)
         {
@@ -83,12 +111,21 @@ namespace OneScript.WebHost.Application
                 _realObject.Cookies.Delete(key, (CookieOptions)options.UnderlyingObject);
         }
 
+        /// <summary>
+        /// Открывает Поток, применяемый для наполнения тела ответа.
+        /// </summary>
+        /// <returns>Поток</returns>
         [ContextMethod("ПолучитьТелоКакПоток")]
         public GenericStream GetBodyAsStream()
         {
             return new GenericStream(_realObject.Body);
         }
 
+        /// <summary>
+        /// Устанавливает тело ответа из строки с заданной кодировкой.
+        /// </summary>
+        /// <param name="body">Тело ответа</param>
+        /// <param name="encoding">Кодировка текста ответа</param>
         [ContextMethod("УстановитьТелоИзСтроки")]
         public void SetBodyFromString(string body, IValue encoding = null)
         {
@@ -100,6 +137,10 @@ namespace OneScript.WebHost.Application
             }
         }
 
+        /// <summary>
+        /// Устанавливает ДвоичныеДанные в качестве тела ответа
+        /// </summary>
+        /// <param name="data">Данные</param>
         [ContextMethod("УстановитьТелоИзДвоичныхДанных")]
         public void SetBodyFromBinaryData(BinaryDataContext data)
         {

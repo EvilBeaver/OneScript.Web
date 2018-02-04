@@ -13,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OneScript.WebHost;
+using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using Xunit;
 

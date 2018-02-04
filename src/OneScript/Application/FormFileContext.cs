@@ -10,6 +10,9 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    /// <summary>
+    /// Описание файла формы
+    /// </summary>
     [ContextClass("ФайлФормы")]
     public class FormFileContext : AutoContext<FormFileContext>
     {
@@ -38,15 +41,28 @@ namespace OneScript.WebHost.Application
         [ContextProperty("Размер")]
         public long Length => _realObject.Length;
 
+        /// <summary>
+        /// Заголовки данного файла.
+        /// </summary>
         [ContextProperty("Заголовки")]
         public FixedMapImpl Headers => _headers.Value;
 
+        /// <summary>
+        /// Значение заголовка Content-type для данного файла.
+        /// </summary>
         [ContextProperty("ТипСодержимого")]
         public string ContentType => _realObject.ContentType;
 
+        /// <summary>
+        /// Значение заголовка Content-disposition для данного файла.
+        /// </summary>
         [ContextProperty("РасположениеСодержимого")]
         public string ContentDisposition => _realObject.ContentDisposition;
 
+        /// <summary>
+        /// Открывает поток для чтения содержимого файла
+        /// </summary>
+        /// <returns></returns>
         [ContextMethod("ОткрытьПотокДляЧтения")]
         public GenericStream OpenReadStream()
         {

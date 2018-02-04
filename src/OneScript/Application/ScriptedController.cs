@@ -11,6 +11,9 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    /// <summary>
+    /// Главный класс, отвечающий за обработку входящего запроса и генерацию ответа.
+    /// </summary>
     [NonController]
     public class ScriptedController : ScriptDrivenObject
     {
@@ -79,15 +82,29 @@ namespace OneScript.WebHost.Application
             }
         }
 
+        /// <summary>
+        /// Входящий запрос HTTP
+        /// </summary>
         [ContextProperty("ЗапросHttp")]
         public HttpRequestImpl HttpRequest { get; }
 
+        /// <summary>
+        /// Исходящий ответ HTTP
+        /// </summary>
         [ContextProperty("ОтветHttp")]
         public HttpResponseImpl HttpResponse { get; }
 
+        /// <summary>
+        /// Действующие значения маршрута для текущего вызова.
+        /// Тип: Соответствие или Неопределено.
+        /// Ключами соответствия являются переменные маршрута.
+        /// </summary>
         [ContextProperty("ЗначенияМаршрута")]
         public IValue RouteValues { get; }
 
+        /// <summary>
+        /// Данные http-сессии. Механизм сессий использует Cookies для привязки сессии и InMemory хранилище для данных сессии.
+        /// </summary>
         [ContextProperty("Сессия")]
         public SessionImpl Session
         {
@@ -99,6 +116,10 @@ namespace OneScript.WebHost.Application
             }
         }
 
+        /// <summary>
+        /// Специализированный объект, предназначенный для передачи данных в генерируемое Представление.
+        /// Элементы коллекции доступны в Представлении через свойства ViewBag и ViewData.
+        /// </summary>
         [ContextProperty("ДанныеПредставления")]
         public ViewDataDictionaryWrapper ViewData
         {
@@ -106,6 +127,12 @@ namespace OneScript.WebHost.Application
             set => _osViewData = value ?? throw new ArgumentException();
         }
 
+        /// <summary>
+        /// Вспомогательный метод генерации ответа в виде представления.
+        /// </summary>
+        /// <param name="nameOrModel">Имя представления или объект Модели (если используется представление по умолчанию)</param>
+        /// <param name="model">Объект модели (произвольный)</param>
+        /// <returns>РезультатДействияПредставление.</returns>
         [ContextMethod("Представление")]
         public ViewActionResult View(IValue nameOrModel = null, IValue model = null)
         {
@@ -132,6 +159,12 @@ namespace OneScript.WebHost.Application
             return ViewResultByName(nameOrModel.AsString(), model);
         }
 
+        /// <summary>
+        /// Вспомогательный метод генерации ответа в виде текстового содержимого
+        /// </summary>
+        /// <param name="content">Содержимое ответа</param>
+        /// <param name="contentType">Кодировка текста ответа</param>
+        /// <returns>РезультатДействияСодержимое</returns>
         [ContextMethod("Содержимое")]
         public ContentActionResult Content(string content, string contentType = null)
         {
@@ -144,6 +177,13 @@ namespace OneScript.WebHost.Application
             return ctResult;
         }
 
+        /// <summary>
+        /// Вспомогательный метод генерации ответа в виде скачиваемого файла.
+        /// </summary>
+        /// <param name="data">Данные файла (путь или ДвоичныеДанные)</param>
+        /// <param name="contentType">Содержимое заголовка Content-type</param>
+        /// <param name="downloadFileName">Имя скачиваемого файла</param>
+        /// <returns>РезультатДействияФайл</returns>
         [ContextMethod("Файл")]
         public FileActionResult File(IValue data, string contentType = null, string downloadFileName = null)
         {
@@ -167,12 +207,23 @@ namespace OneScript.WebHost.Application
             return fileResult;
         }
 
+        /// <summary>
+        /// Вспомогательный метод, генерирующий код состояния HTTP
+        /// </summary>
+        /// <param name="code">Код состояния</param>
+        /// <returns>РезультатДействияКодСостояния</returns>
         [ContextMethod("КодСостояния")]
         public StatusCodeActionResult StatusCode(int code)
         {
             return StatusCodeActionResult.Constructor(code);
         }
 
+        /// <summary>
+        /// Вспомогательный метод, генерирующий ответ в виде http-редиректа
+        /// </summary>
+        /// <param name="url">Адрес перенаправления</param>
+        /// <param name="permanent">Признак постоянного (permanent) перенаправления.</param>
+        /// <returns>РезультатДействияПеренаправление</returns>
         [ContextMethod("Перенаправление")]
         public RedirectActionResult Redirect(string url, bool permanent = false)
         {

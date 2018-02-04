@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using OneScript.WebHost.Application;
 using ScriptEngine.Environment;
 using ScriptEngine.Machine.Contexts;
 

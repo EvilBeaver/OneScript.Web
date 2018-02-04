@@ -8,6 +8,10 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    /// <summary>
+    /// Коллекция переданных с клиента файлов.
+    /// Обращение к коллекции возможно по числовому индексу или имени поля-файла.
+    /// </summary>
     [ContextClass("КоллекцияФайловФормы")]
     public class FormFilesCollectionContext : AutoContext<FormFilesCollectionContext>, ICollectionContext, IEnumerable<FormFileContext>
     {
@@ -48,6 +52,7 @@ namespace OneScript.WebHost.Application
             }
         }
 
+        [ContextMethod("Количество")]
         public int Count()
         {
             return _data.Count;

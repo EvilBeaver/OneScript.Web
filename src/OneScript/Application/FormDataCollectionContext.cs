@@ -10,6 +10,11 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    /// <summary>
+    /// Значения полей формы во входящем запросе.
+    /// Обращения к полям формы выполняется с помощью оператора [].
+    /// В качестве индекса используется имя поля.
+    /// </summary>
     [ContextClass("КоллекцияДанныхФормы")]
     public class FormDataCollectionContext : AutoContext<FormDataCollectionContext>, ICollectionContext, IEnumerable<KeyAndValueImpl>
     {
@@ -35,9 +40,13 @@ namespace OneScript.WebHost.Application
             throw RuntimeException.PropIsNotWritableException("index");
         }
 
+        /// <summary>
+        /// Коллекция загружаемых файлов (upload)
+        /// </summary>
         [ContextProperty("Файлы")]
         public FormFilesCollectionContext Files => _files;
 
+        [ContextMethod("Количество")]
         public int Count()
         {
             return _data.Count;
