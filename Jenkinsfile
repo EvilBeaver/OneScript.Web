@@ -27,7 +27,9 @@ pipeline {
 					nunit testResultsPattern: 'testresult.xml'
 				}
 				
-				archiveArtifacts 'artifact/**'
+				dir('artifact'){
+					archiveArtifacts '**'
+				}
 			}
 		}
 	}
