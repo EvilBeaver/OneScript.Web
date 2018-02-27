@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -15,18 +16,39 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private readonly IApplicationRuntime _fw;
         private readonly IScriptsProvider _scriptsProvider;
         private readonly int _controllersMethodOffset;
+        private readonly ApplicationInstance _app;
 
-        public OscriptApplicationModelProvider(IApplicationRuntime framework, IScriptsProvider sourceProvider)
+        public OscriptApplicationModelProvider(ApplicationInstance appObject, IApplicationRuntime framework, IScriptsProvider sourceProvider)
         {
             _fw = framework;
+            _app = appObject;
             _scriptsProvider = sourceProvider;
             _controllersMethodOffset = ScriptedController.GetOwnMethodsRelectionOffset();
         }
 
         public void OnProvidersExecuting(ApplicationModelProviderContext context)
         {
+            IEnumerable<string> files;
+            bool standardHandling = true;
+
+            _app.OnControllersCreation(out files, ref standardHandling);
+
+            var sources = new List<string>();
+            if (files != null)
+                sources.AddRange(files);
+
+            if (standardHandling)
+            {
+                var filesystemSources = _scriptsProvider.EnumerateFiles("/controllers");
+                sources.AddRange(filesystemSources);
+            }
+
+            FillContext(sources, context);
+        }
+
+        private void FillContext(IEnumerable<string> sources, ApplicationModelProviderContext context)
+        {
             var attrList = new List<string>();
-            var sources = _scriptsProvider.EnumerateFiles("/controllers");
             var reflector = new TypeReflectionEngine();
             foreach (var virtualPath in sources)
             {

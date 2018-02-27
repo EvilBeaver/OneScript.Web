@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
@@ -19,6 +23,7 @@ using Moq;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
+using OneScript.WebHost.Infrastructure.Implementations;
 
 namespace OneScriptWeb.Tests
 {
@@ -27,29 +32,26 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void CheckThatApplicationInstanceIsCreatedOnMain()
         {
-            lock (TestOrderingLock.Lock)
-            {
-                var services = new ServiceCollection();
-                services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
+            var services = new ServiceCollection();
+            services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
 
-                var cfgBuilder = new ConfigurationBuilder();
-                var memData = new Dictionary<string, string>(){ {"OneScript:lib.system", "bla"}};
-                cfgBuilder.AddInMemoryCollection(memData);
-                services.TryAddSingleton<IConfigurationRoot>(cfgBuilder.Build());
-                services.TryAddSingleton<IApplicationRuntime,WebApplicationEngine>();
-                services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
-                services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
-                services.AddMvcCore();
-                services.AddOneScript();
+            var cfgBuilder = new ConfigurationBuilder();
+            var memData = new Dictionary<string, string>(){ {"OneScript:lib.system", "bla"}};
+            cfgBuilder.AddInMemoryCollection(memData);
+            services.TryAddSingleton<IConfigurationRoot>(cfgBuilder.Build());
+            services.TryAddSingleton<IApplicationRuntime,WebApplicationEngine>();
+            services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
+            services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
+            services.AddMvcCore();
+            services.AddOneScript();
 
-                var provider = services.BuildServiceProvider();
-                var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
-                fakeFS.Add("/main.os", "");
+            var provider = services.BuildServiceProvider();
+            var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
+            fakeFS.Add("/main.os", "");
 
-                var appBuilder = provider.GetService<IApplicationFactory>();
-                Assert.NotNull(appBuilder);
-                Assert.NotNull(appBuilder.CreateApp()); 
-            }
+            var appBuilder = provider.GetService<IApplicationFactory>();
+            Assert.NotNull(appBuilder);
+            Assert.NotNull(appBuilder.CreateApp()); 
         }
 
         private static IApplicationRuntime CreateWebEngineMock()
@@ -67,27 +69,24 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void CheckThatAppMethodsAreCalled()
         {
-            lock (TestOrderingLock.Lock)
-            {
-                var services = MockMvcServices();
+            var services = MockMvcServices();
 
-                var provider = services.BuildServiceProvider();
-                var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
-                fakeFS.Add("/main.os", "Процедура ПриНачалеРаботыСистемы()\n" +
-                                       "    ИспользоватьСтатическиеФайлы();\n" +
-                                       "    ИспользоватьМаршруты();\n" +
-                                       "    ИспользоватьСессии()" +
-                                       "КонецПроцедуры");
+            var provider = services.BuildServiceProvider();
+            var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
+            fakeFS.Add("/main.os", "Процедура ПриНачалеРаботыСистемы()\n" +
+                                    "    ИспользоватьСтатическиеФайлы();\n" +
+                                    "    ИспользоватьМаршруты();\n" +
+                                    "    ИспользоватьСессии()" +
+                                    "КонецПроцедуры");
 
-                var webApp = provider.GetService<IApplicationRuntime>();
-                var app = ApplicationInstance.Create(fakeFS.Get("/main.os"), webApp);
-                var mvcAppBuilder = new Mock<IApplicationBuilder>();
-                mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
+            var webApp = provider.GetService<IApplicationRuntime>();
+            var app = ApplicationInstance.Create(fakeFS.Get("/main.os"), webApp);
+            var mvcAppBuilder = new Mock<IApplicationBuilder>();
+            mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
 
-                app.OnStartup(mvcAppBuilder.Object);
-                mvcAppBuilder.Verify(x=>x.Use(It.IsAny<Func<RequestDelegate,RequestDelegate>>()), Times.Exactly(3));
-
-            }
+            app.OnStartup(mvcAppBuilder.Object);
+            mvcAppBuilder.Verify(x=>x.Use(It.IsAny<Func<RequestDelegate,RequestDelegate>>()), Times.Exactly(3));
+            
         }
 
         private static ServiceCollection MockMvcServices()
@@ -107,6 +106,9 @@ namespace OneScriptWeb.Tests
                 ConstraintMap = new Dictionary<string, Type>()
             });
             services.AddTransient(typeof(IOptions<RouteOptions>), (s) => roMock.Object);
+            var optsMock = new Mock<IOptions<MvcOptions>>();
+            optsMock.SetupGet(x => x.Value).Returns(Mock.Of<MvcOptions>());
+            services.AddTransient(typeof(IOptions<MvcOptions>), (s) => optsMock.Object);
 
             services.AddMvcCore();
             services.AddOneScript();
@@ -116,65 +118,88 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void CheckThatRoutesAreRegisteredInHandler()
         {
-            lock (TestOrderingLock.Lock)
-            {
-                var services = MockMvcServices();
+            var services = MockMvcServices();
 
-                var provider = services.BuildServiceProvider();
-                var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
-                fakeFS.Add("/main.os", "Перем ТестМаршруты Экспорт;\n" +
-                                       "Процедура ПриНачалеРаботыСистемы()\n" +
-                                       "    ИспользоватьМаршруты(\"РегистрацияМаршрутов\");" +
-                                       "КонецПроцедуры\n" +
-                                       "\n" +
-                                       "Процедура РегистрацияМаршрутов(КоллекцияМаршрутов) Экспорт\n" +
-                                       "    ТестМаршруты = КоллекцияМаршрутов\n" +
-                                       "КонецПроцедуры");
+            var provider = services.BuildServiceProvider();
+            var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
+            fakeFS.Add("/main.os", "Перем ТестМаршруты Экспорт;\n" +
+                                    "Процедура ПриНачалеРаботыСистемы()\n" +
+                                    "    ИспользоватьМаршруты(\"РегистрацияМаршрутов\");" +
+                                    "КонецПроцедуры\n" +
+                                    "\n" +
+                                    "Процедура РегистрацияМаршрутов(КоллекцияМаршрутов) Экспорт\n" +
+                                    "    ТестМаршруты = КоллекцияМаршрутов\n" +
+                                    "КонецПроцедуры");
 
-                var webApp = provider.GetService<IApplicationRuntime>();
-                var app = ApplicationInstance.Create(fakeFS.Get("/main.os"), webApp);
-                var mvcAppBuilder = new Mock<IApplicationBuilder>();
-                mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
+            var webApp = provider.GetService<IApplicationRuntime>();
+            var app = ApplicationInstance.Create(fakeFS.Get("/main.os"), webApp);
+            var mvcAppBuilder = new Mock<IApplicationBuilder>();
+            mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
 
-                app.OnStartup(mvcAppBuilder.Object);
+            app.OnStartup(mvcAppBuilder.Object);
 
-                int propIndex = app.FindProperty("ТестМаршруты");
-                var routeCollection = app.GetPropValue(propIndex);
-                Assert.IsType<RoutesCollectionContext>(routeCollection);
-            }
+            int propIndex = app.FindProperty("ТестМаршруты");
+            var routeCollection = app.GetPropValue(propIndex);
+            Assert.IsType<RoutesCollectionContext>(routeCollection);
         }
 
         [Fact]
         public void MethodEchoWritesLog()
         {
-            lock (TestOrderingLock.Lock)
-            {
-                var services = new ServiceCollection();
-                services.AddSingleton<IScriptsProvider, FakeScriptsProvider>();
-                services.AddSingleton<IApplicationRuntime, WebApplicationEngine>();
-                services.AddSingleton<IConfigurationRoot>(Mock.Of<Func<IServiceProvider, IConfigurationRoot>>());
-                var fakeFS = new FakeScriptsProvider();
-                fakeFS.Add("/main.os", "Сообщить(\"Я строка лога\")");
-                services.AddSingleton<IScriptsProvider>(fakeFS);
+            var services = new ServiceCollection();
+            services.AddSingleton<IScriptsProvider, FakeScriptsProvider>();
+            services.AddSingleton<IApplicationRuntime, WebApplicationEngine>();
+            services.AddSingleton<IConfigurationRoot>(Mock.Of<Func<IServiceProvider, IConfigurationRoot>>());
+            var fakeFS = new FakeScriptsProvider();
+            fakeFS.Add("/main.os", "Сообщить(\"Я строка лога\")");
+            services.AddSingleton<IScriptsProvider>(fakeFS);
                 
-                var loggerMock = new Mock<ILogger<ApplicationInstance>>();
-                services.TryAddSingleton(loggerMock.Object);
-                services.AddTransient<IApplicationFactory, AppStarter>();
+            var loggerMock = new Mock<ILogger<ApplicationInstance>>();
+            services.TryAddSingleton(loggerMock.Object);
+            services.AddTransient<IApplicationFactory, AppStarter>();
 
-                var provider = services.BuildServiceProvider();
-                var starter  = provider.GetService<IApplicationFactory>();
+            var provider = services.BuildServiceProvider();
+            var starter  = provider.GetService<IApplicationFactory>();
 
-                var app = starter.CreateApp();
-                loggerMock.Verify(x => 
-                    x.Log(
-                        LogLevel.Debug,
-                        It.IsAny<EventId>(),
-                        It.IsAny<object>(),
-                        null,
-                        It.IsAny<Func<object, Exception, string>>()),
-                    Times.Once);
-            }
+            var app = starter.CreateApp();
+            loggerMock.Verify(x => 
+                x.Log(
+                    LogLevel.Debug,
+                    It.IsAny<EventId>(),
+                    It.IsAny<object>(),
+                    null,
+                    It.IsAny<Func<object, Exception, string>>()),
+                Times.Once);
         }
 
+        [Fact]
+        public void ControllerCreationCanBeCancelled()
+        {
+            // arrange
+            var services = MockMvcServices();
+            services.AddSingleton<IConfigurationRoot>(Mock.Of<Func<IServiceProvider, IConfigurationRoot>>());
+            var loggerMock = new Mock<ILogger<ApplicationInstance>>();
+            services.TryAddSingleton(loggerMock.Object);
+
+            var provider = services.BuildServiceProvider();
+
+            var fakeFs = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
+            fakeFs.Add("/main.os", "Процедура ПриРегистрацииКонтроллеров(СписокКонтроллеров, СтандартнаяОбработка)\n" +
+                                   "    СтандартнаяОбработка = Ложь;\n" +
+                                   "КонецПроцедуры");
+            fakeFs.Add("/controllers/test.os", "");
+
+            var mvcAppBuilder = new Mock<IApplicationBuilder>();
+            mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
+            
+            var appModel = provider.GetServices<IApplicationModelProvider>().OfType<OscriptApplicationModelProvider>().First();
+
+            //act
+            var context = new ApplicationModelProviderContext(new TypeInfo[0]);
+            appModel.OnProvidersExecuting(context);
+
+            // assert
+            Assert.Empty(context.Result.Controllers);
+        }
     }
 }

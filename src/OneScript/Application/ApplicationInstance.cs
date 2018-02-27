@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
+using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Application
@@ -49,6 +50,28 @@ namespace OneScript.WebHost.Application
             {
                 return -1;
             }
+        }
+
+        internal void OnControllersCreation(out IEnumerable<string> files, ref bool standardHandling)
+        {
+            var mId = GetScriptMethod("ПриРегистрацииКонтроллеров");
+            if (mId == -1)
+            {
+                files = null;
+                return;
+            }
+
+            var boolValue = ValueFactory.Create(standardHandling);
+            var boolReference = Variable.Create(boolValue, "");
+            var parameters = new IValue[]{new ArrayImpl(), boolReference};
+            CallScriptMethod(mId, parameters);
+
+            var arr = parameters[0].AsObject() as ArrayImpl;
+            if (arr == null)
+                throw RuntimeException.InvalidArgumentType();
+
+            files = arr.Select(x => x.AsString());
+            standardHandling = parameters[1].AsBoolean();
         }
 
         protected override MethodInfo GetOwnMethod(int index)
