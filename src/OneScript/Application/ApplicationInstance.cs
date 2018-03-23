@@ -130,27 +130,7 @@ namespace OneScript.WebHost.Application
                 }
             });
         }
-
-        private int FindInternalMethod(string handler)
-        {
-            // TODO: нет адекватного API для поиска неэкспортного метода (прямо как в ОбработкеОповещения 1С)
-            int handlerIndex = -1;
-            var mCount = GetMethodsCount();
-            for (int i = 0; i < mCount; i++)
-            {
-                var mi = GetMethodInfo(i);
-                if (StringComparer.OrdinalIgnoreCase.Compare(mi.Name, handler) == 0)
-                {
-                    handlerIndex = i;
-                    break;
-                }
-            }
-
-            if (handlerIndex < 0)
-                throw RuntimeException.MethodNotFoundException(handler);
-            return handlerIndex;
-        }
-
+        
         public void OnStartup(IApplicationBuilder aspAppBuilder)
         {
             int startup = GetScriptMethod("ПриНачалеРаботыСистемы", "OnSystemStartup");
