@@ -23,8 +23,6 @@ namespace OneScript.WebHost.Infrastructure
 
             Engine.AttachAssembly(Assembly.GetExecutingAssembly(), Environment);
             Engine.AttachAssembly(typeof(SystemGlobalContext).Assembly, Environment);
-            // TODO Убрать после реализации https://github.com/EvilBeaver/OneScript/issues/641
-            TypeManager.RegisterType("Сценарий", typeof(UserScriptContextInstance));
             Engine.Initialize();
         }
         

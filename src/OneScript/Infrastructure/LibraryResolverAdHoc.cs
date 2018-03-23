@@ -7,7 +7,7 @@ using ScriptEngine.HostedScript.Library;
 
 namespace OneScript.WebHost.Infrastructure
 {
-    // TODO: Сделать публичными в основном движке
+    // TODO: Заменить на публичный класс MultiDirectiveResolver
     public class LibraryResolverAdHoc : IDirectiveResolver
     {
         private IDirectiveResolver _stdResolver;

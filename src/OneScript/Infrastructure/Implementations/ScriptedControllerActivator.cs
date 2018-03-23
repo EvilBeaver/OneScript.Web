@@ -21,7 +21,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         public object Create(ControllerContext context)
         {
-            var instance = new ScriptedController(context, (LoadedModuleHandle)context.ActionDescriptor.Properties["module"]);
+            var instance = new ScriptedController(context, (LoadedModule)context.ActionDescriptor.Properties["module"]);
             var machine = MachineInstance.Current;
             _engine.Environment.LoadMemory(machine);
             _engine.InitializeSDO(instance);

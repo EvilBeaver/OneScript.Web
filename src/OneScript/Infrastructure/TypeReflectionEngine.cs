@@ -4,14 +4,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ScriptEngine.Machine;
+using ScriptEngine.Machine.Reflection;
 
 namespace OneScript.WebHost.Infrastructure
 {
     public class TypeReflectionEngine
     {
-        public Type Reflect(LoadedModuleHandle module, string asTypeName)
+        public Type Reflect<T>(LoadedModule module, string asTypeName) where T : ScriptDrivenObject
         {
-            var type = ReflectedClassType.ReflectModule(module, asTypeName);
+            var typeBuilder = new ClassBuilder<T>();
+            var type = typeBuilder
+                .SetTypeName(asTypeName)
+                .SetModule(module)
+                .ExportDefaults()
+                .Build();
 
             return type;
         }

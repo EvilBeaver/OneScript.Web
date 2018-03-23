@@ -25,7 +25,7 @@ namespace OneScript.WebHost.Application
         private static ContextPropertyMapper<ScriptedController> _ownProperties = new ContextPropertyMapper<ScriptedController>();
         private static ContextMethodsMapper<ScriptedController> _ownMethods = new ContextMethodsMapper<ScriptedController>();
         
-        public ScriptedController(ControllerContext context, LoadedModuleHandle module) : base(module, true)
+        public ScriptedController(ControllerContext context, LoadedModule module) : base(module, true)
         {
             _ctx = context;
             HttpRequest = new HttpRequestImpl(_ctx.HttpContext.Request);
@@ -317,7 +317,7 @@ namespace OneScript.WebHost.Application
 
         #endregion
 
-        public static ScriptModuleHandle CompileModule(CompilerService compiler, ICodeSource src)
+        public static ModuleImage CompileModule(CompilerService compiler, ICodeSource src)
         {
             for (int i = 0; i < _ownProperties.Count; i++)
             {
@@ -330,7 +330,7 @@ namespace OneScript.WebHost.Application
                 compiler.DefineMethod(_ownMethods.GetMethodInfo(i));
             }
 
-            return compiler.CreateModule(src);
+            return compiler.Compile(src);
         }
 
         // TODO: Костыль вызванный ошибкой https://github.com/EvilBeaver/OneScript/issues/660

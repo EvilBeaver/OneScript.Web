@@ -33,20 +33,16 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void SessionValues_CanBeRead()
         {
-            lock (TestOrderingLock.Lock)
-            {
-                var wa = new WebApplicationEngine();
+            var checks = new Dictionary<string, byte[]>();
+            var session = CreateSessionMock(checks);
 
-                var checks = new Dictionary<string, byte[]>();
-                var session = CreateSessionMock(checks);
-
-                var oscriptSession = new SessionImpl(session);
-                oscriptSession.SetString("user", "EvilBeaver");
-                oscriptSession.SetNumber("num", 1);
+            var oscriptSession = new SessionImpl(session);
+            oscriptSession.SetString("user", "EvilBeaver");
+            oscriptSession.SetNumber("num", 1);
                 
-                Assert.Equal("EvilBeaver", oscriptSession.GetString("user").AsString());
-                Assert.Equal(1m, oscriptSession.GetNumber("num").AsNumber());
-            }
+            Assert.Equal("EvilBeaver", oscriptSession.GetString("user").AsString());
+            Assert.Equal(1m, oscriptSession.GetNumber("num").AsNumber());
+            
         }
 
         [Fact]
