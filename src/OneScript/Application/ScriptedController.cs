@@ -297,7 +297,15 @@ namespace OneScript.WebHost.Application
 
         protected override int FindOwnMethod(string name)
         {
-            return _ownMethods.FindMethod(name);
+            try
+            {
+                int idx = _ownMethods.FindMethod(name);
+                return idx;
+            }
+            catch (RuntimeException)
+            {
+                return -1;
+            }
         }
 
         protected override MethodInfo GetOwnMethod(int index)
