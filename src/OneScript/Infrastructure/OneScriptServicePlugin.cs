@@ -24,11 +24,11 @@ namespace OneScript.WebHost.Infrastructure
                 ServiceDescriptor.Transient<IApplicationModelProvider, OscriptApplicationModelProvider>());
             
             services.AddTransient<IControllerActivator, ScriptedControllerActivator>();
+            services.AddTransient(typeof(ScriptedViewComponentPartProvider));
 
             InitializeScriptedLayer(services);
-
         }
-
+        
         private static void InitializeScriptedLayer(IServiceCollection services)
         {
             services.TryAddSingleton<IApplicationRuntime, WebApplicationEngine>();
