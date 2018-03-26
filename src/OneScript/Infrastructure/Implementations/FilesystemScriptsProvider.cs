@@ -22,7 +22,11 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         public IEnumerable<string> EnumerateFiles(string prefix)
         {
-            return Directory.EnumerateFiles(_contentRoot + prefix, "*.os")
+            var directory = _contentRoot + prefix;
+            if (!Directory.Exists(directory))
+                return new string[0];
+
+            return Directory.EnumerateFiles(directory, "*.os")
                 .Select(x=>x.Substring(_contentRoot.Length));
         }
 

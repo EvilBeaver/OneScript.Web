@@ -10,13 +10,15 @@ using ScriptEngine.Machine.Reflection;
 
 namespace OneScript.WebHost.Infrastructure.Implementations
 {
-    public class ScriptedViewComponentPartProvider : IApplicationFeatureProvider<ViewComponentFeature>
+    public class ScriptedViewComponentFeatureProvider : IApplicationFeatureProvider<ViewComponentFeature>
     {
         private readonly ApplicationInstance _app;
         private readonly IScriptsProvider _scriptsProvider;
         private readonly IApplicationRuntime _fw;
 
-        public ScriptedViewComponentPartProvider(ApplicationPartManager partManager, IApplicationRuntime framework, ApplicationInstance app, IScriptsProvider fsProvider)
+        private TypeInfo[] _discoveredTypes;
+
+        public ScriptedViewComponentFeatureProvider(ApplicationPartManager partManager, IApplicationRuntime framework, ApplicationInstance app, IScriptsProvider fsProvider)
         {
             _app = app;
             _fw = framework;
@@ -25,6 +27,17 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         }
 
         public void PopulateFeature(IEnumerable<ApplicationPart> parts, ViewComponentFeature feature)
+        {
+            if(_discoveredTypes == null)
+                DiscoverViewComponents();
+
+            foreach (var type in _discoveredTypes)
+            {
+                feature.ViewComponents.Add(type);
+            }
+        }
+
+        private void DiscoverViewComponents()
         {
             IEnumerable<string> files;
             bool standardHandling = true;
@@ -41,11 +54,12 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 sources.AddRange(filesystemSources);
             }
 
-            FillFeature(sources, feature);
+            FillFeature(sources);
         }
 
-        private void FillFeature(List<string> sources, ViewComponentFeature feature)
+        private void FillFeature(List<string> sources)
         {
+            var typeInfos = new List<TypeInfo>();
             foreach (var virtualPath in sources)
             {
                 var code = _scriptsProvider.Get(virtualPath);
@@ -62,8 +76,10 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                     .ExportConstructor((parameters) => new ScriptedViewComponent(builder.Module, builder.TypeName))
                     .Build();
 
-                feature.ViewComponents.Add(type.GetTypeInfo());
+                typeInfos.Add(type.GetTypeInfo());
             }
+
+            _discoveredTypes = typeInfos.ToArray();
         }
     }
 }

@@ -83,7 +83,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 if (scriptMethodInfo == null)
                     continue;
 
-                CorrectDispId(scriptMethodInfo);
                 var clrMethodInfo = MapToActionMethod(scriptMethodInfo);
                 var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
                 actionModel.ActionName = method.Name;

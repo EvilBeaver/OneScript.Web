@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
+using OneScript.WebHost.Infrastructure.Implementations;
 
 namespace OneScript.WebHost
 {
@@ -59,6 +60,8 @@ namespace OneScript.WebHost
 
             var oscriptApp = services.GetService<ApplicationInstance>();
             oscriptApp.OnStartup(app);
+            // анализ имеющихся компонентов
+            services.GetService<ScriptedViewComponentFeatureProvider>();
         }
     }
 }
