@@ -24,7 +24,6 @@ namespace OneScript.WebHost.Infrastructure
                 ServiceDescriptor.Transient<IApplicationModelProvider, OscriptApplicationModelProvider>());
             
             services.AddTransient<IControllerActivator, ScriptedControllerActivator>();
-            services.AddTransient(typeof(ScriptedViewComponentFeatureProvider));
 
             InitializeScriptedLayer(services);
         }

@@ -14,19 +14,11 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 {
     public class ScriptedViewComponentFeatureProvider : IApplicationFeatureProvider<ViewComponentFeature>
     {
-        private readonly ApplicationInstance _app;
-        private readonly IScriptsProvider _scriptsProvider;
-        private readonly IApplicationRuntime _fw;
+        public ApplicationInstance Application { get; set;  }
+        public IScriptsProvider ScriptsProvider { get; set; }
+        public IApplicationRuntime Framework { get; set; }
 
         private TypeInfo[] _discoveredTypes;
-
-        public ScriptedViewComponentFeatureProvider(ApplicationPartManager partManager, IApplicationRuntime framework, ApplicationInstance app, IScriptsProvider fsProvider)
-        {
-            _app = app;
-            _fw = framework;
-            _scriptsProvider = fsProvider;
-            partManager.FeatureProviders.Add(this);
-        }
 
         public void PopulateFeature(IEnumerable<ApplicationPart> parts, ViewComponentFeature feature)
         {
@@ -44,7 +36,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             IEnumerable<string> files;
             bool standardHandling = true;
 
-            _app.OnViewComponentsCreation(out files, ref standardHandling);
+            Application.OnViewComponentsCreation(out files, ref standardHandling);
 
             var sources = new List<string>();
             if (files != null)
@@ -52,7 +44,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
             if (standardHandling)
             {
-                var filesystemSources = _scriptsProvider.EnumerateFiles("/viewComponents");
+                var filesystemSources = ScriptsProvider.EnumerateFiles("/viewComponents");
                 sources.AddRange(filesystemSources);
             }
 
@@ -64,10 +56,10 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             var typeInfos = new List<TypeInfo>();
             foreach (var virtualPath in sources)
             {
-                var code = _scriptsProvider.Get(virtualPath);
-                var compiler = _fw.Engine.GetCompilerService();
+                var code = ScriptsProvider.Get(virtualPath);
+                var compiler = Framework.Engine.GetCompilerService();
                 var img = compiler.Compile(code);
-                var module = _fw.Engine.LoadModuleImage(img);
+                var module = Framework.Engine.LoadModuleImage(img);
                 var baseFileName = System.IO.Path.GetFileNameWithoutExtension(code.SourceDescription);
 
                 var builder = new ClassBuilder<ScriptedViewComponent>();
