@@ -74,6 +74,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                     .ExportMethods()
                     .ExportProperties()
                     .ExportConstructor((parameters) => new ScriptedViewComponent(builder.Module, builder.TypeName))
+                    .ExportClassMethod("Invoke")
                     .Build();
 
                 typeInfos.Add(type.GetTypeInfo());

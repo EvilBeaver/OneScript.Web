@@ -19,22 +19,35 @@ namespace OneScript.WebHost.Application
             InitOwnData();
         }
 
+        public ViewComponentResult Invoke()
+        {
+            var methId = GetScriptMethod("ОбработкаВызова", "CallProcessing");
+            if (methId == -1)
+            {
+                return null;
+            }
+
+            CallAsFunction(methId, new IValue[0], out IValue result);
+
+            return result.AsObject() as ViewComponentResult;
+        }
+
         [ViewComponentContext]
         public ViewComponentContext ComponentContext { get; set; }
 
         protected override int GetOwnVariableCount()
         {
-            throw new NotImplementedException();
+            return 0;
         }
 
         protected override int GetOwnMethodCount()
         {
-            throw new NotImplementedException();
+            return 0;
         }
 
         protected override void UpdateState()
         {
-            throw new NotImplementedException();
+            
         }
     }
 }
