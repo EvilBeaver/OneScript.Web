@@ -10,9 +10,15 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+using Hangfire;
+using Hangfire.MemoryStorage;
+
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
+
+
 
 namespace OneScript.WebHost
 {
@@ -51,6 +57,9 @@ namespace OneScript.WebHost
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
+            //TODO - изменить на список поддерживаемых хранилищ фоновых заданий
+            services.AddHangfire(c => c.UseMemoryStorage());
+            
             services.AddOneScript();
         }
 
@@ -61,7 +70,8 @@ namespace OneScript.WebHost
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseHangfireServer();
+            
             var oscriptApp = services.GetService<ApplicationInstance>();
             oscriptApp.OnStartup(app);
             
