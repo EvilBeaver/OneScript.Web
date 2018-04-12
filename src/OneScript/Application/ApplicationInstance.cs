@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using OneScript.WebHost.Infrastructure;
@@ -131,6 +132,12 @@ namespace OneScript.WebHost.Application
         {
             _startupBuilder.UseSession();
         }
+        
+        [ContextMethod("ИспользоватьКонсольЗаданий")]
+        public void UseBackgroudDashboard()
+        {
+            _startupBuilder.UseHangfireDashboard();
+        }
 
         private void CallRoutesRegistrationHandler(string handler)
         {
@@ -175,6 +182,8 @@ namespace OneScript.WebHost.Application
             
             var bc = compiler.Compile(src);
             var app = new ApplicationInstance(new LoadedModule(bc));
+            
+            
             webApp.Engine.InitializeSDO(app);
 
             return app;

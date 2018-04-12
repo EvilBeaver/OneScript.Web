@@ -1,0 +1,12 @@
+version: '3'
+services:
+  engine:
+    build: ./src/OneScript
+    image: omvc-engine
+  background-example:
+    build: ./examples/background
+    image: omvc-backjobs
+    ports:
+    - 5001:5000
+  redis:
+    image: "redis:alpine"
