@@ -22,6 +22,7 @@ namespace OneScript.WebHost.Application
         private SessionImpl _session;
 
         private ViewDataDictionaryWrapper _osViewData;
+        private ModelStateDictionaryWrapper _modelState;
         private static ContextPropertyMapper<ScriptedController> _ownProperties = new ContextPropertyMapper<ScriptedController>();
         private static ContextMethodsMapper<ScriptedController> _ownMethods = new ContextMethodsMapper<ScriptedController>();
         
@@ -127,6 +128,10 @@ namespace OneScript.WebHost.Application
             set => _osViewData = value ?? throw new ArgumentException();
         }
 
+        [ContextProperty("СостояниеМодели", "ModelState")]
+        public ModelStateDictionaryWrapper ModelState =>
+            _modelState ?? (_modelState = new ModelStateDictionaryWrapper(_ctx.ModelState));
+        
         /// <summary>
         /// Вспомогательный метод генерации ответа в виде представления.
         /// </summary>
