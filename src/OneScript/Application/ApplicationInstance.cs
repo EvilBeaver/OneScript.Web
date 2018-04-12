@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
+using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Application
@@ -19,7 +20,7 @@ namespace OneScript.WebHost.Application
 
         private IApplicationBuilder _startupBuilder;
 
-        public ApplicationInstance(LoadedModuleHandle module): base(module)
+        public ApplicationInstance(LoadedModule module): base(module)
         {
             
         }
@@ -49,6 +50,50 @@ namespace OneScript.WebHost.Application
             {
                 return -1;
             }
+        }
+
+        internal void OnControllersCreation(out IEnumerable<string> files, ref bool standardHandling)
+        {
+            var mId = GetScriptMethod("ПриРегистрацииКонтроллеров");
+            if (mId == -1)
+            {
+                files = null;
+                return;
+            }
+
+            var boolValue = ValueFactory.Create(standardHandling);
+            var boolReference = Variable.Create(boolValue, "");
+            var parameters = new IValue[]{new ArrayImpl(), boolReference};
+            CallScriptMethod(mId, parameters);
+
+            var arr = parameters[0].AsObject() as ArrayImpl;
+            if (arr == null)
+                throw RuntimeException.InvalidArgumentType();
+
+            files = arr.Select(x => x.AsString());
+            standardHandling = parameters[1].AsBoolean();
+        }
+
+        internal void OnViewComponentsCreation(out IEnumerable<string> files, ref bool standardHandling)
+        {
+            var mId = GetScriptMethod("ПриРегистрацииКомпонентовПредставлений");
+            if (mId == -1)
+            {
+                files = null;
+                return;
+            }
+
+            var boolValue = ValueFactory.Create(standardHandling);
+            var boolReference = Variable.Create(boolValue, "");
+            var parameters = new IValue[] { new ArrayImpl(), boolReference };
+            CallScriptMethod(mId, parameters);
+
+            var arr = parameters[0].AsObject() as ArrayImpl;
+            if (arr == null)
+                throw RuntimeException.InvalidArgumentType();
+
+            files = arr.Select(x => x.AsString());
+            standardHandling = parameters[1].AsBoolean();
         }
 
         protected override MethodInfo GetOwnMethod(int index)
@@ -89,11 +134,11 @@ namespace OneScript.WebHost.Application
 
         private void CallRoutesRegistrationHandler(string handler)
         {
-            var handlerIndex = FindMethod(handler);
+            var handlerIndex = GetScriptMethod(handler);
 
             var routesCol = new RoutesCollectionContext();
 
-            CallAsProcedure(handlerIndex, new IValue[]{routesCol});
+            CallScriptMethod(handlerIndex, new IValue[]{routesCol});
 
             _startupBuilder.UseMvc(routes =>
             {
@@ -107,27 +152,7 @@ namespace OneScript.WebHost.Application
                 }
             });
         }
-
-        private int FindInternalMethod(string handler)
-        {
-            // TODO: нет адекватного API для поиска неэкспортного метода (прямо как в ОбработкеОповещения 1С)
-            int handlerIndex = -1;
-            var mCount = GetMethodsCount();
-            for (int i = 0; i < mCount; i++)
-            {
-                var mi = GetMethodInfo(i);
-                if (StringComparer.OrdinalIgnoreCase.Compare(mi.Name, handler) == 0)
-                {
-                    handlerIndex = i;
-                    break;
-                }
-            }
-
-            if (handlerIndex < 0)
-                throw RuntimeException.MethodNotFoundException(handler);
-            return handlerIndex;
-        }
-
+        
         public void OnStartup(IApplicationBuilder aspAppBuilder)
         {
             int startup = GetScriptMethod("ПриНачалеРаботыСистемы", "OnSystemStartup");
@@ -148,8 +173,8 @@ namespace OneScript.WebHost.Application
                 compiler.DefineMethod(OwnMethods.GetMethodInfo(i));
             }
             
-            var bc = compiler.CreateModule(src);
-            var app = new ApplicationInstance(webApp.Engine.LoadModuleImage(bc));
+            var bc = compiler.Compile(src);
+            var app = new ApplicationInstance(new LoadedModule(bc));
             webApp.Engine.InitializeSDO(app);
 
             return app;

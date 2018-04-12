@@ -6,9 +6,11 @@ using ScriptEngine.Environment;
 using ScriptEngine.HostedScript;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
+using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    [GlobalContext(Category = "Глобальный контекст", ManualRegistration = true)]
     public class WebGlobalContext : IAttachableContext
     {
         // в вебе не все части SystemGlobalContext должны быть доступны

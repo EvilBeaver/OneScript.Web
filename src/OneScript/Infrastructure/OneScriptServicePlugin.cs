@@ -26,9 +26,8 @@ namespace OneScript.WebHost.Infrastructure
             services.AddTransient<IControllerActivator, ScriptedControllerActivator>();
 
             InitializeScriptedLayer(services);
-
         }
-
+        
         private static void InitializeScriptedLayer(IServiceCollection services)
         {
             services.TryAddSingleton<IApplicationRuntime, WebApplicationEngine>();

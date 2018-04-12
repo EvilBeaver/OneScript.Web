@@ -10,36 +10,79 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    /// <summary>
+    /// Описание входящего запроса HTTP
+    /// </summary>
     [ContextClass("HTTPЗапросВходящий", "HTTPIncomingRequest")]
     public class HttpRequestImpl : AutoContext<HttpRequestImpl>
     {
         private readonly HttpRequest _realObject;
         private FormDataCollectionContext _formData;
-
+        
         public HttpRequestImpl(HttpRequest request)
         {
             _realObject = request;
+            UpdateHeaders();
+            UpdateCookies();
+        }
+
+        private void UpdateHeaders()
+        {
             var mapHdrs = new MapImpl();
-            foreach (var realObjectHeader in _realObject.Headers)
+            if (_realObject.Headers != null)
             {
-                mapHdrs.SetIndexedValue(ValueFactory.Create(realObjectHeader.Key),ValueFactory.Create(realObjectHeader.Value));
+                foreach (var realObjectHeader in _realObject.Headers)
+                {
+                    mapHdrs.SetIndexedValue(ValueFactory.Create(realObjectHeader.Key), ValueFactory.Create(realObjectHeader.Value));
+                }                 
             }
+
             Headers = new FixedMapImpl(mapHdrs);
+        }
+
+        private void UpdateCookies()
+        {
+            var cookieMap = new MapImpl();
+            if (_realObject.Cookies != null)
+            {
+                foreach (var cookie in _realObject.Cookies)
+                {
+                    cookieMap.SetIndexedValue(ValueFactory.Create(cookie.Key),
+                        ValueFactory.Create(cookie.Value));
+                } 
+            }
+
+            Cookies = new FixedMapImpl(cookieMap);
         }
 
         // для внутреннего пользования
         public HttpRequest RealObject => _realObject;
 
-
+        /// <summary>
+        /// ФиксированноеСоответствие. Заголовки входящего запроса
+        /// </summary>
         [ContextProperty("Заголовки")]
-        public FixedMapImpl Headers { get; }
-        
+        public FixedMapImpl Headers { get; private set; }
+
+        /// <summary>
+        /// ФиксированноеСоответствие. Cookies входящего запроса
+        /// </summary>
+        [ContextProperty("Cookies")]
+        public FixedMapImpl Cookies { get; private set; }
+
+        /// <summary>
+        /// Получение тела запроса в виде потока для чтения
+        /// </summary>
+        /// <returns>Поток</returns>
         [ContextMethod("ПолучитьТелоКакПоток")]
         public GenericStream GetBodyAsStream()
         {
             return new GenericStream(_realObject.Body);
         }
 
+        /// <summary>
+        /// Коллекция переменных, переданных в качестве данных формы
+        /// </summary>
         [ContextProperty("ДанныеФормы")]
         public FormDataCollectionContext FormData
         {
@@ -57,12 +100,21 @@ namespace OneScript.WebHost.Application
             }
         }
 
+        /// <summary>
+        /// Текущий метод HTTP
+        /// </summary>
         [ContextProperty("Метод")]
         public string Method => _realObject.Method;
 
+        /// <summary>
+        /// Текущая строка запроса (QueryString)
+        /// </summary>
         [ContextProperty("СтрокаЗапроса")]
         public string QueryString => _realObject.QueryString.Value;
 
+        /// <summary>
+        /// Путь текущего ресурса
+        /// </summary>
         [ContextProperty("Путь")]
         public string Path => _realObject.Path;
     }

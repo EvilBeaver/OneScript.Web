@@ -14,13 +14,15 @@ namespace OneScript.WebHost.Application
     public class ViewDataDictionaryWrapper : AutoContext<ViewDataDictionaryWrapper>, IEnumerable<KeyValuePair<string, IValue>>
     {
         private readonly Dictionary<string, IValue> _dictMap = new Dictionary<string, IValue>();
-        
+        private ViewDataDictionary _realDictionary;
+
         public ViewDataDictionaryWrapper()
         {
         }
 
         public ViewDataDictionaryWrapper(ViewDataDictionary value)
         {
+            _realDictionary = value;
         }
 
         public IValue this[string index]
@@ -63,7 +65,7 @@ namespace OneScript.WebHost.Application
         public ViewDataDictionary GetDictionary()
         {
             var model = Model;
-            var realDict = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
+            var realDict = _realDictionary ?? new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary());
             if (model != null)
             {
                 if (model.DataType == DataType.Object)

@@ -5,12 +5,27 @@
 
     <IsPackable>false</IsPackable>
   </PropertyGroup>
+    
+  <PropertyGroup>
+    <ReleaseNumber Condition="'$(ReleaseNumber)' == ''">1</ReleaseNumber>
+    <BuildNumber Condition="'$(BUILD_NUMBER)' != ''">$(BUILD_NUMBER)</BuildNumber>
+    <BuildNumber Condition="'$(BUILD_NUMBER)' == ''">0</BuildNumber>
+    <PatchNumber Condition="'$(PatchNumber)' == ''">0</PatchNumber>
+  </PropertyGroup>
+
+  <PropertyGroup>
+      <Version>1.$(ReleaseNumber).$(PatchNumber).$(BuildNumber)</Version>
+      <FileVersion>$(Version)</FileVersion>
+      <Product>1Script Server Pages</Product>
+      <Copyright>Copyright (c) 2018 EvilBeaver</Copyright>
+  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
     <PackageReference Include="Moq" Version="4.7.145" />
-    <PackageReference Include="xunit" Version="2.2.0" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.2.0" />
+    <PackageReference Include="xunit" Version="2.3.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
   <ItemGroup>
