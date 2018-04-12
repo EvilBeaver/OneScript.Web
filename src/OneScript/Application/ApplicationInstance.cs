@@ -20,7 +20,7 @@ namespace OneScript.WebHost.Application
 
         private IApplicationBuilder _startupBuilder;
 
-        public ApplicationInstance(LoadedModuleHandle module): base(module)
+        public ApplicationInstance(LoadedModule module): base(module)
         {
             
         }
@@ -173,8 +173,8 @@ namespace OneScript.WebHost.Application
                 compiler.DefineMethod(OwnMethods.GetMethodInfo(i));
             }
             
-            var bc = compiler.CreateModule(src);
-            var app = new ApplicationInstance(webApp.Engine.LoadModuleImage(bc));
+            var bc = compiler.Compile(src);
+            var app = new ApplicationInstance(new LoadedModule(bc));
             webApp.Engine.InitializeSDO(app);
 
             return app;
