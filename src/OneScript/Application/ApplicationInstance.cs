@@ -134,11 +134,11 @@ namespace OneScript.WebHost.Application
 
         private void CallRoutesRegistrationHandler(string handler)
         {
-            var handlerIndex = FindMethod(handler);
+            var handlerIndex = GetScriptMethod(handler);
 
             var routesCol = new RoutesCollectionContext();
 
-            CallAsProcedure(handlerIndex, new IValue[]{routesCol});
+            CallScriptMethod(handlerIndex, new IValue[]{routesCol});
 
             _startupBuilder.UseMvc(routes =>
             {
