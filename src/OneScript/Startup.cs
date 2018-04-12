@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 using Hangfire;
+using Hangfire.AspNetCore;
 using Hangfire.MemoryStorage;
 
 using OneScript.WebHost.Application;
