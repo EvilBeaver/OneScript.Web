@@ -42,9 +42,27 @@ namespace OneScript.WebHost.Infrastructure
                     .ToArray();
 
                 libRoot = libRoot.Replace("$appBinary", binFolder);
-
-                _webEng.Engine.DirectiveResolver = new LibraryResolverAdHoc(webEng, libRoot, additionals);
+                InitializeDirectiveResolver(_webEng.Engine, _webEng.Environment, libRoot, additionals);
             }
+        }
+
+        private void InitializeDirectiveResolver(ScriptingEngine engine, RuntimeEnvironment env, string libRoot, string[] additionals)
+        {
+            var ignoreDirectiveResolver = new DirectiveIgnorer();
+
+            ignoreDirectiveResolver.Add("Region", "Область");
+            ignoreDirectiveResolver.Add("EndRegion", "КонецОбласти");
+
+            var resolversCollection = new DirectiveMultiResolver();
+            resolversCollection.Add(ignoreDirectiveResolver);
+
+            var libResolver = new LibraryResolver(engine, env);
+            libResolver.LibraryRoot = libRoot;
+            if (additionals != null)
+                libResolver.SearchDirectories.AddRange(additionals);
+
+            resolversCollection.Add(libResolver);
+            engine.DirectiveResolver = resolversCollection;
         }
 
         public ApplicationInstance CreateApp()
