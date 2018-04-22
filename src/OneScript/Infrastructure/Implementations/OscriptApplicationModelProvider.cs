@@ -51,6 +51,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         {
             var attrList = new List<string>();
             var reflector = new TypeReflectionEngine();
+            _fw.Environment.LoadMemory(MachineInstance.Current);
             foreach (var virtualPath in sources)
             {
                 var codeSrc = _scriptsProvider.Get(virtualPath);
