@@ -23,9 +23,35 @@ namespace OneScript.WebHost.Application
         [ContextMethod("ВыполнитьЗадание")]
         public void RunTask(string module, string method, ArrayImpl args)
         {
+            //todo - а параметры то нужно сериализовать
+            
             BackgroundJob.Enqueue(()=>PerformAction(module, method));
         }
-
+        
+        [ContextMethod("ВыполнитьЗаданиеОднократно")]
+        public void RunTaskOnce(string module, string method, ArrayImpl args)
+        {
+            //todo - не забыть сделать настройки повторений
+            
+            BackgroundJob.Enqueue(()=>PerformAction(module, method));
+        }
+        
+        [ContextMethod("ЗапланироватьЗаданиеПоРасписанию")]
+        public void RunSheduledTask(string module, string method, ArrayImpl args)
+        {
+            //todo - вопрос как передавать расписание - cron никому понятен не будет
+            
+            BackgroundJob.Enqueue(()=>PerformAction(module, method));
+        }
+        
+        [ContextMethod("ЗапланироватьПоследовательность")]
+        public void RunSheduledTask(string TaskIDFrom, string module, string method, ArrayImpl args)
+        {
+            //todo - вопрос как передавать расписание - cron никому понятен не будет
+            
+            BackgroundJob.Enqueue(()=>PerformAction(module, method));
+        }
+        
         public static void PerformAction(string module, string method)
         {
             _globalEnv.LoadMemory(MachineInstance.Current);

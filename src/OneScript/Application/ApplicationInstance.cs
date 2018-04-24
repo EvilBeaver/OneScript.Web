@@ -134,9 +134,16 @@ namespace OneScript.WebHost.Application
         }
         
         [ContextMethod("ИспользоватьКонсольЗаданий")]
-        public void UseBackgroudDashboard()
+        public void UseBackgroudDashboard(string routeforjobs = "/jobs")
         {
-            _startupBuilder.UseHangfireDashboard();
+            if (routeforjobs == null) {
+                //todo throw Exception
+            } else
+            {
+               _startupBuilder.UseHangfireDashboard(routeforjobs);    
+                
+            }
+            
         }
 
         private void CallRoutesRegistrationHandler(string handler)
