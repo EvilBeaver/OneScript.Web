@@ -49,6 +49,7 @@ namespace OneScript.WebHost.Application
             _osGlobal.PublishMethod("ЗагрузитьСценарийИзСтроки", "LoadScriptFromString");
             _osGlobal.PublishMethod("ПодключитьСценарий", "AttachScript");
             _osGlobal.PublishMethod("Сообщить", "Message");
+            _osGlobal.PublishMethod("СтартовыйСценарий","StartupScript");
 
             sys.InitInstance();
             
