@@ -50,6 +50,10 @@ namespace OneScript.WebHost.Infrastructure
         public ApplicationInstance CreateApp()
         {
             var codeSrc = _scripts.Get("/main.os");
+            
+            var bgJobsMgr = new BackgroundJobsContext(_webEng.Environment);
+            _webEng.Environment.InjectGlobalProperty(bgJobsMgr,"ФоновыеЗадания", true);
+            _webEng.Environment.InjectGlobalProperty(bgJobsMgr,"BackgroundJobs", true);
             _webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc));
             _webEng.Engine.UpdateContexts();
             

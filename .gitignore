@@ -15,3 +15,5 @@ src/OneScriptWeb.Tests/obj/
 
 src/OneScript/Properties/launchSettings\.json
 examples/hello/oscript_modules/
+
+src/.idea
