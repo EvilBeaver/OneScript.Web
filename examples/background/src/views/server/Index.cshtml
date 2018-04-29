@@ -1,0 +1,9 @@
+<h1>Параметры приложения</h1>
+
+<h2>Конфигурационный файл</h2>
+@foreach(var kv in Model) {
+    <p>@item.Key : @item.Value</p>
+}
+
+<h2>Параметры сервера</h2>
+<a asp-action="Environment">Нажми для просмотра окружения</a>

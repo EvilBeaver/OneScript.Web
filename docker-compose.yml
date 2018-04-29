@@ -1,0 +1,21 @@
+version: '3'
+services:
+  engine:
+    build: ./src/OneScript
+    image: omvc-engine
+  background-example:
+    build: ./examples/background
+    image: omvc-backjobs
+    ports:
+    - 5001:5000
+  auth0-example:
+    build: ./examples/auth0
+    image: omvc-auth0
+    ports:
+    - 5002:5000
+    environment:
+      - Auth0_DOMAIN
+      - Auth0_ClientID
+      - Auth0_ClientSecret
+  redis:
+    image: "redis:alpine"

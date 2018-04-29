@@ -44,9 +44,9 @@ namespace OneScriptWeb.Tests
             osResult.ViewData.Model = new ArrayImpl();
 
             var realAction = osResult.CreateExecutableResult();
-            Assert.IsType(typeof(string), realAction.ViewData["MyData"]);
-            Assert.IsType(typeof(DynamicContextWrapper), realAction.ViewData["MyObject"]);
-            Assert.IsType(typeof(DynamicContextWrapper), realAction.ViewData.Model);
+            Assert.IsType<string>(realAction.ViewData["MyData"]);
+            Assert.IsType<DynamicContextWrapper>(realAction.ViewData["MyObject"]);
+            Assert.IsType<DynamicContextWrapper>(realAction.ViewData.Model);
 
             var structWrap = realAction.ViewData["MyObject"] as DynamicContextWrapper;
             var arrayWrap = realAction.ViewData.Model as DynamicContextWrapper;

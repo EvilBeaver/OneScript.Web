@@ -10,9 +10,16 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
+using Hangfire;
+using Hangfire.AspNetCore;
+using Hangfire.MemoryStorage;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
+
+
 
 namespace OneScript.WebHost
 {
@@ -48,10 +55,24 @@ namespace OneScript.WebHost
             
             services.AddMemoryCache();
             services.AddSession();
+
+            
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            });
+            
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
+            //TODO - изменить на список поддерживаемых хранилищ фоновых заданий
+            services.AddHangfire(c => c.UseMemoryStorage());
+            
             services.AddOneScript();
+
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -61,7 +82,8 @@ namespace OneScript.WebHost
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseHangfireServer();
+            
             var oscriptApp = services.GetService<ApplicationInstance>();
             oscriptApp.OnStartup(app);
             
