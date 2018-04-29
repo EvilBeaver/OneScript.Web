@@ -5,8 +5,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.HostedScript.Library;
@@ -137,14 +141,105 @@ namespace OneScript.WebHost.Application
         public void UseBackgroudDashboard(string routeforjobs = "/jobs")
         {
             if (routeforjobs == null) {
-                //todo throw Exception
+                throw RuntimeException.InvalidArgumentValue("Неопределён маршрут для консоли заданий");
             } else
             {
                _startupBuilder.UseHangfireDashboard(routeforjobs);    
-                
+            }
+        }
+
+        [ContextMethod("ИспользоватьВнешнююАутентификацию")]
+        public void UseExternalAuth(string serviceID, StructureImpl authParams)
+        {
+            switch (serviceID)
+            {
+                case "auth0":
+                    ConfigureAuth0(authParams);
+                    break;
+                default:
+                    throw RuntimeException.InvalidArgumentValue("Неизвестный сервис аутентификации " + serviceID);
             }
             
         }
+
+        private void ConfigureAuth0(StructureImpl authParams)
+        {
+
+            var _appDomain = ""; 
+            var _appCID = "";
+            var _appCIS = "";
+            
+            //todo убрать это странный копипаст
+            if (authParams.HasProperty("Domain")) { _appDomain = authParams.GetPropValue(authParams.FindProperty("Domain")).AsString(); }
+            else { throw RuntimeException.InvalidArgumentValue("Для сервиса auth0 не определено свойство Domain в структуре параметров"); };
+            
+            if (authParams.HasProperty("ClientId")) { _appCID = authParams.GetPropValue(authParams.FindProperty("ClientId")).AsString(); }
+            else { throw RuntimeException.InvalidArgumentValue("Для сервиса auth0 не определено свойство ClientId в структуре параметров"); };
+            
+            if (authParams.HasProperty("ClientSecret")) { _appCIS = authParams.GetPropValue(authParams.FindProperty("ClientSecret")).AsString(); }
+            else { throw RuntimeException.InvalidArgumentValue("Для сервиса auth0 не определено свойство ClientSecret в структуре параметров"); };
+
+
+            var AuthService = _startupBuilder.ApplicationServices.GetService<AuthenticationBuilder>();
+            
+            AuthService.AddCookie()
+                .AddOpenIdConnect("Auth0", options =>
+                {
+                    // Set the authority to your Auth0 domain
+                    options.Authority = $"https://{_appDomain}";
+
+                    // Configure the Auth0 Client ID and Client Secret
+                    options.ClientId = _appCID;
+                    options.ClientSecret = _appCIS;
+
+                    // Set response type to code
+                    options.ResponseType = "code";
+
+                    // Configure the scope
+                    options.Scope.Clear();
+                    options.Scope.Add("openid");
+
+                    // Set the callback path, so Auth0 will call back to http://localhost:5000/signin-auth0 
+                    // Also ensure that you have added the URL as an Allowed Callback URL in your Auth0 dashboard 
+                    options.CallbackPath =
+                        new PathString(
+                            "/signin-auth0"); //todo - позволить пользователю самому определять контролер аутентификации
+
+                    // Configure the Claims Issuer to be Auth0
+                    options.ClaimsIssuer = "Auth0";
+
+                    options.Events = new OpenIdConnectEvents
+                    {
+                        // handle the logout redirection 
+                        OnRedirectToIdentityProviderForSignOut = (context) =>
+                        {
+                            var logoutUri = $"https://{_appDomain}/v2/logout?client_id={_appCID}";
+
+                            var postLogoutUri = context.Properties.RedirectUri;
+                            if (!string.IsNullOrEmpty(postLogoutUri))
+                            {
+                                if (postLogoutUri.StartsWith("/"))
+                                {
+                                    // transform to absolute
+                                    var request = context.Request;
+                                    postLogoutUri = request.Scheme + "://" + request.Host + request.PathBase +
+                                                    postLogoutUri;
+                                }
+                                logoutUri += $"&returnTo={Uri.EscapeDataString(postLogoutUri)}";
+                            }
+
+                            context.Response.Redirect(logoutUri);
+                            context.HandleResponse();
+
+                            return Task.CompletedTask;
+                        }
+                    };
+                });
+            
+                _startupBuilder.UseAuthentication();
+
+        }
+
 
         private void CallRoutesRegistrationHandler(string handler)
         {
