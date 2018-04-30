@@ -178,65 +178,45 @@ namespace OneScript.WebHost.Application
             
             if (authParams.HasProperty("ClientSecret")) { _appCIS = authParams.GetPropValue(authParams.FindProperty("ClientSecret")).AsString(); }
             else { throw RuntimeException.InvalidArgumentValue("Для сервиса auth0 не определено свойство ClientSecret в структуре параметров"); };
-
-
-            var AuthService = _startupBuilder.ApplicationServices.GetService<AuthenticationBuilder>();
             
-            AuthService.AddCookie()
-                .AddOpenIdConnect("Auth0", options =>
-                {
-                    // Set the authority to your Auth0 domain
-                    options.Authority = $"https://{_appDomain}";
-
-                    // Configure the Auth0 Client ID and Client Secret
-                    options.ClientId = _appCID;
-                    options.ClientSecret = _appCIS;
-
-                    // Set response type to code
-                    options.ResponseType = "code";
-
-                    // Configure the scope
-                    options.Scope.Clear();
-                    options.Scope.Add("openid");
-
-                    // Set the callback path, so Auth0 will call back to http://localhost:5000/signin-auth0 
-                    // Also ensure that you have added the URL as an Allowed Callback URL in your Auth0 dashboard 
-                    options.CallbackPath =
-                        new PathString(
-                            "/signin-auth0"); //todo - позволить пользователю самому определять контролер аутентификации
-
-                    // Configure the Claims Issuer to be Auth0
-                    options.ClaimsIssuer = "Auth0";
-
-                    options.Events = new OpenIdConnectEvents
-                    {
-                        // handle the logout redirection 
-                        OnRedirectToIdentityProviderForSignOut = (context) =>
-                        {
-                            var logoutUri = $"https://{_appDomain}/v2/logout?client_id={_appCID}";
-
-                            var postLogoutUri = context.Properties.RedirectUri;
-                            if (!string.IsNullOrEmpty(postLogoutUri))
-                            {
-                                if (postLogoutUri.StartsWith("/"))
-                                {
-                                    // transform to absolute
-                                    var request = context.Request;
-                                    postLogoutUri = request.Scheme + "://" + request.Host + request.PathBase +
-                                                    postLogoutUri;
-                                }
-                                logoutUri += $"&returnTo={Uri.EscapeDataString(postLogoutUri)}";
-                            }
-
-                            context.Response.Redirect(logoutUri);
-                            context.HandleResponse();
-
-                            return Task.CompletedTask;
-                        }
-                    };
-                });
+            _startupBuilder.UseCookieAuthentication(new CookieAuthenticationOptions
+            {
+                AutomaticAuthenticate = true,
+                AutomaticChallenge = true
+            });
             
-                _startupBuilder.UseAuthentication();
+            var options = new OpenIdConnectOptions("Auth0")
+            {
+                // Set the authority to your Auth0 domain
+                Authority = $"https://{_appDomain}",
+
+                // Configure the Auth0 Client ID and Client Secret
+                ClientId = _appCID,
+                ClientSecret = _appCIS,
+
+                // Do not automatically authenticate and challenge
+                AutomaticAuthenticate = false,
+                AutomaticChallenge = false,
+
+                // Set response type to code
+                ResponseType = "code",
+
+                // Set the callback path, so Auth0 will call back to http://localhost:5000/signin-auth0 
+                // Also ensure that you have added the URL as an Allowed Callback URL in your Auth0 dashboard 
+                CallbackPath = new PathString("/signin-auth0"), //todo переопределять явное указание колбэка из скрипта
+
+                // Configure the Claims Issuer to be Auth0
+                ClaimsIssuer = "Auth0" 
+                
+               
+            };
+            
+            
+            options.Scope.Clear();
+            options.Scope.Add("openid");
+            _startupBuilder.UseOpenIdConnectAuthentication(options);
+            
+            
 
         }
 

@@ -56,13 +56,10 @@ namespace OneScript.WebHost
             services.AddMemoryCache();
             services.AddSession();
 
-            
-            services.AddAuthentication(options =>
-            {
-                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            });
+            services.AddAuthentication(
+                options => options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme);
+
+            services.AddOptions();
             
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));

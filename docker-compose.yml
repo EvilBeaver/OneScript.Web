@@ -17,5 +17,7 @@ services:
       - Auth0_DOMAIN
       - Auth0_ClientID
       - Auth0_ClientSecret
+    volumes:
+      - ./examples/auth0/src:/src
   redis:
     image: "redis:alpine"

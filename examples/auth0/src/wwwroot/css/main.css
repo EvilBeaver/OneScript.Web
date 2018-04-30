@@ -1,0 +1,21 @@
+body{
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 14pt;
+    width: 70%;
+    margin-left: 100pt;
+}
+
+h1 {
+    margin-bottom: 16pt;
+    border-bottom: 1px solid gray;
+}
+
+th {
+    text-align: left; background-color: lightgray;
+}
+
+.term {
+    background-color: rgb(224, 238, 255);
+    font-family: Courier New, Courier, monospace;
+    padding: 2px;
+}
