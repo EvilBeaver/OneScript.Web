@@ -24,6 +24,8 @@ namespace OneScript.WebHost.Infrastructure
         private readonly IApplicationRuntime _webEng;
         private readonly ILogger<ApplicationInstance> _logger;
 
+        private string rootSrc;
+
         public AppStarter(IScriptsProvider scripts, IApplicationRuntime webEng, IConfigurationRoot config, ILogger<ApplicationInstance> appLog)
         {
             _scripts = scripts;
@@ -32,9 +34,24 @@ namespace OneScript.WebHost.Infrastructure
 
             var configSection = config?.GetSection("OneScript");
             var libRoot = configSection?["lib.system"];
+            
+            var mainSrc = configSection?["src.dir"];
+            var binFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+               
+            
+            if (mainSrc != null)
+            {
+                
+                rootSrc = mainSrc;
+            }
+            else
+            {
+                rootSrc = "";
+            }
+
+            
             if (libRoot != null)
             {
-                var binFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
                 var additionals = configSection.GetSection("lib.additional")?
                     .AsEnumerable()
                     .Where(x=>x.Value != null)
@@ -67,7 +84,8 @@ namespace OneScript.WebHost.Infrastructure
 
         public ApplicationInstance CreateApp()
         {
-            var codeSrc = _scripts.Get("/main.os");
+            var codeSrc = _scripts.Get(rootSrc + "/main.os");
+            
             _webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc));
             _webEng.Engine.UpdateContexts();
             
