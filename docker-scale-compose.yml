@@ -1,0 +1,44 @@
+version: '3'
+services:
+  awesome:
+   image:  omvc-auth0
+   ports:
+     - 5000
+   environment:
+      - SERVICE_PORTS=5000
+      - Auth0_DOMAIN
+      - Auth0_ClientID
+      - Auth0_ClientSecret
+   volumes:
+      - ./examples/auth0/src:/src
+   deploy:
+     replicas: 3
+     update_config:
+       parallelism: 5
+       delay: 10s
+     restart_policy:
+       condition: on-failure
+       max_attempts: 3
+       window: 120s
+   networks:
+     - web
+
+  proxy:
+    image: dockercloud/haproxy
+    depends_on:
+      - awesome
+    environment:
+      - BALANCE=leastconn
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      - 80:80
+    networks:
+      - web
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  web:
+    driver: overlay
