@@ -212,13 +212,28 @@ namespace OneScript.WebHost.Application
         
         
         [ContextMethod("ИспользоватьКонсольЗаданий")]
-        public void UseBackgroundDashboard(string routeforjobs = "jobs")
+        public void UseBackgroundDashboard(string routeforjobs = "jobs", bool grantAnonymousAccess = false)
         {
+
+            
             if (routeforjobs == "") {
                 throw RuntimeException.InvalidArgumentValue("Неопределён маршрут для консоли заданий");
             } 
             
-            _startupBuilder.UseHangfireDashboard(routeforjobs);    
+            if (grantAnonymousAccess)
+            {
+                _startupBuilder.UseHangfireDashboard(routeforjobs, new DashboardOptions()
+                {
+                    AppPath = "/",
+                    DisplayStorageConnectionString = true,
+                    AuthorizationFilters = new[] { new BackgroundJobsAuthorizationFilter() } 
+                });
+                
+                
+            } else
+            {
+                _startupBuilder.UseHangfireDashboard(routeforjobs);    
+            }
             
         }
 
