@@ -79,7 +79,8 @@ namespace OneScript.WebHost
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.UseHangfireServer();
+            
+            //todo переопределить 5xx ошибку в продуктиве
             
             var oscriptApp = services.GetService<ApplicationInstance>();
             oscriptApp.OnStartup(app);

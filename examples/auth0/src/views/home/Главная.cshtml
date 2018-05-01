@@ -1,4 +1,4 @@
-<div>Проверим кто ты пользователь с автоперезагрузкой - реально </div>
+<div>Проверим кто ты пользователь с автоперезагрузкой ghb</div>
 
 @if (User.Identity.IsAuthenticated)
 {
@@ -8,3 +8,7 @@ else
 {
     <li><a asp-controller="Home" asp-action="Login">Login</a></li>
 }
+
+<p>
+    <a href="/jobserver">Консоль фоновых заданий</a>
+</p>

@@ -2,9 +2,13 @@
 using ScriptEngine.Machine.Contexts;
 using System;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
 using Hangfire;
+using Hangfire.MemoryStorage;
+using Hangfire.Mongo;
+using Hangfire.Redis;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
@@ -15,6 +19,7 @@ using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
+using StackExchange.Redis;
 
 namespace OneScript.WebHost.Application
 {
@@ -24,6 +29,7 @@ namespace OneScript.WebHost.Application
 
 
         private IApplicationBuilder _startupBuilder;
+        public static ConnectionMultiplexer Redis;
 
         public ApplicationInstance(LoadedModule module): base(module)
         {
@@ -137,15 +143,83 @@ namespace OneScript.WebHost.Application
             _startupBuilder.UseSession();
         }
         
-        [ContextMethod("ИспользоватьКонсольЗаданий")]
-        public void UseBackgroudDashboard(string routeforjobs = "/jobs")
+        
+        [ContextMethod("ИспользоватьФоновыеЗадания")]
+        public void UseBackgroundJobs(string jobsStorage, StructureImpl jobsParams = null)
         {
-            if (routeforjobs == null) {
-                throw RuntimeException.InvalidArgumentValue("Неопределён маршрут для консоли заданий");
-            } else
+            var backgroundOptions = new BackgroundJobServerOptions(); 
+            
+            var _connectString = "";
+            
+            
+            switch (jobsStorage)
             {
-               _startupBuilder.UseHangfireDashboard(routeforjobs);    
+                case "RAM":
+                    GlobalConfiguration.Configuration.UseMemoryStorage(); 
+                    break;
+                case "Redis":
+                    
+                    var _defaultPrefix = "{oscriptjobserver}:"; //todo говорят что нужно определять уникальность префикса
+                    
+                    if (jobsParams == null) {
+                        throw RuntimeException.InvalidArgumentValue(
+                            "Отсутствует структура параметров подключения к Redis - пожалуйста используйте объект  Новый Структура('СтрокаСоединения,ПрефиксБазы')");
+                    }
+                                        
+                    if (jobsParams.HasProperty("СтрокаСоединения")) { _connectString = jobsParams.GetPropValue(jobsParams.FindProperty("СтрокаСоединения")).AsString(); }
+                    else { throw RuntimeException.InvalidArgumentValue("Для сервиса Redis не определено свойство СтрокаСоединения в структуре параметров"); };
+
+                    if (jobsParams.HasProperty("ПрефиксБазы")) { _defaultPrefix = jobsParams.GetPropValue(jobsParams.FindProperty("ПрефиксБазы")).AsString(); };
+                    
+                    Redis = ConnectionMultiplexer.Connect(_connectString);
+
+                    var RedisOption = new RedisStorageOptions();
+                    RedisOption.Prefix = _defaultPrefix;
+                    
+                    GlobalConfiguration.Configuration.UseRedisStorage(Redis, RedisOption);
+                    break;
+                
+                case "MongoDB":
+                    
+                    _defaultPrefix = "oscriptJobsDatabase";
+                    
+                    if (jobsParams == null) {
+                        throw RuntimeException.InvalidArgumentValue(
+                            "Отсутствует структура параметров подключения к MongoDB - пожалуйста используйте объект  Новый Структура('СтрокаСоединения,ПрефиксБазы')");
+                    }
+                                        
+                    if (jobsParams.HasProperty("СтрокаСоединения")) { _connectString = jobsParams.GetPropValue(jobsParams.FindProperty("СтрокаСоединения")).AsString(); }
+                    else { throw RuntimeException.InvalidArgumentValue("Для сервиса Redis не определено свойство СтрокаСоединения в структуре параметров"); };
+
+                    if (jobsParams.HasProperty("ПрефиксБазы")) { _defaultPrefix = jobsParams.GetPropValue(jobsParams.FindProperty("ПрефиксБазы")).AsString(); };
+
+
+                    GlobalConfiguration.Configuration.UseMongoStorage(_connectString, _defaultPrefix);
+                    
+                    break;
+                //todo в перспективе обработать все возможные хранилища заданий
+                /*case "PostgreSQL":
+                    break;
+                case "SQLite":
+                    break;*/
+                default:
+                    throw RuntimeException.InvalidArgumentValue("Неизвестный тип хранилища настроек фоновых заданий (доступны 'RAM' и 'Redis') " + jobsStorage);
             }
+
+            _startupBuilder.UseHangfireServer();
+
+        }
+        
+        
+        [ContextMethod("ИспользоватьКонсольЗаданий")]
+        public void UseBackgroundDashboard(string routeforjobs = "jobs")
+        {
+            if (routeforjobs == "") {
+                throw RuntimeException.InvalidArgumentValue("Неопределён маршрут для консоли заданий");
+            } 
+            
+            _startupBuilder.UseHangfireDashboard(routeforjobs);    
+            
         }
 
         [ContextMethod("ИспользоватьВнешнююАутентификацию")]
@@ -215,11 +289,11 @@ namespace OneScript.WebHost.Application
             options.Scope.Clear();
             options.Scope.Add("openid");
             _startupBuilder.UseOpenIdConnectAuthentication(options);
-            
-            
 
         }
 
+        
+        //todo Позволить пользователю явно переопределить поведения при кодах ошибок 4xx
 
         private void CallRoutesRegistrationHandler(string handler)
         {

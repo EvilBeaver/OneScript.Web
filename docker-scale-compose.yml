@@ -1,5 +1,6 @@
 version: '3'
 services:
+ 
   awesome:
    image:  omvc-auth0
    ports:
@@ -12,7 +13,7 @@ services:
    volumes:
       - ./examples/auth0/src:/src
    deploy:
-     replicas: 3
+     replicas: 5
      update_config:
        parallelism: 5
        delay: 10s
@@ -38,6 +39,28 @@ services:
     deploy:
       placement:
         constraints: [node.role == manager]
+
+  visualizer:
+    image: dockersamples/visualizer:stable
+    ports:
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - web
+
+  mongo-server:
+    image: mongo
+    ports:
+      - "27017:27017"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - web
 
 networks:
   web:

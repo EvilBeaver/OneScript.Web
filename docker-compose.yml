@@ -8,6 +8,10 @@ services:
     image: omvc-backjobs
     ports:
     - 5001:5000
+    volumes:
+      - ./examples/background/src:/src
+    links:
+      - mongo-server:mongo-server
   auth0-example:
     build: ./examples/auth0
     image: omvc-auth0
@@ -19,5 +23,9 @@ services:
       - Auth0_ClientSecret
     volumes:
       - ./examples/auth0/src:/src
-  redis:
-    image: "redis:alpine"
+    links:
+      -  mongo-server:mongo-server
+  mongo-server:
+    image: mongo
+    ports:
+      - "27017:27017"
