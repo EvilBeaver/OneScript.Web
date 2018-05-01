@@ -25,6 +25,15 @@ services:
       - ./examples/auth0/src:/src
     links:
       -  mongo-server:mongo-server
+  mdb-example:
+    build: ./examples/mdbmodel
+    image: omvc-mdbmodel
+    ports:
+    - 5003:5000
+    volumes:
+      - ./examples/mdbmodel/src:/src
+    links:
+      - mongo-server:mongo-server
   mongo-server:
     image: mongo
     ports:

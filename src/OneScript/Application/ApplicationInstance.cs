@@ -250,7 +250,7 @@ namespace OneScript.WebHost.Application
             }
             
         }
-
+        
         private void ConfigureAuth0(StructureImpl authParams)
         {
 
