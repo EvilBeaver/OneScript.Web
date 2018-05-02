@@ -1,4 +1,6 @@
-FROM evilbeaver/mono-ru:5.4
+FROM mono:5.10
+
+ENV LANG ru_RU.UTF-8
 
 ARG binaries=bin/Release/net461/publish
 
