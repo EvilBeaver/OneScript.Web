@@ -18,7 +18,7 @@ namespace OneScript.WebHost.Application
     {
         private readonly HttpRequest _realObject;
         private FormDataCollectionContext _formData;
-        
+
         public HttpRequestImpl(HttpRequest request)
         {
             _realObject = request;
@@ -33,8 +33,9 @@ namespace OneScript.WebHost.Application
             {
                 foreach (var realObjectHeader in _realObject.Headers)
                 {
-                    mapHdrs.SetIndexedValue(ValueFactory.Create(realObjectHeader.Key), ValueFactory.Create(realObjectHeader.Value));
-                }                 
+                    mapHdrs.SetIndexedValue(ValueFactory.Create(realObjectHeader.Key),
+                        ValueFactory.Create(realObjectHeader.Value));
+                }
             }
 
             Headers = new FixedMapImpl(mapHdrs);
@@ -49,7 +50,7 @@ namespace OneScript.WebHost.Application
                 {
                     cookieMap.SetIndexedValue(ValueFactory.Create(cookie.Key),
                         ValueFactory.Create(cookie.Value));
-                } 
+                }
             }
 
             Cookies = new FixedMapImpl(cookieMap);
@@ -111,6 +112,22 @@ namespace OneScript.WebHost.Application
         /// </summary>
         [ContextProperty("СтрокаЗапроса")]
         public string QueryString => _realObject.QueryString.Value;
+
+        /// <summary>
+        /// Коллекция параметров запроса (из СтрокиЗапроса)
+        /// </summary>
+        [ContextMethod("ПараметрыЗапроса")]
+        public MapImpl QueryParameters()
+        {
+            MapImpl result = new MapImpl();
+            foreach (var kv in _realObject.Query)
+            {
+                result.Insert(ValueFactory.Create(kv.Key),
+                    ValueFactory.Create(kv.Value));
+            }
+
+            return result;
+        }
 
         /// <summary>
         /// Путь текущего ресурса
