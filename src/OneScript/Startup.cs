@@ -30,7 +30,7 @@ namespace OneScript.WebHost
             confBuilder.AddJsonFile("appsettings.json", optional: true);
 
             Configuration = confBuilder.Build();
-            logs.AddConsole(Configuration);
+            logs.AddConsole(Configuration.GetSection("Logging"));
         }
         
         private IConfigurationRoot Configuration { get; set; }
