@@ -51,6 +51,10 @@ namespace OneScript.WebHost
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseStatusCodePages();
+            }
 
             var oscriptApp = services.GetService<ApplicationInstance>();
             oscriptApp.OnStartup(app);
