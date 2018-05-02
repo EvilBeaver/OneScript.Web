@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -113,6 +114,16 @@ namespace OneScriptWeb.Tests
             public void Clear()
             {
                 _values.Clear();
+            }
+
+            public Task LoadAsync(CancellationToken cancellationToken = default(CancellationToken))
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task CommitAsync(CancellationToken cancellationToken = default(CancellationToken))
+            {
+                throw new NotImplementedException();
             }
 
             public bool IsAvailable { get; }
