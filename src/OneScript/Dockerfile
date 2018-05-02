@@ -1,6 +1,8 @@
-FROM evilbeaver/mono-ru:5.4
+FROM mono:5.10
 
-ARG binaries=bin/Release/PublishOutput
+ENV LANG ru_RU.UTF-8
+
+ARG binaries=bin/Release/net461/publish
 
 ENV BINPREFIX=/var/osp.net
 ENV ASPNETCORE_ENVIRONMENT=Production

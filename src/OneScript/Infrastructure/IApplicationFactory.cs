@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using OneScript.WebHost.Application;
+using OneScript.WebHost.Application.DataSources;
 using ScriptEngine;
 using ScriptEngine.HostedScript;
 using ScriptEngine.HostedScript.Library;
@@ -68,7 +69,17 @@ namespace OneScript.WebHost.Infrastructure
         public ApplicationInstance CreateApp()
         {
             var codeSrc = _scripts.Get("/main.os");
+            
+            var bgJobsMgr = new BackgroundJobsContext(_webEng.Environment);
+            _webEng.Environment.InjectGlobalProperty(bgJobsMgr,"ФоновыеЗадания", true);
+            _webEng.Environment.InjectGlobalProperty(bgJobsMgr,"BackgroundJobs", true);
+
+            var dataSourceContext = new DataSourceContext(_webEng.Environment);
+            _webEng.Environment.InjectGlobalProperty(dataSourceContext,"ВнешниеИсточникиДанных", true);
+            _webEng.Environment.InjectGlobalProperty(dataSourceContext,"ExternalDataSources", true);
+            
             _webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc));
+            
             _webEng.Engine.UpdateContexts();
             
             return ApplicationInstance.Create(codeSrc, _webEng);

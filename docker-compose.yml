@@ -1,0 +1,40 @@
+version: '3'
+services:
+  engine:
+    build: ./src/OneScript
+    image: omvc-engine
+  background-example:
+    build: ./examples/background
+    image: omvc-backjobs
+    ports:
+    - 5001:5000
+    volumes:
+      - ./examples/background/src:/src
+    links:
+      - mongo-server:mongo-server
+  auth0-example:
+    build: ./examples/auth0
+    image: omvc-auth0
+    ports:
+    - 5002:5000
+    environment:
+      - Auth0_DOMAIN
+      - Auth0_ClientID
+      - Auth0_ClientSecret
+    volumes:
+      - ./examples/auth0/src:/src
+    links:
+      -  mongo-server:mongo-server
+  mdb-example:
+    build: ./examples/mdbmodel
+    image: omvc-mdbmodel
+    ports:
+    - 5003:5000
+    volumes:
+      - ./examples/mdbmodel/src:/src
+    links:
+      - mongo-server:mongo-server
+  mongo-server:
+    image: mongo
+    ports:
+      - "27017:27017"

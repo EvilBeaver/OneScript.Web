@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Moq;
@@ -91,6 +92,16 @@ namespace OneScriptWeb.Tests
             }
 
             public Task CommitAsync()
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task LoadAsync(CancellationToken cancellationToken = new CancellationToken())
+            {
+                throw new NotImplementedException();
+            }
+
+            public Task CommitAsync(CancellationToken cancellationToken = new CancellationToken())
             {
                 throw new NotImplementedException();
             }

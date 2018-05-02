@@ -1,0 +1,14 @@
+<h1>Параметры сервера</h1>
+
+<table>
+    <tr>
+        <th>Ключ</th>
+        <th>Значение</th>
+    </tr>
+    @foreach(var kv in Model) {
+        <tr>
+            <td>@kv.Ключ</td>
+            <td>@kv.Значение</td>
+        </tr>
+    }
+</table>

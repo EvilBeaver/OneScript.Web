@@ -109,8 +109,8 @@ namespace OneScriptWeb.Tests
             var request = new HttpRequestImpl(requestMock.Object);
 
             Assert.Equal(1, request.FormData.Files.Count());
-            Assert.IsType(typeof(FormDataCollectionContext), request.FormData);
-            Assert.IsType(typeof(FormFilesCollectionContext), request.FormData.Files);
+            Assert.IsType<FormDataCollectionContext>(request.FormData);
+            Assert.IsType<FormFilesCollectionContext>(request.FormData.Files);
 
             var fFile = request.FormData.Files[0];
             var fFileInt = request.FormData.Files["uploaded"];
@@ -130,7 +130,7 @@ namespace OneScriptWeb.Tests
 
             var request = new HttpRequestImpl(requestMock.Object);
 
-            Assert.Equal(request.Cookies.GetIndexedValue(ValueFactory.Create("test")).AsString(), "test");
+            Assert.Equal("test", request.Cookies.GetIndexedValue(ValueFactory.Create("test")).AsString());
         }
     }
 }
