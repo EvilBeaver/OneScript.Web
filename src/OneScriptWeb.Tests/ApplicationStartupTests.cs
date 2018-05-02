@@ -38,7 +38,7 @@ namespace OneScriptWeb.Tests
             var cfgBuilder = new ConfigurationBuilder();
             var memData = new Dictionary<string, string>(){ {"OneScript:lib.system", "bla"}};
             cfgBuilder.AddInMemoryCollection(memData);
-            services.TryAddSingleton<IConfigurationRoot>(cfgBuilder.Build());
+            services.TryAddSingleton<IConfiguration>(cfgBuilder.Build());
             services.TryAddSingleton<IApplicationRuntime,WebApplicationEngine>();
             services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
             services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
@@ -149,7 +149,7 @@ namespace OneScriptWeb.Tests
             var services = new ServiceCollection();
             services.AddSingleton<IScriptsProvider, FakeScriptsProvider>();
             services.AddSingleton<IApplicationRuntime, WebApplicationEngine>();
-            services.AddSingleton<IConfigurationRoot>(Mock.Of<Func<IServiceProvider, IConfigurationRoot>>());
+            services.AddSingleton<IConfiguration>(Mock.Of<Func<IServiceProvider, IConfiguration>>());
             var fakeFS = new FakeScriptsProvider();
             fakeFS.Add("/main.os", "Сообщить(\"Я строка лога\")");
             services.AddSingleton<IScriptsProvider>(fakeFS);
@@ -177,7 +177,7 @@ namespace OneScriptWeb.Tests
         {
             // arrange
             var services = MockMvcServices();
-            services.AddSingleton<IConfigurationRoot>(Mock.Of<Func<IServiceProvider, IConfigurationRoot>>());
+            services.AddSingleton<IConfiguration>(Mock.Of<Func<IServiceProvider, IConfiguration>>());
             var loggerMock = new Mock<ILogger<ApplicationInstance>>();
             services.TryAddSingleton(loggerMock.Object);
 
