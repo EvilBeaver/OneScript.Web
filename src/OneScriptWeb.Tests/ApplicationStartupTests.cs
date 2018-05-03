@@ -70,7 +70,9 @@ namespace OneScriptWeb.Tests
         public void CheckThatAppMethodsAreCalled()
         {
             var services = MockMvcServices();
-
+            services.AddSingleton(Mock.Of<IConfiguration>());
+            services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
+            
             var provider = services.BuildServiceProvider();
             var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
             fakeFS.Add("/main.os", "Процедура ПриНачалеРаботыСистемы()\n" +
@@ -119,6 +121,8 @@ namespace OneScriptWeb.Tests
         public void CheckThatRoutesAreRegisteredInHandler()
         {
             var services = MockMvcServices();
+            services.AddSingleton(Mock.Of<IConfiguration>());
+            services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
 
             var provider = services.BuildServiceProvider();
             var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();

@@ -99,7 +99,7 @@ namespace OneScriptWeb.Tests
         {
             var services = new ServiceCollection();
             services.TryAddSingleton<IScriptsProvider>(scriptsProvider);
-            services.TryAddSingleton(Mock.Of<IConfigurationRoot>());
+            services.TryAddSingleton(Mock.Of<IConfiguration>());
             services.TryAddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
             services.TryAddScoped<IHostingEnvironment>(x=>new HostingEnvironment());
             
