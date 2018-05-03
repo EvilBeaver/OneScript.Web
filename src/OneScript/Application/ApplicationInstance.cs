@@ -175,6 +175,8 @@ namespace OneScript.WebHost.Application
             
             var bc = compiler.Compile(src);
             var app = new ApplicationInstance(new LoadedModule(bc));
+            var machine = MachineInstance.Current;
+            webApp.Environment.LoadMemory(machine);
             webApp.Engine.InitializeSDO(app);
 
             return app;

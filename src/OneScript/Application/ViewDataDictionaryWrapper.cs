@@ -80,7 +80,7 @@ namespace OneScript.WebHost.Application
 
             foreach (var iValItem in _dictMap)
             {
-                var iVal = iValItem.Value as IValue;
+                var iVal = iValItem.Value;
                 if (iVal.DataType == DataType.Object)
                 {
                     realDict[iValItem.Key] = new DynamicContextWrapper(iVal.AsObject());
