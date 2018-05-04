@@ -35,7 +35,6 @@ namespace OneScript.WebHost
             services.Configure<RazorViewEngineOptions>(options =>
             {
                 options.ViewLocationExpanders.Add(new OscriptViewsOverride());
-                options.ViewLocationFormats.Add("/{1}/views/{0}.cshtml");
             });
             
             services.AddMemoryCache();
