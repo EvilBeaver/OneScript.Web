@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
@@ -34,6 +35,7 @@ namespace OneScript.WebHost
             services.Configure<RazorViewEngineOptions>(options =>
             {
                 options.ViewLocationExpanders.Add(new OscriptViewsOverride());
+                options.ViewLocationFormats.Add("/{1}/views/{0}.cshtml");
             });
             
             services.AddMemoryCache();
@@ -66,7 +68,7 @@ namespace OneScript.WebHost
             {
                 provider.Application = oscriptApp;
                 provider.Framework = services.GetService<IApplicationRuntime>();
-                provider.ScriptsProvider = services.GetService<IScriptsProvider>();
+                provider.ScriptsProvider = services.GetService<IFileProvider>();
             }
         }
     }

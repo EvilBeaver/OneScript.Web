@@ -1,10 +1,12 @@
 ﻿using System.Reflection;
+using Dazinator.AspNet.Extensions.FileProviders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Moq;
 using OneScript.WebHost.Application;
@@ -25,9 +27,9 @@ namespace OneScriptWeb.Tests
             {
                 string testControllerSrc = "Процедура Метод1() Экспорт КонецПроцедуры";
 
-                var scriptsProvider = new FakeScriptsProvider();
-                scriptsProvider.Add("/main.os", "");
-                scriptsProvider.Add("/controllers/mycontroller.os", testControllerSrc);
+                var scriptsProvider = new InMemoryFileProvider();
+                scriptsProvider.AddFile("main.os", "");
+                scriptsProvider.AddFile("controllers/mycontroller.os", testControllerSrc);
 
                 var result = CreateApplicationModel(scriptsProvider);
 
@@ -49,9 +51,9 @@ namespace OneScriptWeb.Tests
             {
                 string testControllerSrc = "Функция ВозвращающийМетод() Экспорт КонецФункции";
 
-                var scriptsProvider = new FakeScriptsProvider();
-                scriptsProvider.Add("/main.os", "");
-                scriptsProvider.Add("/controllers/mycontroller.os", testControllerSrc);
+                var scriptsProvider = new InMemoryFileProvider();
+                scriptsProvider.AddFile("main.os", "");
+                scriptsProvider.AddFile("controllers/mycontroller.os", testControllerSrc);
 
                 var result = CreateApplicationModel(scriptsProvider);
                 
@@ -68,9 +70,9 @@ namespace OneScriptWeb.Tests
             string testControllerSrc = "Процедура Метод1() Экспорт КонецПроцедуры\n" +
                                            "Процедура Метод2() КонецПроцедуры";
 
-            var scriptsProvider = new FakeScriptsProvider();
-            scriptsProvider.Add("/main.os", "");
-            scriptsProvider.Add("/controllers/mycontroller.os", testControllerSrc);
+            var scriptsProvider = new InMemoryFileProvider();
+            scriptsProvider.AddFile("main.os", "");
+            scriptsProvider.AddFile("controllers/mycontroller.os", testControllerSrc);
 
             var result = CreateApplicationModel(scriptsProvider);
 
@@ -95,13 +97,16 @@ namespace OneScriptWeb.Tests
             return webAppMoq.Object;
         }
 
-        private static ApplicationModel CreateApplicationModel(FakeScriptsProvider scriptsProvider)
+        private static ApplicationModel CreateApplicationModel(IFileProvider scriptsProvider)
         {
             var services = new ServiceCollection();
-            services.TryAddSingleton<IScriptsProvider>(scriptsProvider);
+            services.TryAddSingleton<IFileProvider>(scriptsProvider);
             services.TryAddSingleton(Mock.Of<IConfiguration>());
             services.TryAddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
-            services.TryAddScoped<IHostingEnvironment>(x=>new HostingEnvironment());
+            services.TryAddScoped<IHostingEnvironment>(x=>new HostingEnvironment()
+            {
+                ContentRootPath = "/"
+            });
             
             services.AddSingleton(CreateWebEngineMock());
             services.AddOneScript();

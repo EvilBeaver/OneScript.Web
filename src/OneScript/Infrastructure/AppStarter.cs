@@ -2,7 +2,9 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using OneScript.WebHost.Application;
 using ScriptEngine;
@@ -13,11 +15,11 @@ namespace OneScript.WebHost.Infrastructure
 {
     public class AppStarter : IApplicationFactory, IHostApplication
     {
-        private readonly IScriptsProvider _scripts;
+        private readonly IFileProvider _scripts;
         private readonly IApplicationRuntime _webEng;
         private readonly ILogger<ApplicationInstance> _logger;
 
-        public AppStarter(IScriptsProvider scripts, IApplicationRuntime webEng, IConfiguration config, ILogger<ApplicationInstance> appLog)
+        public AppStarter(IFileProvider scripts, IApplicationRuntime webEng, IConfiguration config, ILogger<ApplicationInstance> appLog)
         {
             _scripts = scripts;
             _webEng = webEng;
@@ -60,7 +62,7 @@ namespace OneScript.WebHost.Infrastructure
 
         public ApplicationInstance CreateApp()
         {
-            var codeSrc = _scripts.Get("/main.os");
+            var codeSrc = new FileInfoCodeSource(_scripts.GetFileInfo("main.os"));
             _webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc));
             _webEng.Engine.UpdateContexts();
             

@@ -25,6 +25,11 @@ namespace OneScript.WebHost.Application
         private ModelStateDictionaryWrapper _modelState;
         private static ContextPropertyMapper<ScriptedController> _ownProperties = new ContextPropertyMapper<ScriptedController>();
         private static ContextMethodsMapper<ScriptedController> _ownMethods = new ContextMethodsMapper<ScriptedController>();
+
+        private const int THISOBJ_VARIABLE_INDEX = 0;
+        private const string THISOBJ_EN = "ThisObject";
+        private const string THISOBJ_RU = "ЭтотОбъект";
+        private const int PRIVATE_PROPS_OFFSET = 1;
         
         public ScriptedController(ControllerContext context, LoadedModule module) : base(module, true)
         {
@@ -258,12 +263,15 @@ namespace OneScript.WebHost.Application
 
         protected override string GetOwnPropName(int index)
         {
-            return _ownProperties.GetProperty(index).Name;
+            if (index == THISOBJ_VARIABLE_INDEX)
+                return THISOBJ_RU;
+
+            return _ownProperties.GetProperty(index-PRIVATE_PROPS_OFFSET).Name;
         }
 
         protected override int GetOwnVariableCount()
         {
-            return _ownProperties.Count;
+            return _ownProperties.Count+PRIVATE_PROPS_OFFSET;
         }
 
         protected override int GetOwnMethodCount()
@@ -277,27 +285,42 @@ namespace OneScript.WebHost.Application
 
         protected override int FindOwnProperty(string name)
         {
-            return _ownProperties.FindProperty(name);
+            if (string.Compare(name, THISOBJ_RU, StringComparison.OrdinalIgnoreCase) == 0
+                || string.Compare(name, THISOBJ_EN, StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                return THISOBJ_VARIABLE_INDEX;
+            }
+
+            return _ownProperties.FindProperty(name) + PRIVATE_PROPS_OFFSET;
         }
 
         protected override bool IsOwnPropReadable(int index)
         {
-            return _ownProperties.GetProperty(index).CanRead;
+            if (index == THISOBJ_VARIABLE_INDEX)
+                return true;
+
+            return _ownProperties.GetProperty(index - PRIVATE_PROPS_OFFSET).CanRead;
         }
 
         protected override bool IsOwnPropWritable(int index)
         {
-            return _ownProperties.GetProperty(index).CanWrite;
+            if (index == THISOBJ_VARIABLE_INDEX)
+                return false;
+
+            return _ownProperties.GetProperty(index - PRIVATE_PROPS_OFFSET).CanWrite;
         }
 
         protected override IValue GetOwnPropValue(int index)
         {
-            return _ownProperties.GetProperty(index).Getter(this);
+            if (index == THISOBJ_VARIABLE_INDEX)
+                return this;
+
+            return _ownProperties.GetProperty(index - PRIVATE_PROPS_OFFSET).Getter(this);
         }
 
         protected override void SetOwnPropValue(int index, IValue val)
         {
-            _ownProperties.GetProperty(index).Setter(this, val);
+            _ownProperties.GetProperty(index - PRIVATE_PROPS_OFFSET).Setter(this, val);
         }
 
         protected override int FindOwnMethod(string name)

@@ -2,9 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.FileProviders.Physical;
 using OneScript.WebHost.Application;
 using ScriptEngine.Environment;
 using ScriptEngine.Machine.Contexts;
@@ -15,11 +19,11 @@ namespace OneScript.WebHost.Infrastructure.Implementations
     public class OscriptApplicationModelProvider : IApplicationModelProvider
     {
         private readonly IApplicationRuntime _fw;
-        private readonly IScriptsProvider _scriptsProvider;
+        private readonly IFileProvider _scriptsProvider;
         private readonly int _controllersMethodOffset;
         private readonly ApplicationInstance _app;
 
-        public OscriptApplicationModelProvider(ApplicationInstance appObject, IApplicationRuntime framework, IScriptsProvider sourceProvider)
+        public OscriptApplicationModelProvider(ApplicationInstance appObject, IApplicationRuntime framework, IFileProvider sourceProvider)
         {
             _fw = framework;
             _app = appObject;
@@ -34,29 +38,29 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
             _app.OnControllersCreation(out files, ref standardHandling);
 
-            var sources = new List<string>();
+            var sources = new List<IFileInfo>();
             if (files != null)
-                sources.AddRange(files);
+                sources.AddRange(files.Select(x => new PhysicalFileInfo(new FileInfo(x))));
 
             if (standardHandling)
             {
-                var filesystemSources = _scriptsProvider.EnumerateFiles("/controllers");
+                var filesystemSources = _scriptsProvider.GetDirectoryContents("controllers");
                 sources.AddRange(filesystemSources);
             }
 
             FillContext(sources, context);
         }
 
-        private void FillContext(IEnumerable<string> sources, ApplicationModelProviderContext context)
+        private void FillContext(IEnumerable<IFileInfo> sources, ApplicationModelProviderContext context)
         {
             var attrList = new List<string>();
             var reflector = new TypeReflectionEngine();
             _fw.Environment.LoadMemory(MachineInstance.Current);
             foreach (var virtualPath in sources)
             {
-                var codeSrc = _scriptsProvider.Get(virtualPath);
+                var codeSrc = new FileInfoCodeSource(virtualPath);
                 var module = LoadControllerCode(codeSrc);
-                var baseFileName = System.IO.Path.GetFileNameWithoutExtension(codeSrc.SourceDescription);
+                var baseFileName = System.IO.Path.GetFileNameWithoutExtension(virtualPath.Name);
                 var type = reflector.Reflect<ScriptedController>(module, baseFileName);
                 var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), attrList.AsReadOnly());
                 cm.ControllerName = type.Name;
@@ -71,6 +75,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private LoadedModule LoadControllerCode(ICodeSource src)
         {
             var compiler = _fw.Engine.GetCompilerService();
+            compiler.DefineVariable("ЭтотОбъект", "ThisObject", SymbolType.ContextProperty);
             var byteCode = ScriptedController.CompileModule(compiler, src);
             return _fw.Engine.LoadModuleImage(byteCode);
         }

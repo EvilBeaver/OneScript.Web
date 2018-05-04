@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using Dazinator.AspNet.Extensions.FileProviders;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
@@ -16,6 +17,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -33,7 +35,7 @@ namespace OneScriptWeb.Tests
         public void CheckThatApplicationInstanceIsCreatedOnMain()
         {
             var services = new ServiceCollection();
-            services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
+            services.TryAddSingleton<IFileProvider, InMemoryFileProvider>();
 
             var cfgBuilder = new ConfigurationBuilder();
             var memData = new Dictionary<string, string>(){ {"OneScript:lib.system", "bla"}};
@@ -46,9 +48,9 @@ namespace OneScriptWeb.Tests
             services.AddOneScript();
 
             var provider = services.BuildServiceProvider();
-            var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
-            fakeFS.Add("/main.os", "");
-
+            var fakeFS = (InMemoryFileProvider)provider.GetService<IFileProvider>();
+            fakeFS.AddFile("main.os", "");
+            
             var appBuilder = provider.GetService<IApplicationFactory>();
             Assert.NotNull(appBuilder);
             Assert.NotNull(appBuilder.CreateApp()); 
@@ -74,15 +76,15 @@ namespace OneScriptWeb.Tests
             services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
             
             var provider = services.BuildServiceProvider();
-            var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
-            fakeFS.Add("/main.os", "Процедура ПриНачалеРаботыСистемы()\n" +
+            var fakeFS = (InMemoryFileProvider)provider.GetService<IFileProvider>();
+            fakeFS.AddFile("main.os", "Процедура ПриНачалеРаботыСистемы()\n" +
                                     "    ИспользоватьСтатическиеФайлы();\n" +
                                     "    ИспользоватьМаршруты();\n" +
                                     "    ИспользоватьСессии()" +
                                     "КонецПроцедуры");
 
             var webApp = provider.GetService<IApplicationRuntime>();
-            var app = ApplicationInstance.Create(fakeFS.Get("/main.os"), webApp);
+            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakeFS.GetFileInfo("main.os")), webApp);
             var mvcAppBuilder = new Mock<IApplicationBuilder>();
             mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
 
@@ -94,7 +96,7 @@ namespace OneScriptWeb.Tests
         private static ServiceCollection MockMvcServices()
         {
             var services = new ServiceCollection();
-            services.TryAddSingleton<IScriptsProvider, FakeScriptsProvider>();
+            services.TryAddSingleton<IFileProvider, InMemoryFileProvider>();
             services.AddSingleton(Mock.Of<IHostingEnvironment>());
             services.AddSingleton(Mock.Of<ILoggerFactory>());
             services.AddTransient(typeof(IActionInvokerFactory), (s) => Mock.Of<IActionInvokerFactory>());
@@ -125,8 +127,8 @@ namespace OneScriptWeb.Tests
             services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
 
             var provider = services.BuildServiceProvider();
-            var fakeFS = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
-            fakeFS.Add("/main.os", "Перем ТестМаршруты Экспорт;\n" +
+            var fakeFS = (InMemoryFileProvider)provider.GetService<IFileProvider>();
+            fakeFS.AddFile("main.os", "Перем ТестМаршруты Экспорт;\n" +
                                     "Процедура ПриНачалеРаботыСистемы()\n" +
                                     "    ИспользоватьМаршруты(\"РегистрацияМаршрутов\");" +
                                     "КонецПроцедуры\n" +
@@ -136,7 +138,7 @@ namespace OneScriptWeb.Tests
                                     "КонецПроцедуры");
 
             var webApp = provider.GetService<IApplicationRuntime>();
-            var app = ApplicationInstance.Create(fakeFS.Get("/main.os"), webApp);
+            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakeFS.GetFileInfo("main.os")), webApp);
             var mvcAppBuilder = new Mock<IApplicationBuilder>();
             mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
 
@@ -151,12 +153,12 @@ namespace OneScriptWeb.Tests
         public void MethodEchoWritesLog()
         {
             var services = new ServiceCollection();
-            services.AddSingleton<IScriptsProvider, FakeScriptsProvider>();
+            services.AddSingleton<IFileProvider, InMemoryFileProvider>();
             services.AddSingleton<IApplicationRuntime, WebApplicationEngine>();
             services.AddSingleton<IConfiguration>(Mock.Of<Func<IServiceProvider, IConfiguration>>());
-            var fakeFS = new FakeScriptsProvider();
-            fakeFS.Add("/main.os", "Сообщить(\"Я строка лога\")");
-            services.AddSingleton<IScriptsProvider>(fakeFS);
+            var fakeFS = new InMemoryFileProvider();
+            fakeFS.AddFile("main.os", "Сообщить(\"Я строка лога\")");
+            services.AddSingleton<IFileProvider>(fakeFS);
                 
             var loggerMock = new Mock<ILogger<ApplicationInstance>>();
             services.TryAddSingleton(loggerMock.Object);
@@ -187,11 +189,11 @@ namespace OneScriptWeb.Tests
 
             var provider = services.BuildServiceProvider();
 
-            var fakeFs = (FakeScriptsProvider)provider.GetService<IScriptsProvider>();
-            fakeFs.Add("/main.os", "Процедура ПриРегистрацииКонтроллеров(СписокКонтроллеров, СтандартнаяОбработка)\n" +
+            var fakeFs = (InMemoryFileProvider)provider.GetService<IFileProvider>();
+            fakeFs.AddFile("main.os", "Процедура ПриРегистрацииКонтроллеров(СписокКонтроллеров, СтандартнаяОбработка)\n" +
                                    "    СтандартнаяОбработка = Ложь;\n" +
                                    "КонецПроцедуры");
-            fakeFs.Add("/controllers/test.os", "");
+            fakeFs.AddFile( "controllers/test.os", "");
 
             var mvcAppBuilder = new Mock<IApplicationBuilder>();
             mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
