@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.FileProviders.Physical;
 using OneScript.WebHost.Application;
 using ScriptEngine.Machine.Contexts;
 using ScriptEngine.Machine.Reflection;
@@ -15,7 +18,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
     public class ScriptedViewComponentFeatureProvider : IApplicationFeatureProvider<ViewComponentFeature>
     {
         public ApplicationInstance Application { get; set;  }
-        public IScriptsProvider ScriptsProvider { get; set; }
+        public IFileProvider ScriptsProvider { get; set; }
         public IApplicationRuntime Framework { get; set; }
 
         private TypeInfo[] _discoveredTypes;
@@ -38,25 +41,25 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
             Application.OnViewComponentsCreation(out files, ref standardHandling);
 
-            var sources = new List<string>();
+            var sources = new List<IFileInfo>();
             if (files != null)
-                sources.AddRange(files);
+                sources.AddRange(files.Select(x=>new PhysicalFileInfo(new FileInfo(x))));
 
             if (standardHandling)
             {
-                var filesystemSources = ScriptsProvider.EnumerateFiles("/viewComponents");
+                var filesystemSources = ScriptsProvider.GetDirectoryContents("/viewComponents");
                 sources.AddRange(filesystemSources);
             }
 
             FillFeature(sources);
         }
 
-        private void FillFeature(List<string> sources)
+        private void FillFeature(List<IFileInfo> sources)
         {
             var typeInfos = new List<TypeInfo>();
             foreach (var virtualPath in sources)
             {
-                var code = ScriptsProvider.Get(virtualPath);
+                var code = new FileInfoCodeSource(virtualPath);
                 var compiler = Framework.Engine.GetCompilerService();
                 var img = compiler.Compile(code);
                 var module = Framework.Engine.LoadModuleImage(img);

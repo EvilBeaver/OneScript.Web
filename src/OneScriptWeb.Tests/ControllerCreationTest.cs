@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Dazinator.AspNet.Extensions.FileProviders;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -18,11 +19,11 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void CheckIfControllerCreatedFromScript()
         {
-            var fakefs = new FakeScriptsProvider();
-            fakefs.Add("/controllers/test.os","");
-            fakefs.Add("/main.os","");
+            var fakefs = new InMemoryFileProvider();
+            fakefs.AddFile("controllers/test.os","");
+            fakefs.AddFile("main.os","");
             var appEngine = new WebApplicationEngine();
-            var app = ApplicationInstance.Create(fakefs.Get("/main.os"), appEngine);
+            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakefs.GetFileInfo("main.os")), appEngine);
             var provider = new OscriptApplicationModelProvider(app, appEngine, fakefs);
 
             var context = new ApplicationModelProviderContext(new TypeInfo[0]);
@@ -40,6 +41,33 @@ namespace OneScriptWeb.Tests
             var controller = (ScriptedController)activator.Create(cc);
 
             Assert.Equal("test", controller.SystemType.Name);
+        }
+
+        [Fact]
+        public void CheckIfControllerThisObjectAccessible()
+        {
+            var fakefs = new InMemoryFileProvider();
+            fakefs.AddFile("controllers/test.os", "Процедура Б() А = ЭтотОбъект; КонецПроцедуры");
+            fakefs.AddFile("main.os", "");
+            var appEngine = new WebApplicationEngine();
+            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakefs.GetFileInfo("main.os")), appEngine);
+            var provider = new OscriptApplicationModelProvider(app, appEngine, fakefs);
+
+            var context = new ApplicationModelProviderContext(new TypeInfo[0]);
+            provider.OnProvidersExecuting(context);
+
+            var cc = new ControllerContext();
+            var ad = new ControllerActionDescriptor();
+            ad.Properties["type"] = context.Result.Controllers[0].Properties["type"];
+            ad.Properties["module"] = context.Result.Controllers[0].Properties["module"];
+            cc.ActionDescriptor = ad;
+            cc.HttpContext = new DefaultHttpContext();
+            cc.HttpContext.Session = null;
+
+            var activator = new ScriptedControllerActivator(appEngine);
+            var controller = (ScriptedController)activator.Create(cc);
+
+            Assert.Equal(controller, controller.GetPropValue(0));
         }
     }
 }

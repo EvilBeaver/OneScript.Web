@@ -12,7 +12,10 @@ namespace OneScript.WebHost.Infrastructure
 
         public IEnumerable<string> ExpandViewLocations(ViewLocationExpanderContext context, IEnumerable<string> viewLocations)
         {
-            return viewLocations.Select(x => x.ToLowerInvariant());
+            var list = new List<string>();
+            list.Add("/controllers/{1}/{0}.cshtml");
+            list.AddRange(viewLocations.Select(x => x.ToLowerInvariant()));
+            return list;
         }
     }
 }

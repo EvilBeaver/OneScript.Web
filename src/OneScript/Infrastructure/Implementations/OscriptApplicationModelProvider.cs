@@ -2,9 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.FileProviders.Physical;
+using Microsoft.Extensions.FileSystemGlobbing;
 using OneScript.WebHost.Application;
 using ScriptEngine.Environment;
 using ScriptEngine.Machine.Contexts;
@@ -14,12 +19,13 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 {
     public class OscriptApplicationModelProvider : IApplicationModelProvider
     {
+        private const string MODULE_FILENAME = "module.os";
         private readonly IApplicationRuntime _fw;
-        private readonly IScriptsProvider _scriptsProvider;
+        private readonly IFileProvider _scriptsProvider;
         private readonly int _controllersMethodOffset;
         private readonly ApplicationInstance _app;
 
-        public OscriptApplicationModelProvider(ApplicationInstance appObject, IApplicationRuntime framework, IScriptsProvider sourceProvider)
+        public OscriptApplicationModelProvider(ApplicationInstance appObject, IApplicationRuntime framework, IFileProvider sourceProvider)
         {
             _fw = framework;
             _app = appObject;
@@ -34,43 +40,72 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
             _app.OnControllersCreation(out files, ref standardHandling);
 
-            var sources = new List<string>();
+            var sources = new List<IFileInfo>();
             if (files != null)
-                sources.AddRange(files);
+                sources.AddRange(files.Select(x => new PhysicalFileInfo(new FileInfo(x))));
 
             if (standardHandling)
             {
-                var filesystemSources = _scriptsProvider.EnumerateFiles("/controllers");
+                // прямые контроллеры
+                var filesystemSources = _scriptsProvider.GetDirectoryContents("controllers").Where(x => !x.IsDirectory && x.PhysicalPath.EndsWith(".os"));
+                sources.AddRange(filesystemSources);
+
+                // контроллеры в папках
+                filesystemSources = _scriptsProvider.GetDirectoryContents("controllers")
+                    .Where(x => x.IsDirectory);
+
                 sources.AddRange(filesystemSources);
             }
 
             FillContext(sources, context);
         }
 
-        private void FillContext(IEnumerable<string> sources, ApplicationModelProviderContext context)
+        private void FillContext(IEnumerable<IFileInfo> sources, ApplicationModelProviderContext context)
         {
             var attrList = new List<string>();
             var reflector = new TypeReflectionEngine();
             _fw.Environment.LoadMemory(MachineInstance.Current);
             foreach (var virtualPath in sources)
             {
-                var codeSrc = _scriptsProvider.Get(virtualPath);
-                var module = LoadControllerCode(codeSrc);
-                var baseFileName = System.IO.Path.GetFileNameWithoutExtension(codeSrc.SourceDescription);
-                var type = reflector.Reflect<ScriptedController>(module, baseFileName);
+                Type reflectedType;
+                LoadedModule module;
+                if (virtualPath.IsDirectory)
+                {
+                    var path = Path.Combine("controllers", virtualPath.Name, MODULE_FILENAME);
+                    var info = _scriptsProvider.GetFileInfo(path);
+                    if(!info.Exists || info.IsDirectory)
+                        continue;
+
+                    var codeSrc = new FileInfoCodeSource(info);
+                    module = LoadControllerCode(codeSrc);
+                    reflectedType = reflector.Reflect<ScriptedController>(module, virtualPath.Name);
+                }
+                else
+                {
+                    var codeSrc = new FileInfoCodeSource(virtualPath);
+                    module = LoadControllerCode(codeSrc);
+                    var baseFileName = System.IO.Path.GetFileNameWithoutExtension(virtualPath.Name);
+                    reflectedType = reflector.Reflect<ScriptedController>(module, baseFileName);
+                    
+                }
+
                 var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), attrList.AsReadOnly());
-                cm.ControllerName = type.Name;
+                cm.ControllerName = reflectedType.Name;
                 cm.Properties.Add("module", module);
-                cm.Properties.Add("type", type);
-                FillActions(cm, type);
+                cm.Properties.Add("type", reflectedType);
+
+                FillActions(cm, reflectedType);
 
                 context.Result.Controllers.Add(cm);
             }
         }
         
+
+
         private LoadedModule LoadControllerCode(ICodeSource src)
         {
             var compiler = _fw.Engine.GetCompilerService();
+            compiler.DefineVariable("ЭтотОбъект", "ThisObject", SymbolType.ContextProperty);
             var byteCode = ScriptedController.CompileModule(compiler, src);
             return _fw.Engine.LoadModuleImage(byteCode);
         }

@@ -10,15 +10,25 @@ namespace OneScript.WebHost
     {
         public static void Main(string[] args)
         {
-            var host = new WebHostBuilder()
-                .ConfigureAppConfiguration((hosting, config) =>
-                {
-                    var location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                    if(location != null)
-                        config.AddJsonFile(Path.Combine(location, "appsettings.json"), optional: true);
-                    config.SetBasePath(Directory.GetCurrentDirectory());
-                    config.AddJsonFile("appsettings.json", optional: true);
-                })
+            var config = new ConfigurationBuilder();
+            var location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            if (location != null)
+                config.AddJsonFile(Path.Combine(location, "appsettings.json"), optional: true);
+
+            config.SetBasePath(Directory.GetCurrentDirectory());
+            config.AddJsonFile("appsettings.json", optional: true);
+            config.AddEnvironmentVariables("OSWEB_");
+
+            if (args != null)
+            {
+                config.AddCommandLine(args);
+            }
+
+            var configInstance = config.Build();
+
+            var builder = new WebHostBuilder();
+            var host = builder
+                .UseConfiguration(configInstance)
                 .UseKestrel()
                 .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
