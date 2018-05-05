@@ -1,4 +1,6 @@
-FROM evilbeaver/mono-ru:5.4
+FROM mono:5.10
+
+ENV LANG ru_RU.UTF-8
 
 ARG binaries=bin/Release/PublishOutput
 
@@ -11,5 +13,7 @@ RUN cp $BINPREFIX/runtimes/debian-x64/native/*.so /usr/lib
 
 EXPOSE 5000
 
-WORKDIR $BINPREFIX
+VOLUME [ "/app" ]
+WORKDIR /app
+
 ENTRYPOINT mono $BINPREFIX/OneScript.WebHost.exe
