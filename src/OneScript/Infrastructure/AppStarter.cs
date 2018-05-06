@@ -69,14 +69,14 @@ namespace OneScript.WebHost.Infrastructure
             return ApplicationInstance.Create(codeSrc, _webEng);
         }
 
-        public void Echo(string str, MessageStatusEnum status = MessageStatusEnum.Ordinary)
+        public void Echo(string str, MessageStatusEnum status = MessageStatusEnum.WithoutStatus)
         {
             switch (status)
             {
                 case MessageStatusEnum.WithoutStatus:
-                case MessageStatusEnum.Ordinary:
                     _logger.LogDebug(str);
                     break;
+                case MessageStatusEnum.Ordinary:
                 case MessageStatusEnum.Information:
                     _logger.LogInformation(str);
                     break;
