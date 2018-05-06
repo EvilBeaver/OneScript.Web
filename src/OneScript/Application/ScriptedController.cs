@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.DependencyInjection;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.Environment;
@@ -18,6 +21,7 @@ namespace OneScript.WebHost.Application
     public class ScriptedController : ScriptDrivenObject
     {
         private ControllerContext _ctx;
+        private IUrlHelper _url;
 
         private SessionImpl _session;
 
@@ -238,6 +242,98 @@ namespace OneScript.WebHost.Application
         public RedirectActionResult Redirect(string url, bool permanent = false)
         {
             return RedirectActionResult.Create(url, permanent);
+        }
+
+        /// <summary>
+        /// Генерирует URL для маршрута, заданного в приложении.
+        /// Параметр routeName позволяет жестко привязать генерацию адреса к конкретному маршруту
+        /// </summary>
+        /// <param name="routeName">Строка. Имя маршрута</param>
+        /// <param name="fields">Структура. Поля маршрута в виде структуры.</param>
+        /// <returns></returns>
+        [ContextMethod("АдресМаршрута")]
+        public string RouteUrl(string routeName = null, StructureImpl fields = null)
+        {
+            string result;
+            if (fields != null)
+            {
+                var values = new Dictionary<string, object>();
+                foreach (var kv in fields)
+                {
+                    values.Add(kv.Key.AsString(), CustomMarshaller.ConvertToCLRObject(kv.Value));
+                }
+
+                result = routeName != null ? Url.RouteUrl(routeName, values) : Url.RouteUrl(values);
+            }
+            else
+            {
+                if (routeName == null)
+                    throw RuntimeException.TooLittleArgumentsPassed();
+
+                result = Url.RouteUrl(routeName);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Генерирует Url для действия в контроллере
+        /// </summary>
+        /// <param name="action">Имя действия</param>
+        /// <param name="fieldsOrController">Имя контроллера строкой или структура полей маршрута.</param>
+        /// <returns></returns>
+        [ContextMethod("АдресДействия", "ActionUrl")]
+        public string ActionUrl(string action, IValue fieldsOrController = null)
+        {
+            string result;
+            if (fieldsOrController != null)
+            {
+                if (fieldsOrController.DataType == DataType.String)
+                {
+                    result = Url.Action(action, fieldsOrController.AsString());
+                }
+                else if(fieldsOrController.GetRawValue() is StructureImpl)
+                {
+                    var values = new Dictionary<string, object>();
+                    foreach (var kv in (StructureImpl) fieldsOrController.GetRawValue())
+                    {
+                        values.Add(kv.Key.AsString(), CustomMarshaller.ConvertToCLRObject(kv.Value));
+                    }
+
+                    result = Url.Action(action, values);
+                }
+                else
+                {
+                    throw RuntimeException.InvalidArgumentType(nameof(fieldsOrController));
+                }
+                
+            }
+            else
+            {
+                result = Url.Action(action);
+            }
+
+            return result;
+        }
+        
+        public IUrlHelper Url
+        {
+            get
+            {
+                if (_url == null)
+                {
+                    var services = _ctx?.HttpContext?.RequestServices;
+                    if (services == null)
+                    {
+                        return null;
+                    }
+
+                    var factory = services.GetRequiredService<IUrlHelperFactory>();
+                    _url = factory.GetUrlHelper(_ctx);
+                }
+
+                return _url;
+            }
         }
 
         private ViewActionResult ViewResultByName(string viewname, IValue model)
