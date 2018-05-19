@@ -131,6 +131,13 @@ namespace OneScript.WebHost.Application
         {
             _startupBuilder.UseSession();
         }
+        
+        [ContextMethod("ИспользоватьАутентификацию")]
+        public void UseAuthentication()
+        {
+            
+            _startupBuilder.UseAuthentication();
+        }
 
         private void CallRoutesRegistrationHandler(string handler)
         {

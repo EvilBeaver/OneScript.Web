@@ -15,6 +15,9 @@ using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+
 namespace OneScript.WebHost
 {
     public class Startup
@@ -42,6 +45,7 @@ namespace OneScript.WebHost
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
+            services.AddAuthentication();        
             services.AddOneScript();
         }
 
