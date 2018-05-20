@@ -11,12 +11,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 
-using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 namespace OneScript.WebHost
 {
@@ -45,7 +44,6 @@ namespace OneScript.WebHost
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
-            services.AddAuthentication();        
             services.AddOneScript();
         }
 
@@ -62,6 +60,7 @@ namespace OneScript.WebHost
             }
 
             var oscriptApp = services.GetService<ApplicationInstance>();
+
             oscriptApp.OnStartup(app);
             
             // анализ имеющихся компонентов представлений

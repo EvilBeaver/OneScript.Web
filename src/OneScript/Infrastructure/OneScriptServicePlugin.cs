@@ -38,7 +38,7 @@ namespace OneScript.WebHost.Infrastructure
             services.AddSingleton<ApplicationInstance>((sp) => 
             {
                 var appFactory = (IApplicationFactory)sp.GetService(typeof(IApplicationFactory));
-                return appFactory.CreateApp();
+                return appFactory.CreateApp(services);
             });
         }
     }

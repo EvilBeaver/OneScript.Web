@@ -53,7 +53,7 @@ namespace OneScriptWeb.Tests
             
             var appBuilder = provider.GetService<IApplicationFactory>();
             Assert.NotNull(appBuilder);
-            Assert.NotNull(appBuilder.CreateApp()); 
+            Assert.NotNull(appBuilder.CreateApp(services)); 
         }
 
         private static IApplicationRuntime CreateWebEngineMock()
@@ -84,7 +84,7 @@ namespace OneScriptWeb.Tests
                                     "КонецПроцедуры");
 
             var webApp = provider.GetService<IApplicationRuntime>();
-            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakeFS.GetFileInfo("main.os")), webApp);
+            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakeFS.GetFileInfo("main.os")), webApp, services);
             var mvcAppBuilder = new Mock<IApplicationBuilder>();
             mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
 
@@ -138,7 +138,7 @@ namespace OneScriptWeb.Tests
                                     "КонецПроцедуры");
 
             var webApp = provider.GetService<IApplicationRuntime>();
-            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakeFS.GetFileInfo("main.os")), webApp);
+            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakeFS.GetFileInfo("main.os")), webApp, services);
             var mvcAppBuilder = new Mock<IApplicationBuilder>();
             mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
 
@@ -167,7 +167,7 @@ namespace OneScriptWeb.Tests
             var provider = services.BuildServiceProvider();
             var starter  = provider.GetService<IApplicationFactory>();
 
-            var app = starter.CreateApp();
+            var app = starter.CreateApp(services);
             loggerMock.Verify(x => 
                 x.Log(
                     LogLevel.Debug,

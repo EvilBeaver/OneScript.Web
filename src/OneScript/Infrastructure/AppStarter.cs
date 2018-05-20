@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using OneScript.WebHost.Application;
@@ -60,13 +61,13 @@ namespace OneScript.WebHost.Infrastructure
             engine.DirectiveResolver = resolversCollection;
         }
 
-        public ApplicationInstance CreateApp()
+        public ApplicationInstance CreateApp(IServiceCollection services)
         {
             var codeSrc = new FileInfoCodeSource(_scripts.GetFileInfo("main.os"));
             _webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc));
             _webEng.Engine.UpdateContexts();
             
-            return ApplicationInstance.Create(codeSrc, _webEng);
+            return ApplicationInstance.Create(codeSrc, _webEng, services);
         }
 
         public void Echo(string str, MessageStatusEnum status = MessageStatusEnum.WithoutStatus)

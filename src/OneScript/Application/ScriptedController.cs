@@ -24,6 +24,7 @@ namespace OneScript.WebHost.Application
         private IUrlHelper _url;
 
         private SessionImpl _session;
+        private CurrentUserImpl _currrentUser;
 
         private ViewDataDictionaryWrapper _osViewData;
         private ModelStateDictionaryWrapper _modelState;
@@ -38,6 +39,7 @@ namespace OneScript.WebHost.Application
         public ScriptedController(ControllerContext context, LoadedModule module) : base(module, true)
         {
             _ctx = context;
+            
             HttpRequest = new HttpRequestImpl(_ctx.HttpContext.Request);
             HttpResponse = new HttpResponseImpl(_ctx.HttpContext.Response);
             
@@ -123,6 +125,20 @@ namespace OneScript.WebHost.Application
                 if(_session == null)
                     _session = new SessionImpl(_ctx.HttpContext.Session);
                 return _session;
+            }
+        }
+        
+        /// <summary>
+        /// Данные текущего пользователя. Механизм текущего пользователя использует штатную аутентификацию Asp.Net.Core.
+        /// </summary>
+        [ContextProperty("ТекущийПользователь")]
+        public CurrentUserImpl CurrentUser
+        {
+            get
+            {
+                if(_currrentUser == null)
+                    _currrentUser = new CurrentUserImpl(_ctx.HttpContext);
+                return _currrentUser;
             }
         }
 

@@ -4,12 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Authentication;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.DependencyInjection;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
+
 
 namespace OneScript.WebHost.Application
 {
@@ -19,6 +26,7 @@ namespace OneScript.WebHost.Application
 
 
         private IApplicationBuilder _startupBuilder;
+        private IServiceCollection _serviceConfig;
 
         public ApplicationInstance(LoadedModule module): base(module)
         {
@@ -135,8 +143,66 @@ namespace OneScript.WebHost.Application
         [ContextMethod("ИспользоватьАутентификацию")]
         public void UseAuthentication()
         {
-            
             _startupBuilder.UseAuthentication();
+        }
+        
+        [ContextMethod("ДобавитьАутентификациюAuth0")]
+        public void AddAuthenticationAuth0(string Domain, string ClientId, string ClientSecret)
+        {
+            
+            _serviceConfig.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            })
+            .AddCookie()
+            .AddOpenIdConnect(
+                    "Auth0", options =>
+                    {
+                        // Set the authority to your Auth0 domain
+                        options.Authority = $"https://{Domain}";
+                        options.ClientId = ClientId;
+                        options.ClientSecret = ClientSecret;
+                        
+                        options.ResponseType = "code";
+                        
+                        options.Scope.Clear();
+                        options.Scope.Add("openid");
+                        
+                        options.CallbackPath = new PathString("/signin-auth0");
+                        
+                        options.ClaimsIssuer = "Auth0";
+
+                        options.Events = new OpenIdConnectEvents
+                        {
+                            // handle the logout redirection 
+                            OnRedirectToIdentityProviderForSignOut = (context) =>
+                            {
+                                var logoutUri = $"https://{Domain}/v2/logout?client_id={ClientId}";
+
+                                var postLogoutUri = context.Properties.RedirectUri;
+                                if (!string.IsNullOrEmpty(postLogoutUri))
+                                {
+                                    if (postLogoutUri.StartsWith("/"))
+                                    {
+                                        // transform to absolute
+                                        var request = context.Request;
+                                        postLogoutUri = request.Scheme + "://" + request.Host + request.PathBase + postLogoutUri;
+                                    }
+                                    logoutUri += $"&returnTo={ Uri.EscapeDataString(postLogoutUri)}";
+                                }
+
+                                context.Response.Redirect(logoutUri);
+                                context.HandleResponse();
+
+                                return Task.CompletedTask;
+                            }
+                        };
+
+                    })
+                
+                ;
         }
 
         private void CallRoutesRegistrationHandler(string handler)
@@ -159,6 +225,18 @@ namespace OneScript.WebHost.Application
                 }
             });
         }
+
+        public void Configure(IServiceCollection services)
+        {
+            int configure = GetScriptMethod("ПриНачалеНастройкиСистемы", "OnSystemConfigure");
+            if(configure == -1)
+                return;
+
+            _serviceConfig = services;
+            
+            CallScriptMethod(configure, new IValue[] { });
+
+        }
         
         public void OnStartup(IApplicationBuilder aspAppBuilder)
         {
@@ -171,7 +249,7 @@ namespace OneScript.WebHost.Application
             CallScriptMethod(startup, new IValue[] { });
         }
 
-        public static ApplicationInstance Create(ICodeSource src, IApplicationRuntime webApp)
+        public static ApplicationInstance Create(ICodeSource src, IApplicationRuntime webApp, IServiceCollection services)
         {
             var compiler = webApp.Engine.GetCompilerService();
 
@@ -186,6 +264,8 @@ namespace OneScript.WebHost.Application
             webApp.Environment.LoadMemory(machine);
             webApp.Engine.InitializeSDO(app);
 
+            app.Configure(services);
+            
             return app;
         }
     }
