@@ -1,0 +1,13 @@
+
+<div>Проверим кто ты пользователь с автоперезагрузкой</div>
+
+@if (User.Identity.IsAuthenticated)
+{
+    <li><a asp-controller="Home" asp-action="Logout">Logout</a></li>
+    <li><a asp-controller="Home" asp-action="Profile">Привет @User.Identity.Name!</a></li>
+}
+else
+{
+    <li><a asp-controller="Home" asp-action="Login">Login</a></li>
+}
+

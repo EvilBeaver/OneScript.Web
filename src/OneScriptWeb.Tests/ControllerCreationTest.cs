@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
@@ -19,11 +20,13 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void CheckIfControllerCreatedFromScript()
         {
+            var services = new ServiceCollection();
+            
             var fakefs = new InMemoryFileProvider();
             fakefs.AddFile("controllers/test.os","");
             fakefs.AddFile("main.os","");
             var appEngine = new WebApplicationEngine();
-            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakefs.GetFileInfo("main.os")), appEngine);
+            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakefs.GetFileInfo("main.os")), appEngine, services);
             var provider = new OscriptApplicationModelProvider(app, appEngine, fakefs);
 
             var context = new ApplicationModelProviderContext(new TypeInfo[0]);
@@ -46,11 +49,14 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void CheckIfControllerThisObjectAccessible()
         {
+            
+            var services = new ServiceCollection();
+            
             var fakefs = new InMemoryFileProvider();
             fakefs.AddFile("controllers/test.os", "Процедура Б() А = ЭтотОбъект; КонецПроцедуры");
             fakefs.AddFile("main.os", "");
             var appEngine = new WebApplicationEngine();
-            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakefs.GetFileInfo("main.os")), appEngine);
+            var app = ApplicationInstance.Create(new FileInfoCodeSource(fakefs.GetFileInfo("main.os")), appEngine, services);
             var provider = new OscriptApplicationModelProvider(app, appEngine, fakefs);
 
             var context = new ApplicationModelProviderContext(new TypeInfo[0]);

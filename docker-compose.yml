@@ -3,3 +3,13 @@ services:
   engine:
     build: ./src/OneScript
     image: omvc-engine-developer
+  auth0-example:
+    image: omvc-engine-developer
+    ports:
+    - 5002:5000
+    environment:
+    - Auth0_DOMAIN
+    - Auth0_ClientID
+    - Auth0_ClientSecret
+    volumes:
+    - ./examples/auth0/src:/app
