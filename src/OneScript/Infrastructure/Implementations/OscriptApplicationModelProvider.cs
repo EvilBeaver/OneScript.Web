@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.FileProviders;
@@ -14,6 +15,7 @@ using OneScript.WebHost.Application;
 using ScriptEngine.Environment;
 using ScriptEngine.Machine.Contexts;
 using ScriptEngine.Machine;
+using ScriptEngine.Machine.Reflection;
 
 namespace OneScript.WebHost.Infrastructure.Implementations
 {
@@ -112,7 +114,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         private void FillActions(ControllerModel cm, Type type)
         {
-            var attrList = new List<object>() { 0 };
             foreach (var method in type.GetMethods())
             {
                 var scriptMethodInfo = method as ReflectedMethodInfo;
@@ -120,6 +121,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                     continue;
 
                 var clrMethodInfo = MapToActionMethod(scriptMethodInfo);
+                var attrList = MapAnnotationsToAttributes(scriptMethodInfo);
                 var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
                 actionModel.ActionName = method.Name;
                 actionModel.Controller = cm;
@@ -128,6 +130,22 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 cm.Actions.Add(actionModel);
             }
 
+        }
+
+        private List<object> MapAnnotationsToAttributes(ReflectedMethodInfo scriptMethodInfo)
+        {
+            var attrList = new List<object>();
+            var annotations = scriptMethodInfo.GetCustomAttributes(typeof(UserAnnotationAttribute), false)
+                .Select(x=> ((UserAnnotationAttribute)x).Annotation);
+            foreach (var annotation in annotations)
+            {
+                if (annotation.Name == "Авторизовать" || annotation.Name == "Authorize")
+                {
+                    attrList.Add(new AuthorizeAttribute());
+                }
+            }
+
+            return attrList;
         }
 
         private void CorrectDispId(ReflectedMethodInfo scriptMethodInfo)
