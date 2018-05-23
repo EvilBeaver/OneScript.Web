@@ -28,7 +28,7 @@ namespace OneScript.WebHost.Database
             var usersManager = _services.GetRequiredService<UserManager<ApplicationUser>>();
             foreach (var sysUser in usersManager.Users.ToList())
             {
-                arr.Add(new InfobaseUserContext()
+                arr.Add(new InfobaseUserContext(usersManager)
                 {
                     Name = sysUser.UserName
                 });
@@ -40,7 +40,11 @@ namespace OneScript.WebHost.Database
         [ContextMethod("СоздатьПользователя")]
         public InfobaseUserContext CreateUser()
         {
-            return new InfobaseUserContext(_services.GetRequiredService<UserManager<ApplicationUser>>());
+            return new InfobaseUserContext(_services.GetRequiredService<UserManager<ApplicationUser>>())
+            {
+                IsNew = true
+            };
+
         }
     }
 }

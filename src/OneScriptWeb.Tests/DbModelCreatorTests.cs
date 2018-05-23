@@ -62,5 +62,33 @@ namespace OneScriptWeb.Tests
             var provider = services.BuildServiceProvider();
             var result = provider.GetRequiredService<ApplicationDbContext>();
         }
+
+        [Fact]
+        public void CanCreateInfobaseUsers()
+        {
+            var opts = new DbContextOptionsBuilder<ApplicationDbContext>();
+            var services = new ServiceCollection();
+            services.AddTransient<DbContextOptions<ApplicationDbContext>>((svc) => opts.UseInMemoryDatabase("usersManagerTest").Options);
+
+            var cfgBuilder = new ConfigurationBuilder();
+            Dictionary<string, string> keys = new Dictionary<string, string>();
+            keys["Security:Password:RequireDigit"] = "false";
+            keys["Security:Password:RequireUppercase"] = "false";
+            cfgBuilder.AddInMemoryCollection(keys);
+
+            services.AddIdentityByConfiguration(cfgBuilder.Build());
+            services.AddDbContext<ApplicationDbContext>();
+
+            var provider = services.BuildServiceProvider();
+            var ibUsers = new InfobaseUsersManagerContext(provider);
+
+            var user = ibUsers.CreateUser();
+            user.Name = "Hello";
+            user.Write();
+
+            var usersArr = ibUsers.GetUsers();
+            Assert.Equal(1, usersArr.Count());
+            Assert.Equal("Hello", usersArr.Select(x=>(InfobaseUserContext)x).First().Name);
+        }
     }
 }
