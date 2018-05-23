@@ -42,7 +42,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="2.0.3" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.0.2" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.0.2" />
-    <PackageReference Include="OneScript" Version="1.0.21-pre2" />
+    <PackageReference Include="OneScript" Version="1.0.21-pre3" />
     <PackageReference Include="OneScript.StandardLibrary" Version="1.0.20" />
   </ItemGroup>
 

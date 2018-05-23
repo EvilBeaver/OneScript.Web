@@ -16,10 +16,11 @@ namespace OneScript.WebHost.Identity
     {
         public static void AddIdentityByConfiguration(this IServiceCollection services, IConfiguration config)
         {
-            var security = config.GetSection("Security");
-            if (security.Value == null)
+            const string keyName = "Security";
+            if (!config.GetChildren().Any(item => item.Key == keyName))
                 return;
 
+            var security = config.GetSection(keyName);
             services.AddIdentity<ApplicationUser, ApplicationRole>(options =>
                 {
                     ProcessSecurityOptions(options, security);

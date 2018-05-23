@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Routing;
@@ -61,6 +62,8 @@ namespace OneScript.WebHost
                 app.UseStatusCodePages();
             }
 
+            PrepareEnvironment(services);
+
             var oscriptApp = services.GetService<ApplicationInstance>();
             oscriptApp.OnStartup(app);
             
@@ -72,6 +75,21 @@ namespace OneScript.WebHost
                 provider.Application = oscriptApp;
                 provider.Framework = services.GetService<IApplicationRuntime>();
                 provider.ScriptsProvider = services.GetService<IFileProvider>();
+            }
+        }
+
+        private void PrepareEnvironment(IServiceProvider services)
+        {
+            if (Configuration.GetSection("Database:DbType").Value != null)
+            {
+                var dbctx = services.GetService<ApplicationDbContext>();
+                dbctx.Database.EnsureCreated();
+
+                var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
+                var userManager = new InfobaseUsersManagerContext(services);
+
+                environment.InjectGlobalProperty(userManager, "ПользователиИнформационнойБазы", true);
+                environment.InjectGlobalProperty(userManager, "InfoBaseUsers", true);
             }
         }
     }

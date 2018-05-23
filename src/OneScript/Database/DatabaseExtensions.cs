@@ -13,10 +13,12 @@ namespace OneScript.WebHost.Database
     {
         public static void AddDatabaseByConfiguration(this IServiceCollection services, IConfiguration config)
         {
-            var dbSettings = config.GetSection("Database");
-            if (dbSettings.Value == null)
+            const string keyName = "Database";
+            if (!config.GetChildren().Any(item => item.Key == keyName))
                 return;
 
+            var dbSettings = config.GetSection(keyName);
+            
             var options = new OscriptDbOptions();
             dbSettings.Bind(options);
 
