@@ -169,7 +169,7 @@ namespace OneScriptWeb.Tests
             var app = starter.CreateApp();
             loggerMock.Verify(x => 
                 x.Log(
-                    LogLevel.Debug,
+                    LogLevel.Information,
                     It.IsAny<EventId>(),
                     It.IsAny<object>(),
                     null,
