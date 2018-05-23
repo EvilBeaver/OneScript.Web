@@ -132,6 +132,12 @@ namespace OneScript.WebHost.Application
             _startupBuilder.UseSession();
         }
 
+        [ContextMethod("ИспользоватьАвторизацию")]
+        public void UseAuthorization()
+        {
+            _startupBuilder.UseAuthentication();
+        }
+
         private void CallRoutesRegistrationHandler(string handler)
         {
             var handlerIndex = GetScriptMethod(handler);
