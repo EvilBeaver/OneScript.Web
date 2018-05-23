@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using OneScript.WebHost.Application;
+using OneScript.WebHost.Identity;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 
@@ -39,6 +40,7 @@ namespace OneScript.WebHost
             
             services.AddMemoryCache();
             services.AddSession();
+            services.AddIdentityByConfiguration(Configuration);
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
