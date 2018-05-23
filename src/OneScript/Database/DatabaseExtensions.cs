@@ -14,17 +14,17 @@ namespace OneScript.WebHost.Database
         public static void AddDatabaseByConfiguration(this IServiceCollection services, IConfiguration config)
         {
             var dbSettings = config.GetSection("Database");
-            if (dbSettings == null)
+            if (dbSettings.Value == null)
                 return;
 
             var options = new OscriptDbOptions();
-            config.Bind(options);
+            dbSettings.Bind(options);
 
             AddDatabaseOptions(services, options);
             services.AddDbContext<ApplicationDbContext>();
         }
 
-        private static void AddDatabaseOptions(ServiceCollection services, OscriptDbOptions options)
+        private static void AddDatabaseOptions(IServiceCollection services, OscriptDbOptions options)
         {
             Func<IServiceProvider, DbContextOptions<ApplicationDbContext>> optionsFactory;
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>();

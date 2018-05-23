@@ -17,7 +17,7 @@ namespace OneScript.WebHost.Identity
         public static void AddIdentityByConfiguration(this IServiceCollection services, IConfiguration config)
         {
             var security = config.GetSection("Security");
-            if (security == null)
+            if (security.Value == null)
                 return;
 
             services.AddIdentity<ApplicationUser, ApplicationRole>(options =>

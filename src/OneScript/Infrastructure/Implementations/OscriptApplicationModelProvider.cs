@@ -88,7 +88,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                     module = LoadControllerCode(codeSrc);
                     var baseFileName = System.IO.Path.GetFileNameWithoutExtension(virtualPath.Name);
                     reflectedType = reflector.Reflect<ScriptedController>(module, baseFileName);
-                    
                 }
 
                 var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), attrList.AsReadOnly());

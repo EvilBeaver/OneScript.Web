@@ -22,7 +22,7 @@ namespace OneScriptWeb.Tests
         public void CanCreateDatabaseInMem()
         {
             var opts = new DbContextOptionsBuilder<ApplicationDbContext>();
-            var context = new ApplicationDbContext(opts.UseInMemoryDatabase("test1").Options, Mock.Of<IApplicationRuntime>());
+            var context = new ApplicationDbContext(opts.UseInMemoryDatabase("test1").Options);
         }
 
         [Fact]
@@ -45,6 +45,22 @@ namespace OneScriptWeb.Tests
             var result = provider.GetRequiredService<IOptions<IdentityOptions>>().Value;
             Assert.False(result.Password.RequireDigit);
             Assert.False(result.Password.RequireUppercase);
+        }
+
+        [Fact]
+        public void CanReadDatabaseOptionsFromConfig()
+        {
+            var services = new ServiceCollection();
+            var cfgBuilder = new ConfigurationBuilder();
+            Dictionary<string, string> keys = new Dictionary<string, string>();
+            keys["Database:DbType"] = "MSSQLServer";
+            keys["Database:ConnectionString"] = "blablabla";
+            cfgBuilder.AddInMemoryCollection(keys);
+
+            services.AddDatabaseByConfiguration(cfgBuilder.Build());
+
+            var provider = services.BuildServiceProvider();
+            var result = provider.GetRequiredService<ApplicationDbContext>();
         }
     }
 }

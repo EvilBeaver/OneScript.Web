@@ -7,14 +7,12 @@ namespace OneScript.WebHost.Database
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options, IApplicationRuntime oscript):base(options)
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options):base(options)
         {
-            RuntimeFacility = oscript;
         }
 
         public IApplicationRuntime RuntimeFacility { get; set; }
         
-
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
