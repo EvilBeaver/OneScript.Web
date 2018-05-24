@@ -61,5 +61,24 @@ namespace OneScript.WebHost.Database
                 throw new RuntimeException(s);
             }
         }
+
+        [ContextMethod("Удалить", "Delete")]
+        public void Delete()
+        {
+            if (IsNew)
+            {
+                return;
+            }
+
+            var appUser = _userService.FindByIdAsync(UserId).Result;
+            if (appUser == null)
+                throw new RuntimeException("Current user ID isn't in database");
+
+            var result = _userService.DeleteAsync(appUser).Result;
+
+            if (result.Succeeded) return;
+            var s = result.ToString();
+            throw new RuntimeException(s);
+        }
     }
 }
