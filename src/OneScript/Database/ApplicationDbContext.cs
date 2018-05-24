@@ -5,7 +5,7 @@ using OneScript.WebHost.Infrastructure;
 
 namespace OneScript.WebHost.Database
 {
-    public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
+    public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, string>
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options):base(options)
         {

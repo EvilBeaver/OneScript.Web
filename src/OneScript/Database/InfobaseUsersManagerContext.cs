@@ -49,7 +49,7 @@ namespace OneScript.WebHost.Database
         [ContextMethod("СоздатьПользователя")]
         public InfobaseUserContext CreateUser()
         {
-            return new InfobaseUserContext(_services.GetRequiredService<UserManager<ApplicationUser>>())
+            return new InfobaseUserContext(GetUsersManager())
             {
                 IsNew = true
             };
@@ -59,7 +59,7 @@ namespace OneScript.WebHost.Database
         [ContextMethod("НайтиПоИмени")]
         public IValue FindByName(string name)
         {
-            var manager = _services.GetRequiredService<UserManager<ApplicationUser>>();
+            var manager = GetUsersManager();
             var appUser = manager.FindByNameAsync(name).Result;
             if (appUser == null)
                 return ValueFactory.Create();
@@ -70,12 +70,17 @@ namespace OneScript.WebHost.Database
         [ContextMethod("НайтиПоУникальномуИдентификатору")]
         public IValue FindByUUID(string uuid)
         {
-            var manager = _services.GetRequiredService<UserManager<ApplicationUser>>();
+            var manager = GetUsersManager();
             var appUser = manager.FindByIdAsync(uuid).Result;
             if (appUser == null)
                 return ValueFactory.Create();
 
             return HydrateUserContext(manager, appUser);
+        }
+
+        private UserManager<ApplicationUser> GetUsersManager()
+        {
+            return _services.GetRequiredService<UserManager<ApplicationUser>>();
         }
 
         [ContextMethod("ТекущийПользователь")]
@@ -89,10 +94,31 @@ namespace OneScript.WebHost.Database
             if (user == null)
                 return ValueFactory.Create();
 
-            var manager = _services.GetRequiredService<UserManager<ApplicationUser>>();
+            var manager = GetUsersManager();
             var appUser = manager.GetUserAsync(user).Result;
+            if (appUser == null)
+                return ValueFactory.Create();
 
             return HydrateUserContext(manager, appUser);
+        }
+
+        [ContextMethod("АвторизоватьПоПаролю")]
+        public bool AuthorizeByPassword(InfobaseUserContext user, string password, bool remember = false)
+        {
+            if (user == null)
+                throw RuntimeException.InvalidArgumentValue();
+
+            var manager = GetUsersManager();
+            var appUser = manager.FindByIdAsync(user.UserId).Result;
+            if (appUser == null)
+                return false;
+
+            var signer = _services.GetRequiredService<SignInManager<ApplicationUser>>();
+            signer.SignOutAsync().Wait();
+            var result = signer.PasswordSignInAsync(appUser, password, remember, false).Result;
+
+            return result.Succeeded;
+
         }
     }
 }
