@@ -1,8 +1,9 @@
-
 <h1>Пользователи ИБ</h1>
+
+<a asp-action="Create">Добавить</a>
 
 <ul>
 @foreach(var user in @Model) {
-    <li>@user.Name</li>
+    <li><a asp-action="Edit" asp-route-id="@user.УникальныйИдентификатор">@user.Имя</a></li>
 }
 </ul>
