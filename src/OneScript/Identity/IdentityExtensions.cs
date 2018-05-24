@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using OneScript.WebHost.Database;
 
 namespace OneScript.WebHost.Identity
@@ -41,6 +43,8 @@ namespace OneScript.WebHost.Identity
                     cookieOpts.Bind("Cookie", options.Cookie);
                 });
             }
+
+            services.TryAddScoped<IHttpContextAccessor, HttpContextAccessor>();
 
         }
 

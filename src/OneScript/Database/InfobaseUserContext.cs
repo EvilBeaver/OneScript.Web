@@ -9,6 +9,7 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Database
 {
+    [ContextClass("ПользовательИнформационнойБазы","InfobaseUser")]
     public class InfobaseUserContext : AutoContext<InfobaseUserContext>
     {
         private readonly UserManager<ApplicationUser>  _userService;
@@ -19,23 +20,44 @@ namespace OneScript.WebHost.Database
 
         public bool IsNew { get; set; }
 
-        [ContextProperty("Имя")]
+        [ContextProperty("УникальныйИдентификатор","UUID")]
+        public string UserId { get; set; }
+
+        [ContextProperty("Имя", "Name")]
         public string Name { get; set; }
 
-        [ContextMethod("Записать")]
+        [ContextProperty("СохраняемоеЗначениеПароля", "StoredPasswordValue", CanWrite = false)]
+        public string StoredPasswordValue { get; set; }
+
+        [ContextProperty("Пароль", "Password")]
+        public string Password { get; set; }
+        
+        [ContextMethod("Записать", "Write")]
         public void Write()
         {
-            var appUser = new ApplicationUser();
-            appUser.UserName = Name;
             IdentityResult result;
+            
             if (IsNew)
-                result = _userService.CreateAsync(appUser).Result;
+            {
+                var appUser = new ApplicationUser();
+                appUser.UserName = Name;
+                result = _userService.CreateAsync(appUser, Password).Result;
+            }
             else
-                result = _userService.UpdateAsync(appUser).Result;
+            {
+                var appUser = _userService.FindByIdAsync(UserId).Result;
+                if (appUser == null)
+                    throw new RuntimeException("Current user ID isn't in database");
 
+                appUser.UserName = Name;
+                appUser.PasswordHash = _userService.PasswordHasher.HashPassword(appUser, Password);
+
+                result = _userService.UpdateAsync(appUser).Result;
+            }
+            
             if (!result.Succeeded)
             {
-                var s = result.Errors.ToString();
+                var s = result.ToString();
                 throw new RuntimeException(s);
             }
         }
