@@ -3,3 +3,19 @@ services:
   engine:
     build: ./src/OneScript
     image: omvc-engine-developer
+  auth-example:
+    image: omvc-engine-developer
+    ports:
+    - 5002:5000
+    links: 
+    - postgresql:db
+    volumes:
+    - ./examples/auth/src:/app
+  postgresql:
+    restart: always
+    image: sameersbn/postgresql:9.6-2
+    environment:
+    - DB_USER=onecuser
+    - DB_PASS=anotherpass
+    - DB_NAME=auth
+    - DB_EXTENSION=pg_trgm
