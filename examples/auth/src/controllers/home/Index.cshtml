@@ -1,8 +1,8 @@
-<h1>Пользователи ИБ</h1>
+<h1>пример - Пользователи ИБ</h1>
 
-<div><a asp-action="Create">Добавить</a></div>
+<div><a asp-action="Create">Регистрация</a></div>
 <div><a asp-action="Login">Войти</a></div>
-<div><a asp-action="Secret">Секретная страница</a></div>
+<div><a asp-action="Secret">Секретная страница только для зарегистрированных пользователей, если пользователь не зарегистрирован то будет перенаправление</a></div>
 
 <ul>
 @foreach(var user in @Model.ПолучитьПользователей()) {
