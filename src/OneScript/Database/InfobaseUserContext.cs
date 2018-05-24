@@ -41,7 +41,10 @@ namespace OneScript.WebHost.Database
             {
                 var appUser = new ApplicationUser();
                 appUser.UserName = Name;
-                result = _userService.CreateAsync(appUser, Password).Result;
+                if(String.IsNullOrEmpty(Password))
+                    result = _userService.CreateAsync(appUser).Result;
+                else
+                    result = _userService.CreateAsync(appUser, Password).Result;
             }
             else
             {

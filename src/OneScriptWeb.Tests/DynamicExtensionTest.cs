@@ -21,7 +21,7 @@ namespace OneScriptWeb.Tests
 {
     public class DynamicExtensionTest
     {
-        [Fact]
+        //[Fact]
         public void Test_CompiledExtensionCanUseMvcClasses()
         {
             var extensionsCompiler = new ExtensionsCompiler();

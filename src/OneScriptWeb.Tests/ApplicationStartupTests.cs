@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Dazinator.AspNet.Extensions.FileProviders;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
@@ -183,6 +184,7 @@ namespace OneScriptWeb.Tests
             // arrange
             var services = MockMvcServices();
             services.AddSingleton<IConfiguration>(Mock.Of<Func<IServiceProvider, IConfiguration>>());
+            services.TryAddSingleton(Mock.Of<IAuthorizationPolicyProvider>());
             var loggerMock = new Mock<ILogger<ApplicationInstance>>();
             services.TryAddSingleton(loggerMock.Object);
 

@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Dazinator.AspNet.Extensions.FileProviders;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -103,6 +104,7 @@ namespace OneScriptWeb.Tests
             services.TryAddSingleton<IFileProvider>(scriptsProvider);
             services.TryAddSingleton(Mock.Of<IConfiguration>());
             services.TryAddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
+            services.TryAddSingleton(Mock.Of<IAuthorizationPolicyProvider>());
             services.TryAddScoped<IHostingEnvironment>(x=>new HostingEnvironment()
             {
                 ContentRootPath = "/"

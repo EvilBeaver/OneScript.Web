@@ -8,6 +8,7 @@ using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders.Physical;
 using Microsoft.Extensions.FileSystemGlobbing;
@@ -26,13 +27,18 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private readonly IFileProvider _scriptsProvider;
         private readonly int _controllersMethodOffset;
         private readonly ApplicationInstance _app;
+        private readonly IAuthorizationPolicyProvider _policyProvider;
 
-        public OscriptApplicationModelProvider(ApplicationInstance appObject, IApplicationRuntime framework, IFileProvider sourceProvider)
+        public OscriptApplicationModelProvider(ApplicationInstance appObject,
+            IApplicationRuntime framework,
+            IFileProvider sourceProvider,
+            IAuthorizationPolicyProvider authPolicyProvider)
         {
             _fw = framework;
             _app = appObject;
             _scriptsProvider = sourceProvider;
             _controllersMethodOffset = ScriptedController.GetOwnMethodsRelectionOffset();
+            _policyProvider = authPolicyProvider;
         }
 
         public void OnProvidersExecuting(ApplicationModelProviderContext context)
@@ -96,12 +102,43 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 cm.Properties.Add("type", reflectedType);
 
                 FillActions(cm, reflectedType);
+                FillFilters(cm);
 
                 context.Result.Controllers.Add(cm);
             }
         }
-        
 
+        private void FillFilters(ControllerModel cm)
+        {
+            foreach (var actionModel in cm.Actions)
+            {
+                var actionModelAuthData = actionModel.Attributes.OfType<IAuthorizeData>().ToArray();
+                if (actionModelAuthData.Length > 0)
+                {
+                    actionModel.Filters.Add(GetFilter(_policyProvider, actionModelAuthData));
+                }
+
+                foreach (var attribute in actionModel.Attributes.OfType<IAllowAnonymous>())
+                {
+                    actionModel.Filters.Add(new AllowAnonymousFilter());
+                }
+            }
+        }
+
+        public static AuthorizeFilter GetFilter(IAuthorizationPolicyProvider policyProvider, IEnumerable<IAuthorizeData> authData)
+        {
+            // The default policy provider will make the same policy for given input, so make it only once.
+            // This will always execute synchronously.
+            if (policyProvider.GetType() == typeof(DefaultAuthorizationPolicyProvider))
+            {
+                var policy = AuthorizationPolicy.CombineAsync(policyProvider, authData).GetAwaiter().GetResult();
+                return new AuthorizeFilter(policy);
+            }
+            else
+            {
+                return new AuthorizeFilter(policyProvider, authData);
+            }
+        }
 
         private LoadedModule LoadControllerCode(ICodeSource src)
         {

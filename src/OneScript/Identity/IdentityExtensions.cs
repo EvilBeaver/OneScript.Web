@@ -30,16 +30,17 @@ namespace OneScript.WebHost.Identity
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            var authBuilder = services.AddAuthentication();
             var cookieOpts = security.GetSection("CookieAuth");
             if (cookieOpts != null)
             {
-                authBuilder.AddCookie(options =>
+                services.ConfigureApplicationCookie(options =>
                 {
                     options.LoginPath = cookieOpts["LoginPath"] ?? options.LoginPath;
                     options.LogoutPath = cookieOpts["LogoutPath"] ?? options.LogoutPath;
                     options.AccessDeniedPath = cookieOpts["AccessDeniedPath"] ?? options.AccessDeniedPath;
                     options.ExpireTimeSpan = cookieOpts["ExpireTimeSpan"] == null? options.ExpireTimeSpan : TimeSpan.Parse(cookieOpts["ExpireTimeSpan"]);
+                    options.ReturnUrlParameter = cookieOpts["ReturnUrlParameter"] ?? options.LogoutPath;
+
                     cookieOpts.Bind("Cookie", options.Cookie);
                 });
             }

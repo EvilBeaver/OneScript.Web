@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Dazinator.AspNet.Extensions.FileProviders;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +25,7 @@ namespace OneScriptWeb.Tests
             fakefs.AddFile("main.os","");
             var appEngine = new WebApplicationEngine();
             var app = ApplicationInstance.Create(new FileInfoCodeSource(fakefs.GetFileInfo("main.os")), appEngine);
-            var provider = new OscriptApplicationModelProvider(app, appEngine, fakefs);
+            var provider = new OscriptApplicationModelProvider(app, appEngine, fakefs, Mock.Of<IAuthorizationPolicyProvider>());
 
             var context = new ApplicationModelProviderContext(new TypeInfo[0]);
             provider.OnProvidersExecuting(context);
@@ -51,7 +52,7 @@ namespace OneScriptWeb.Tests
             fakefs.AddFile("main.os", "");
             var appEngine = new WebApplicationEngine();
             var app = ApplicationInstance.Create(new FileInfoCodeSource(fakefs.GetFileInfo("main.os")), appEngine);
-            var provider = new OscriptApplicationModelProvider(app, appEngine, fakefs);
+            var provider = new OscriptApplicationModelProvider(app, appEngine, fakefs, Mock.Of<IAuthorizationPolicyProvider>());
 
             var context = new ApplicationModelProviderContext(new TypeInfo[0]);
             provider.OnProvidersExecuting(context);
