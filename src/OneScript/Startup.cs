@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Routing;
@@ -12,8 +13,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using OneScript.WebHost.Application;
+using OneScript.WebHost.Identity;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
+using OneScript.WebHost.Database;
 
 namespace OneScript.WebHost
 {
@@ -39,6 +42,8 @@ namespace OneScript.WebHost
             
             services.AddMemoryCache();
             services.AddSession();
+            services.AddDatabaseByConfiguration(Configuration);
+            services.AddIdentityByConfiguration(Configuration);
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
@@ -57,6 +62,8 @@ namespace OneScript.WebHost
                 app.UseStatusCodePages();
             }
 
+            PrepareEnvironment(services);
+
             var oscriptApp = services.GetService<ApplicationInstance>();
             oscriptApp.OnStartup(app);
             
@@ -68,6 +75,21 @@ namespace OneScript.WebHost
                 provider.Application = oscriptApp;
                 provider.Framework = services.GetService<IApplicationRuntime>();
                 provider.ScriptsProvider = services.GetService<IFileProvider>();
+            }
+        }
+
+        private void PrepareEnvironment(IServiceProvider services)
+        {
+            if (Configuration.GetSection("Database:DbType").Value != null)
+            {
+                var dbctx = services.GetService<ApplicationDbContext>();
+                dbctx.Database.EnsureCreated();
+
+                var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
+                var userManager = new InfobaseUsersManagerContext(services);
+
+                environment.InjectGlobalProperty(userManager, "ПользователиИнформационнойБазы", true);
+                environment.InjectGlobalProperty(userManager, "InfoBaseUsers", true);
             }
         }
     }

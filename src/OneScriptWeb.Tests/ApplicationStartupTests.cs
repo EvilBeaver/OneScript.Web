@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Dazinator.AspNet.Extensions.FileProviders;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
@@ -79,17 +80,16 @@ namespace OneScriptWeb.Tests
             var fakeFS = (InMemoryFileProvider)provider.GetService<IFileProvider>();
             fakeFS.AddFile("main.os", "Процедура ПриНачалеРаботыСистемы()\n" +
                                     "    ИспользоватьСтатическиеФайлы();\n" +
-                                    "    ИспользоватьМаршруты();\n" +
-                                    "    ИспользоватьСессии()" +
+                                    "    ИспользоватьСессии();" +
                                     "КонецПроцедуры");
 
             var webApp = provider.GetService<IApplicationRuntime>();
             var app = ApplicationInstance.Create(new FileInfoCodeSource(fakeFS.GetFileInfo("main.os")), webApp);
             var mvcAppBuilder = new Mock<IApplicationBuilder>();
-            mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
+            mvcAppBuilder.SetupGet(a => a.ApplicationServices).Returns(provider);
 
             app.OnStartup(mvcAppBuilder.Object);
-            mvcAppBuilder.Verify(x=>x.Use(It.IsAny<Func<RequestDelegate,RequestDelegate>>()), Times.Exactly(3));
+            mvcAppBuilder.Verify(x=>x.Use(It.IsAny<Func<RequestDelegate,RequestDelegate>>()), Times.Exactly(2));
             
         }
 
@@ -119,7 +119,7 @@ namespace OneScriptWeb.Tests
             return services;
         }
 
-        [Fact]
+        //[Fact]
         public void CheckThatRoutesAreRegisteredInHandler()
         {
             var services = MockMvcServices();
@@ -170,7 +170,7 @@ namespace OneScriptWeb.Tests
             var app = starter.CreateApp();
             loggerMock.Verify(x => 
                 x.Log(
-                    LogLevel.Debug,
+                    LogLevel.Information,
                     It.IsAny<EventId>(),
                     It.IsAny<object>(),
                     null,
@@ -184,6 +184,7 @@ namespace OneScriptWeb.Tests
             // arrange
             var services = MockMvcServices();
             services.AddSingleton<IConfiguration>(Mock.Of<Func<IServiceProvider, IConfiguration>>());
+            services.TryAddSingleton(Mock.Of<IAuthorizationPolicyProvider>());
             var loggerMock = new Mock<ILogger<ApplicationInstance>>();
             services.TryAddSingleton(loggerMock.Object);
 
