@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -17,6 +18,7 @@ using OneScript.WebHost.Identity;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using OneScript.WebHost.Database;
+using OneScript.WebHost.BackgroundJobs;
 
 namespace OneScript.WebHost
 {
@@ -44,6 +46,8 @@ namespace OneScript.WebHost
             services.AddSession();
             services.AddDatabaseByConfiguration(Configuration);
             services.AddIdentityByConfiguration(Configuration);
+            services.AddBackgroundJobsByConfiguration(Configuration);
+            
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
@@ -90,6 +94,15 @@ namespace OneScript.WebHost
 
                 environment.InjectGlobalProperty(userManager, "ПользователиИнформационнойБазы", true);
                 environment.InjectGlobalProperty(userManager, "InfoBaseUsers", true);
+            }
+
+            if (Configuration.GetSection("BackgroundJobs:StorageType").Value != null)
+            {
+                var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
+                var jobsManager = new BackgroundJobsManagerContext(environment);
+                
+                environment.InjectGlobalProperty(jobsManager, "ФоновыеЗадания", true);
+                environment.InjectGlobalProperty(jobsManager, "BackgroundJobs", true);
             }
         }
     }

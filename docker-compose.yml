@@ -11,11 +11,19 @@ services:
     - postgresql:db
     volumes:
     - ./examples/auth/src:/app
+  jobs-example:
+    image: omvc-engine-developer
+    ports:
+    - 5003:5000
+    links: 
+    - postgresql:db
+    volumes:
+    - ./examples/backgroundjobs/src:/app
   postgresql:
     restart: always
     image: sameersbn/postgresql:9.6-2
     environment:
     - DB_USER=onecuser
     - DB_PASS=anotherpass
-    - DB_NAME=auth
+    - DB_NAME=auth,jobs
     - DB_EXTENSION=pg_trgm
