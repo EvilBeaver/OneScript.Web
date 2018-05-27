@@ -13,12 +13,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Identity;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using OneScript.WebHost.Database;
 using OneScript.WebHost.BackgroundJobs;
+using ScriptEngine;
 
 namespace OneScript.WebHost
 {
@@ -84,26 +86,10 @@ namespace OneScript.WebHost
 
         private void PrepareEnvironment(IServiceProvider services)
         {
-            if (Configuration.GetSection("Database:DbType").Value != null)
-            {
-                var dbctx = services.GetService<ApplicationDbContext>();
-                dbctx.Database.EnsureCreated();
-
-                var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
-                var userManager = new InfobaseUsersManagerContext(services);
-
-                environment.InjectGlobalProperty(userManager, "ПользователиИнформационнойБазы", true);
-                environment.InjectGlobalProperty(userManager, "InfoBaseUsers", true);
-            }
-
-            if (Configuration.GetSection("BackgroundJobs:StorageType").Value != null)
-            {
-                var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
-                var jobsManager = new BackgroundJobsManagerContext(environment);
-                
-                environment.InjectGlobalProperty(jobsManager, "ФоновыеЗадания", true);
-                environment.InjectGlobalProperty(jobsManager, "BackgroundJobs", true);
-            }
+            var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
+            DatabaseExtensions.PrepareDbEnvironment(services, environment);
+            BackgroundJobsExtensions.PrepareBgJobsEnvironment(services, environment);
         }
+        
     }
 }

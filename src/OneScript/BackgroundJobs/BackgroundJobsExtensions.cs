@@ -9,6 +9,9 @@ using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using OneScript.WebHost.Database;
+using ScriptEngine;
 
 namespace OneScript.WebHost.BackgroundJobs
 {
@@ -20,49 +23,75 @@ namespace OneScript.WebHost.BackgroundJobs
             if (!config.GetChildren().Any(item => item.Key == keyName))
                 return;
             
-            var dbSettings = config.GetSection(keyName);
-            
-            var options = new OscriptBackgroundJobsOptions();
-            dbSettings.Bind(options);
-
-            AddBackgroundJobsOptions(services, options);
-            
-            
+            var jobsSettings = config.GetSection(keyName);
+            services.Configure<OscriptBackgroundJobsOptions>(jobsSettings);
+            AddBackgroundJobsOptions(services, config);
         }
 
-        private static void AddBackgroundJobsOptions(IServiceCollection services, OscriptBackgroundJobsOptions options)
+        private static void AddBackgroundJobsOptions(IServiceCollection services, IConfiguration config)
         {
-            
-            switch (options.StorageType)
+            // hangfire не поддерживает штатное конфигурирование с помощью IServiceProvider
+            // см. https://github.com/HangfireIO/Hangfire/issues/1178
+            //но когда начнет - нам не придется делать переосмысливание json
+
+            services.AddHangfire(hfGlobalConfig =>
             {
-                case SupportedJobsStorage.MSSQLServer:
-                    services.AddHangfire( c => c.UseSqlServerStorage(options.ConnectionString));
-                    break;
-                case SupportedJobsStorage.Postgres:
-                    services.AddHangfire( c => c.UsePostgreSqlStorage(options.ConnectionString));
-                    break;
-                case SupportedJobsStorage.Memory:
-                    services.AddHangfire( c => c.UseMemoryStorage());
-                    break;
-                default:
-                    throw new InvalidOperationException("Unknown storage type for background jobs in configuration");
+                var jobsSettings = config.GetSection("BackgroundJobs");
+                var options = new OscriptBackgroundJobsOptions();
+                
+                jobsSettings.Bind(options);
+                
+                switch (options.StorageType)
+                {
+                    case SupportedJobsStorage.Database:
+                        var dbOptionsSection = config.GetSection(DatabaseExtensions.ConfigSectionName);
+                        var dbOptions = new OscriptDbOptions();
+                        dbOptionsSection.Bind(dbOptions);
+                        switch (dbOptions.DbType)
+                        {
+                            case SupportedDatabase.MSSQLServer:
+                                hfGlobalConfig.UseSqlServerStorage(dbOptions.ConnectionString);
+                                break;
+                            case SupportedDatabase.Postgres:
+                                hfGlobalConfig.UsePostgreSqlStorage(dbOptions.ConnectionString);
+                                break;
+                            default:
+                                throw new InvalidOperationException("Database for Background Jobs is not configured");
+                        }
+                        break;
+                    case SupportedJobsStorage.Memory:
+                        hfGlobalConfig.UseMemoryStorage();
+                        break;
+                    default:
+                        throw new InvalidOperationException("Unknown storage type for background jobs in configuration");
+                }
+                
+            });
+        }
+
+        public static void PrepareBgJobsEnvironment(IServiceProvider services, RuntimeEnvironment environment)
+        {
+            var hfOptions = services.GetService<IOptions<OscriptBackgroundJobsOptions>>().Value;
+            if (hfOptions != null)
+            {
+                var jobsManager = new BackgroundJobsManagerContext(environment);
+
+                environment.InjectGlobalProperty(jobsManager, "ФоновыеЗадания", true);
+                environment.InjectGlobalProperty(jobsManager, "BackgroundJobs", true);
             }
-            
         }
     }
 
     class OscriptBackgroundJobsOptions
     {
         public SupportedJobsStorage StorageType { get; set; }
-        public string ConnectionString { get; set; }
+        
     }
 
     enum SupportedJobsStorage
     {
-        Unknown,
-        MSSQLServer,
-        Postgres,
-        Memory
+        Memory,
+        Database
     }
 
 }
