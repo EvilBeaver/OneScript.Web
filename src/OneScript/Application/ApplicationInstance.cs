@@ -145,20 +145,23 @@ namespace OneScript.WebHost.Application
         {
             _startupBuilder.UseHangfireServer();
         }
-        
-        [ContextMethod("ИспользоватьКонсольЗаданий")]
+
+        // TODO:
+        // Включить управление консолью, когда будет готова архитектура ролей в целом.
+        //[ContextMethod("ИспользоватьКонсольЗаданий")]
         public void UseBackgroundDashboard(string routeforjobs = "/jobs")
         {
 
-            if (routeforjobs == "") {
+            if (routeforjobs == "")
+            {
                 throw RuntimeException.InvalidArgumentValue("Please provide route for jobs console");
-            } 
-            
+            }
+
             _startupBuilder.UseHangfireDashboard(routeforjobs, new DashboardOptions
             {
-                Authorization = new [] { new DashboardAutorizationFilter() } //fixme - нужна еще и роль пользователя
+                Authorization = new[] { new DashboardAutorizationFilter() } //fixme - нужна еще и роль пользователя
             });
-            
+
         }
 
 
