@@ -120,5 +120,15 @@ namespace OneScript.WebHost.Database
             return result.Succeeded;
 
         }
+        
+        [ContextMethod("СброситьАутентификацию")]
+        public bool ResetAuthorization()
+        {
+            var signer = _services.GetRequiredService<SignInManager<ApplicationUser>>();
+            
+            return signer.SignOutAsync().IsCompleted;
+
+        }
+        
     }
 }

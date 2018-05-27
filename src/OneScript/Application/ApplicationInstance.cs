@@ -4,8 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Routing;
+using OneScript.WebHost.BackgroundJobs;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.HostedScript.Library;
@@ -137,6 +139,28 @@ namespace OneScript.WebHost.Application
         {
             _startupBuilder.UseAuthentication();
         }
+        
+        [ContextMethod("ИспользоватьФоновыеЗадания")]
+        public void UseBackgroundJobs()
+        {
+            _startupBuilder.UseHangfireServer();
+        }
+        
+        [ContextMethod("ИспользоватьКонсольЗаданий")]
+        public void UseBackgroundDashboard(string routeforjobs = "/jobs")
+        {
+
+            if (routeforjobs == "") {
+                throw RuntimeException.InvalidArgumentValue("Please provide route for jobs console");
+            } 
+            
+            _startupBuilder.UseHangfireDashboard(routeforjobs, new DashboardOptions
+            {
+                Authorization = new [] { new DashboardAutorizationFilter() } //fixme - нужна еще и роль пользователя
+            });
+            
+        }
+
 
         private void CallRoutesRegistrationHandler(string handler)
         {
