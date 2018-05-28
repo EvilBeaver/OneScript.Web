@@ -64,7 +64,7 @@ namespace OneScript.WebHost
             }
 
             if (options.Urls != null)
-                config["urls"] = options.Urls;
+                builder.UseSetting("urls", options.Urls);
 
             builder.UseContentRoot(options.ContentRoot);
             if (options.WebRoot != null)
