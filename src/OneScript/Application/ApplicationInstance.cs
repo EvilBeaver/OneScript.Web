@@ -113,6 +113,12 @@ namespace OneScript.WebHost.Application
             return OwnMethods.GetMethod(index)(this, arguments);
         }
 
+        [ContextMethod("ИспользоватьОбработчикОшибок")]
+        public void UseErrorHandler(string errorRoute)
+        {
+            _startupBuilder.UseExceptionHandler(errorRoute);
+        }
+
         [ContextMethod("ИспользоватьСтатическиеФайлы")]
         public void UseStaticFiles()
         {
