@@ -74,7 +74,7 @@ namespace OneScript.WebHost.BackgroundJobs
             var hfOptions = services.GetService<IOptions<OscriptBackgroundJobsOptions>>().Value;
             if (hfOptions != null)
             {
-                var jobsManager = new BackgroundJobsManagerContext(environment);
+                var jobsManager = new ScheduledJobsManagerContext(environment);
 
                 environment.InjectGlobalProperty(jobsManager, "ФоновыеЗадания", true);
                 environment.InjectGlobalProperty(jobsManager, "BackgroundJobs", true);

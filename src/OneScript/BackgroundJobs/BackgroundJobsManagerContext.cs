@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using ScriptEngine.Machine.Contexts;
-
-using ScriptEngine.Machine;
-
+using System.Threading.Tasks;
 using Hangfire;
-using Hangfire.Storage;
 using ScriptEngine;
-using ScriptEngine.HostedScript.Library;
-
+using ScriptEngine.Machine;
+using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.BackgroundJobs
 {
@@ -22,88 +18,33 @@ namespace OneScript.WebHost.BackgroundJobs
         {
             _globalEnv = env;
         }
-        
-        //TODO - пока задания выполняются просто без параметров
-        
-        [ContextMethod("ВыполнитьЗаданиеОднократно")]
-        public string RunTaskOnce(string module, string method)
+
+        [ContextMethod("Выполнить", "Execute")]
+        public BackgroundJobContext Execute(string method)
         {
+            var callAddr = method.Split(new[]{'.'}, 2);
+            if (callAddr.Length != 2)
+                throw RuntimeException.InvalidArgumentValue(method);
+
             var jobId = BackgroundJob.Enqueue(
-                ()=>PerformAction(module, method)
+                () => PerformAction(callAddr[0], callAddr[1])
             );
-            return jobId;
+
+            return new BackgroundJobContext(jobId);
         }
 
-        
-        [ContextMethod("ВыполнитьОтложенноеЗадание")]
-        public string RunSheduledTask(string module, string method, TimeSpanWrapper sheduler)
+        [ContextMethod("ОжидатьЗавершения")]
+        public void WaitForCompletion()
         {
-
-            var jobId = BackgroundJob.Schedule(
-                ()=>PerformAction(module, method), 
-                sheduler.GetShuller());
-            return jobId;
-        }
-        
-        [ContextMethod("СоздатьПериодическоеЗаданиеПоРасписанию")]
-        public void CreateRecurringSheduledTask(string module, string method, CronWrapper cron)
-        {
-            
-            RecurringJob.AddOrUpdate(
-                ()=>PerformAction(module, method),
-                cron.CronString);
-
-        }
-        
-        [ContextMethod("УдалитьПериодическоеЗаданиеПоРасписанию")]
-        public void RemoveRecurringSheduledTask(string taskId)
-        {
-            
-            RecurringJob.RemoveIfExists(taskId);
-
-        }
-        
-        [ContextMethod("ВыполнитьПринудительноПериодическоеЗаданиеПоРасписанию")]
-        public void TriggerRecurringSheduledTask(string taskId)
-        {
-            
-            RecurringJob.Trigger(taskId);
-
-        }
-        
-        
-        [ContextMethod("ПолучитьИдентификаторыПериодическихЗаданий")]
-        public ArrayImpl GetRecurringJobsIDs()
-        {
-            
-            List<RecurringJobDto> recurringJobs = JobStorage.Current.GetConnection().GetRecurringJobs();
-            
-            var arr = new ArrayImpl();
-
-            foreach (var recurringJob in recurringJobs)
-            {
-                arr.Add(ValueFactory.Create(recurringJob.Id));
-            }
-
-            return arr;
+            throw new NotImplementedException();
         }
 
-        
-        [ContextMethod("ВыполнитьПодчиненноеЗадание")]
-        public void RunContinuationsTask(string TaskIDFrom, string module, string method)
+        private static void PerformAction(string module, string method)
         {
-            
-            BackgroundJob.ContinueWith(
-                TaskIDFrom,
-                ()=>PerformAction(module, method));
+            var machine = MachineInstance.Current;
+            _globalEnv.LoadMemory(machine);
 
-        }
-        
-        public static void PerformAction(string module, string method)
-        {
-            _globalEnv.LoadMemory(MachineInstance.Current);
-            
-            var scriptObject = (IRuntimeContextInstance) _globalEnv.GetGlobalProperty(module);
+            var scriptObject = (IRuntimeContextInstance)_globalEnv.GetGlobalProperty(module);
             var methodId = scriptObject.FindMethod(method);
             scriptObject.CallAsProcedure(methodId, new IValue[0]);
         }
