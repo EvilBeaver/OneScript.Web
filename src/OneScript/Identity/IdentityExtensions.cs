@@ -39,7 +39,7 @@ namespace OneScript.WebHost.Identity
                     options.LogoutPath = cookieOpts["LogoutPath"] ?? options.LogoutPath;
                     options.AccessDeniedPath = cookieOpts["AccessDeniedPath"] ?? options.AccessDeniedPath;
                     options.ExpireTimeSpan = cookieOpts["ExpireTimeSpan"] == null? options.ExpireTimeSpan : TimeSpan.Parse(cookieOpts["ExpireTimeSpan"]);
-                    options.ReturnUrlParameter = cookieOpts["ReturnUrlParameter"] ?? options.LogoutPath;
+                    options.ReturnUrlParameter = cookieOpts["ReturnUrlParameter"] ?? options.ReturnUrlParameter;
 
                     cookieOpts.Bind("Cookie", options.Cookie);
                 });
