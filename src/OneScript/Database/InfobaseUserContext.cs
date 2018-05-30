@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using OneScript.WebHost.Identity;
+using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
@@ -60,8 +61,14 @@ namespace OneScript.WebHost.Database
             
             if (!result.Succeeded)
             {
-                var s = result.ToString();
-                throw new RuntimeException(s);
+                var resultArr = new ArrayImpl();
+                foreach (var identityError in result.Errors)
+                {
+                    var strValue = ValueFactory.Create($"{{{identityError.Code}}} - {identityError.Description}");
+                    resultArr.Add(strValue);
+                }
+
+                throw new ParametrizedRuntimeException("Ошибка создания пользователя", resultArr);
             }
         }
 
