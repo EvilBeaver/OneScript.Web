@@ -53,6 +53,9 @@ namespace OneScript.WebHost.Database
                     result = _userService.CreateAsync(appUser).Result;
                 else
                     result = _userService.CreateAsync(appUser, Password).Result;
+
+                if (result.Succeeded)
+                    UserId = appUser.Id;
             }
             else
             {
@@ -87,7 +90,7 @@ namespace OneScript.WebHost.Database
             {
                 return;
             }
-
+            
             var appUser = _userService.FindByIdAsync(UserId).Result;
             if (appUser == null)
                 throw new RuntimeException("Current user ID isn't in database");
