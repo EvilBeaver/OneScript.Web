@@ -42,7 +42,8 @@ namespace OneScript.WebHost.Database
             {
                 Name = sysUser.UserName,
                 StoredPasswordValue = sysUser.PasswordHash,
-                UserId = sysUser.Id
+                UserId = sysUser.Id,
+                Email = sysUser.Email
             };
         }
 
@@ -98,7 +99,7 @@ namespace OneScript.WebHost.Database
             var appUser = manager.GetUserAsync(user).Result;
             if (appUser == null)
                 return ValueFactory.Create();
-
+            
             return HydrateUserContext(manager, appUser);
         }
 

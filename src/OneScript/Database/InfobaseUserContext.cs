@@ -32,7 +32,11 @@ namespace OneScript.WebHost.Database
 
         [ContextProperty("Пароль", "Password")]
         public string Password { get; set; }
-        
+
+        [ContextProperty("ЭлектроннаяПочта", "Email")]
+        public string Email { get; set; }
+
+
         [ContextMethod("Записать", "Write")]
         public void Write()
         {
@@ -40,8 +44,11 @@ namespace OneScript.WebHost.Database
             
             if (IsNew)
             {
-                var appUser = new ApplicationUser();
-                appUser.UserName = Name;
+                var appUser = new ApplicationUser
+                {
+                    UserName = Name,
+                    Email = Email
+                };
                 if(String.IsNullOrEmpty(Password))
                     result = _userService.CreateAsync(appUser).Result;
                 else
@@ -54,6 +61,7 @@ namespace OneScript.WebHost.Database
                     throw new RuntimeException("Current user ID isn't in database");
 
                 appUser.UserName = Name;
+                appUser.Email = Email;
                 appUser.PasswordHash = _userService.PasswordHasher.HashPassword(appUser, Password);
 
                 result = _userService.UpdateAsync(appUser).Result;
