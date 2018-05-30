@@ -94,9 +94,17 @@ namespace OneScript.WebHost.Database
 
             var result = _userService.DeleteAsync(appUser).Result;
 
-            if (result.Succeeded) return;
-            var s = result.ToString();
-            throw new RuntimeException(s);
+            if (!result.Succeeded)
+            {
+                var resultArr = new ArrayImpl();
+                foreach (var identityError in result.Errors)
+                {
+                    var strValue = ValueFactory.Create($"{{{identityError.Code}}} - {identityError.Description}");
+                    resultArr.Add(strValue);
+                }
+
+                throw new ParametrizedRuntimeException("Ошибка удаления пользователя", resultArr);
+            }
         }
     }
 }
