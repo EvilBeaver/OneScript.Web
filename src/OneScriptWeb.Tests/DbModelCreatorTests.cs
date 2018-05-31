@@ -74,6 +74,7 @@ namespace OneScriptWeb.Tests
             Dictionary<string, string> keys = new Dictionary<string, string>();
             keys["Security:Password:RequireDigit"] = "false";
             keys["Security:Password:RequireUppercase"] = "false";
+            keys["Security:Password:RequireLowercase"] = "false";
             cfgBuilder.AddInMemoryCollection(keys);
 
             services.AddIdentityByConfiguration(cfgBuilder.Build());

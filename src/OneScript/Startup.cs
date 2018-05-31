@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
@@ -12,11 +13,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Identity;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using OneScript.WebHost.Database;
+using OneScript.WebHost.BackgroundJobs;
+using ScriptEngine;
 
 namespace OneScript.WebHost
 {
@@ -44,6 +48,8 @@ namespace OneScript.WebHost
             services.AddSession();
             services.AddDatabaseByConfiguration(Configuration);
             services.AddIdentityByConfiguration(Configuration);
+            services.AddBackgroundJobsByConfiguration(Configuration);
+            
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
@@ -80,17 +86,10 @@ namespace OneScript.WebHost
 
         private void PrepareEnvironment(IServiceProvider services)
         {
-            if (Configuration.GetSection("Database:DbType").Value != null)
-            {
-                var dbctx = services.GetService<ApplicationDbContext>();
-                dbctx.Database.EnsureCreated();
-
-                var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
-                var userManager = new InfobaseUsersManagerContext(services);
-
-                environment.InjectGlobalProperty(userManager, "ПользователиИнформационнойБазы", true);
-                environment.InjectGlobalProperty(userManager, "InfoBaseUsers", true);
-            }
+            var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
+            DatabaseExtensions.PrepareDbEnvironment(services, environment);
+            BackgroundJobsExtensions.PrepareBgJobsEnvironment(services, environment);
         }
+        
     }
 }

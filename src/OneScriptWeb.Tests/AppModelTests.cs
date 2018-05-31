@@ -1,5 +1,6 @@
 ﻿using System.Reflection;
 using Dazinator.AspNet.Extensions.FileProviders;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
@@ -13,7 +14,9 @@ using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine;
+using ScriptEngine.HostedScript;
 using ScriptEngine.Machine;
+using ScriptEngine.Machine.Reflection;
 using Xunit;
 
 namespace OneScriptWeb.Tests
@@ -85,6 +88,25 @@ namespace OneScriptWeb.Tests
 
         }
 
+        [Fact]
+        public void TestClassWideAnnotations()
+        {
+            string testControllerSrc = "#Авторизовать\n" +
+                                       "Процедура Метод1() Экспорт КонецПроцедуры";
+
+            var scriptsProvider = new InMemoryFileProvider();
+            scriptsProvider.AddFile("main.os", "");
+            scriptsProvider.AddFile("controllers/mycontroller.os", testControllerSrc);
+
+            var result = CreateApplicationModel(scriptsProvider);
+
+            Assert.Equal(1, result.Controllers.Count);
+            Assert.Equal("ScriptedController", result.Controllers[0].ControllerType.Name);
+            Assert.Equal("mycontroller", result.Controllers[0].ControllerName);
+
+            Assert.IsType<AuthorizeAttribute>(result.Controllers[0].Attributes[0]);
+        }
+
         private static IApplicationRuntime CreateWebEngineMock()
         {
             var webAppMoq = new Mock<IApplicationRuntime>();
@@ -92,6 +114,7 @@ namespace OneScriptWeb.Tests
             {
                 Environment = new RuntimeEnvironment()
             };
+            
             webAppMoq.SetupGet(x => x.Engine).Returns(engine);
             webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
             return webAppMoq.Object;
@@ -103,6 +126,7 @@ namespace OneScriptWeb.Tests
             services.TryAddSingleton<IFileProvider>(scriptsProvider);
             services.TryAddSingleton(Mock.Of<IConfiguration>());
             services.TryAddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
+            services.TryAddSingleton(Mock.Of<IAuthorizationPolicyProvider>());
             services.TryAddScoped<IHostingEnvironment>(x=>new HostingEnvironment()
             {
                 ContentRootPath = "/"
@@ -112,6 +136,8 @@ namespace OneScriptWeb.Tests
             services.AddOneScript();
 
             var serviceProvider = services.BuildServiceProvider();
+            var engine = serviceProvider.GetService<IApplicationRuntime>().Engine;
+            engine.DirectiveResolver = new DirectiveMultiResolver();
             var modelProvider = serviceProvider.GetService<IApplicationModelProvider>();
 
             var types = new TypeInfo[0];

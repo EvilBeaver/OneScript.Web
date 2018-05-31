@@ -8,11 +8,13 @@ using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders.Physical;
 using Microsoft.Extensions.FileSystemGlobbing;
 using OneScript.WebHost.Application;
 using ScriptEngine.Environment;
+using ScriptEngine.HostedScript;
 using ScriptEngine.Machine.Contexts;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Reflection;
@@ -26,13 +28,29 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private readonly IFileProvider _scriptsProvider;
         private readonly int _controllersMethodOffset;
         private readonly ApplicationInstance _app;
+        private readonly IAuthorizationPolicyProvider _policyProvider;
+        private readonly ClassAttributeResolver _classAttribResolver;
 
-        public OscriptApplicationModelProvider(ApplicationInstance appObject, IApplicationRuntime framework, IFileProvider sourceProvider)
+        public OscriptApplicationModelProvider(ApplicationInstance appObject,
+            IApplicationRuntime framework,
+            IFileProvider sourceProvider,
+            IAuthorizationPolicyProvider authPolicyProvider)
         {
             _fw = framework;
             _app = appObject;
             _scriptsProvider = sourceProvider;
             _controllersMethodOffset = ScriptedController.GetOwnMethodsRelectionOffset();
+            _policyProvider = authPolicyProvider;
+            _classAttribResolver = new ClassAttributeResolver();
+
+            if (_fw.Engine.DirectiveResolver is DirectiveMultiResolver resolvers)
+            {
+                if (!resolvers.Any(x => x is ClassAttributeResolver))
+                {
+                    resolvers.Add(_classAttribResolver);
+                }
+            }
+
         }
 
         public void OnProvidersExecuting(ApplicationModelProviderContext context)
@@ -64,13 +82,13 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         private void FillContext(IEnumerable<IFileInfo> sources, ApplicationModelProviderContext context)
         {
-            var attrList = new List<string>();
             var reflector = new TypeReflectionEngine();
             _fw.Environment.LoadMemory(MachineInstance.Current);
             foreach (var virtualPath in sources)
             {
-                Type reflectedType;
                 LoadedModule module;
+                ICodeSource codeSrc;
+                string typeName;
                 if (virtualPath.IsDirectory)
                 {
                     var path = Path.Combine("controllers", virtualPath.Name, MODULE_FILENAME);
@@ -78,30 +96,71 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                     if(!info.Exists || info.IsDirectory)
                         continue;
 
-                    var codeSrc = new FileInfoCodeSource(info);
-                    module = LoadControllerCode(codeSrc);
-                    reflectedType = reflector.Reflect<ScriptedController>(module, virtualPath.Name);
+                    codeSrc = new FileInfoCodeSource(info);
+                    typeName = virtualPath.Name;
+
                 }
                 else
                 {
-                    var codeSrc = new FileInfoCodeSource(virtualPath);
-                    module = LoadControllerCode(codeSrc);
-                    var baseFileName = System.IO.Path.GetFileNameWithoutExtension(virtualPath.Name);
-                    reflectedType = reflector.Reflect<ScriptedController>(module, baseFileName);
+                    codeSrc = new FileInfoCodeSource(virtualPath);
+                    typeName = System.IO.Path.GetFileNameWithoutExtension(virtualPath.Name);
                 }
 
+                try
+                {
+                    _classAttribResolver.BeforeCompilation();
+                    module = LoadControllerCode(codeSrc);
+                }
+                finally
+                {
+                    _classAttribResolver.AfterCompilation();
+                }
+
+                var reflectedType = reflector.Reflect<ScriptedController>(module, typeName);
+                var attrList = MapAnnotationsToAttributes(_classAttribResolver.Attributes);
                 var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), attrList.AsReadOnly());
                 cm.ControllerName = reflectedType.Name;
                 cm.Properties.Add("module", module);
                 cm.Properties.Add("type", reflectedType);
 
                 FillActions(cm, reflectedType);
+                FillFilters(cm);
 
                 context.Result.Controllers.Add(cm);
             }
         }
-        
 
+        private void FillFilters(ControllerModel cm)
+        {
+            foreach (var actionModel in cm.Actions)
+            {
+                var actionModelAuthData = actionModel.Attributes.OfType<IAuthorizeData>().ToArray();
+                if (actionModelAuthData.Length > 0)
+                {
+                    actionModel.Filters.Add(GetFilter(_policyProvider, actionModelAuthData));
+                }
+
+                foreach (var attribute in actionModel.Attributes.OfType<IAllowAnonymous>())
+                {
+                    actionModel.Filters.Add(new AllowAnonymousFilter());
+                }
+            }
+        }
+
+        public static AuthorizeFilter GetFilter(IAuthorizationPolicyProvider policyProvider, IEnumerable<IAuthorizeData> authData)
+        {
+            // The default policy provider will make the same policy for given input, so make it only once.
+            // This will always execute synchronously.
+            if (policyProvider.GetType() == typeof(DefaultAuthorizationPolicyProvider))
+            {
+                var policy = AuthorizationPolicy.CombineAsync(policyProvider, authData).GetAwaiter().GetResult();
+                return new AuthorizeFilter(policy);
+            }
+            else
+            {
+                return new AuthorizeFilter(policyProvider, authData);
+            }
+        }
 
         private LoadedModule LoadControllerCode(ICodeSource src)
         {
@@ -133,9 +192,15 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         private List<object> MapAnnotationsToAttributes(ReflectedMethodInfo scriptMethodInfo)
         {
-            var attrList = new List<object>();
             var annotations = scriptMethodInfo.GetCustomAttributes(typeof(UserAnnotationAttribute), false)
                 .Select(x=> ((UserAnnotationAttribute)x).Annotation);
+         
+            return MapAnnotationsToAttributes(annotations);
+        }
+
+        private List<object> MapAnnotationsToAttributes(IEnumerable<AnnotationDefinition> annotations)
+        {
+            var attrList = new List<object>();
             foreach (var annotation in annotations)
             {
                 if (annotation.Name == "Авторизовать" || annotation.Name == "Authorize")

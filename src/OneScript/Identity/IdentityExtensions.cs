@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Configuration;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using OneScript.WebHost.Database;
 
 namespace OneScript.WebHost.Identity
@@ -28,19 +30,22 @@ namespace OneScript.WebHost.Identity
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders();
 
-            var authBuilder = services.AddAuthentication();
             var cookieOpts = security.GetSection("CookieAuth");
             if (cookieOpts != null)
             {
-                authBuilder.AddCookie(options =>
+                services.ConfigureApplicationCookie(options =>
                 {
                     options.LoginPath = cookieOpts["LoginPath"] ?? options.LoginPath;
                     options.LogoutPath = cookieOpts["LogoutPath"] ?? options.LogoutPath;
                     options.AccessDeniedPath = cookieOpts["AccessDeniedPath"] ?? options.AccessDeniedPath;
                     options.ExpireTimeSpan = cookieOpts["ExpireTimeSpan"] == null? options.ExpireTimeSpan : TimeSpan.Parse(cookieOpts["ExpireTimeSpan"]);
+                    options.ReturnUrlParameter = cookieOpts["ReturnUrlParameter"] ?? options.ReturnUrlParameter;
+
                     cookieOpts.Bind("Cookie", options.Cookie);
                 });
             }
+
+            services.TryAddScoped<IHttpContextAccessor, HttpContextAccessor>();
 
         }
 

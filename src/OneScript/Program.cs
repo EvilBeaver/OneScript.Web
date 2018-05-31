@@ -1,6 +1,9 @@
-﻿using System.IO;
+﻿using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.WindowsServices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -18,31 +21,65 @@ namespace OneScript.WebHost
             config.SetBasePath(Directory.GetCurrentDirectory());
             config.AddJsonFile("appsettings.json", optional: true);
             config.AddEnvironmentVariables("OSWEB_");
-
+            
             if (args != null)
             {
                 config.AddCommandLine(args);
             }
 
             var configInstance = config.Build();
-
             var builder = new WebHostBuilder();
-            var host = builder
-                .UseConfiguration(configInstance)
+            var options = ConfigureHostingMode(builder, configInstance);
+
+            builder.UseConfiguration(configInstance)
                 .UseKestrel()
-                .UseContentRoot(Directory.GetCurrentDirectory())
                 .UseIISIntegration()
                 .UseStartup<Startup>()
                 .UseApplicationInsights()
-                .ConfigureLogging((hosting, logging)=>
+                .ConfigureLogging((hosting, logging) =>
                 {
                     logging.AddConfiguration(hosting.Configuration.GetSection("Logging"));
                     logging.AddConsole();
                     logging.AddDebug();
-                })
-                .Build();
+                });
 
-            host.Run();
+            var host = builder.Build();
+
+            if(options.RunAsService)
+                host.RunAsService();
+            else
+                host.Run();
+        }
+
+        private static HostingOptions ConfigureHostingMode(WebHostBuilder builder, IConfigurationRoot config)
+        {
+            var options = new HostingOptions();
+            config.GetSection("Hosting").Bind(options);
+
+            if (options.ContentRoot == null)
+            {
+                options.ContentRoot = options.RunAsService
+                    ? Path.GetDirectoryName(Process.GetCurrentProcess().MainModule.FileName)
+                    : Directory.GetCurrentDirectory();
+            }
+
+            if (options.Urls != null)
+                builder.UseSetting("urls", options.Urls);
+
+            builder.UseContentRoot(options.ContentRoot);
+            if (options.WebRoot != null)
+                builder.UseWebRoot(options.WebRoot);
+
+            return options;
+        }
+
+        private class HostingOptions
+        {
+            public string Urls { get; set; }
+            public bool RunAsService { get; set; }
+            public string ContentRoot { get; set; }
+            public string WebRoot { get; set; }
+
         }
     }
 }

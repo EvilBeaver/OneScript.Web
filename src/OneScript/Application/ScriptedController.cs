@@ -245,12 +245,36 @@ namespace OneScript.WebHost.Application
         }
 
         /// <summary>
+        /// Вспомогательный метод, генерирующий ответ в виде http-редиректа
+        /// </summary>
+        /// <param name="action">Имя действия перенаправления</param>
+        /// <param name="controller">Контроллер перенаправления</param>
+        /// <param name="fields">Дополнительные поля</param>
+        /// <param name="permanent">Признак постоянного (permanent) перенаправления.</param>
+        /// <returns>РезультатДействияПеренаправление</returns>
+        [ContextMethod("ПеренаправлениеНаДействие")]
+        public RedirectActionResult RedirectToAction(string action, string controller = null, StructureImpl fields = null, bool permanent = false)
+        {
+            if(fields == null)
+                fields = new StructureImpl();
+
+            if(controller != null)
+                fields.Insert("controller", ValueFactory.Create(controller));
+
+            var url = ActionUrl(action, fields);
+            if(url == null)
+                throw new RuntimeException("Не обнаружен заданный маршрут.");
+
+            return RedirectActionResult.Create(url, permanent);
+        }
+
+        /// <summary>
         /// Генерирует URL для маршрута, заданного в приложении.
         /// Параметр routeName позволяет жестко привязать генерацию адреса к конкретному маршруту
         /// </summary>
         /// <param name="routeName">Строка. Имя маршрута</param>
         /// <param name="fields">Структура. Поля маршрута в виде структуры.</param>
-        /// <returns></returns>
+        /// <returns>РезультатДействияПеренаправление</returns>
         [ContextMethod("АдресМаршрута")]
         public string RouteUrl(string routeName = null, StructureImpl fields = null)
         {

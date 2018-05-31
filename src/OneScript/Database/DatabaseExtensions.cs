@@ -6,44 +6,69 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using ScriptEngine;
 
 namespace OneScript.WebHost.Database
 {
     public static class DatabaseExtensions
     {
+        public const string ConfigSectionName = "Database";
+
         public static void AddDatabaseByConfiguration(this IServiceCollection services, IConfiguration config)
         {
-            const string keyName = "Database";
-            if (!config.GetChildren().Any(item => item.Key == keyName))
-                return;
+            if (!config.GetChildren().Any(item =>
+            {
+                return item.Key == ConfigSectionName;
+            }));
 
-            var dbSettings = config.GetSection(keyName);
+            var dbSettings = config.GetSection(ConfigSectionName);
+
+            // Делаем доступным для прочих частей приложения
+            services.Configure<OscriptDbOptions>(dbSettings);
             
-            var options = new OscriptDbOptions();
-            dbSettings.Bind(options);
+            AddDatabaseOptions(services);
+        }
 
-            AddDatabaseOptions(services, options);
+        private static void AddDatabaseOptions(IServiceCollection services)
+        {
+            services.AddTransient<DbContextOptions<ApplicationDbContext>>(ConfigureDbOptions);
             services.AddDbContext<ApplicationDbContext>();
         }
 
-        private static void AddDatabaseOptions(IServiceCollection services, OscriptDbOptions options)
+        private static DbContextOptions<ApplicationDbContext> ConfigureDbOptions(IServiceProvider serviceProvider)
         {
-            Func<IServiceProvider, DbContextOptions<ApplicationDbContext>> optionsFactory;
+            var options = serviceProvider.GetRequiredService<IOptions<OscriptDbOptions>>().Value;
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
             switch (options.DbType)
             {
                 case SupportedDatabase.MSSQLServer:
-                    optionsFactory = (provider) => builder.UseSqlServer(options.ConnectionString).Options;
+                    builder.UseSqlServer(options.ConnectionString);
                     break;
                 case SupportedDatabase.Postgres:
-                    optionsFactory = (provider) => builder.UseNpgsql(options.ConnectionString).Options;
+                    builder.UseNpgsql(options.ConnectionString);
                     break;
                 default:
                     throw new InvalidOperationException("Unknown database type in configuration");
             }
 
-            services.AddTransient<DbContextOptions<ApplicationDbContext>>(optionsFactory);
+            return builder.Options;
+        }
+
+        public static void PrepareDbEnvironment(IServiceProvider services, RuntimeEnvironment environment)
+        {
+            var dbOptions = services.GetService<IOptions<OscriptDbOptions>>().Value;
+            if (dbOptions != null && dbOptions.DbType != SupportedDatabase.Unknown)
+            {
+                var dbctx = services.GetService<ApplicationDbContext>();
+                dbctx.Database.EnsureCreated();
+
+                var userManager = new InfobaseUsersManagerContext(services);
+
+                environment.InjectGlobalProperty(userManager, "ПользователиИнформационнойБазы", true);
+                environment.InjectGlobalProperty(userManager, "InfoBaseUsers", true);
+            }
         }
     }
 
