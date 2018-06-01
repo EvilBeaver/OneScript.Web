@@ -11,8 +11,13 @@ namespace OneScript.WebHost.Database
         {
         }
 
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+        }
+
         public IApplicationRuntime RuntimeFacility { get; set; }
-        
+        public OscriptEntityModelProvider ModelProvider { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

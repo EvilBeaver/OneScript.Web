@@ -5,6 +5,8 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -90,6 +92,28 @@ namespace OneScriptWeb.Tests
             var usersArr = ibUsers.GetUsers();
             Assert.Equal(1, usersArr.Count());
             Assert.Equal("Hello", usersArr.Select(x=>(InfobaseUserContext)x).First().Name);
+        }
+
+
+        [Fact]
+        public void FuckMeIfIKnowWthatThis()
+        {
+            var opts = new DbContextOptionsBuilder<ApplicationDbContext>();
+            var services = new ServiceCollection();
+            services.AddTransient<DbContextOptions<ApplicationDbContext>>((svc) => opts.UseInMemoryDatabase("usersManagerTest").Options);
+            services.AddDbContext<ApplicationDbContext>();
+            services.AddSingleton<OscriptEntityModelProvider>();
+            
+            var provider = services.BuildServiceProvider();
+            var modelProvider = provider.GetService<OscriptEntityModelProvider>();
+            
+            var myTableManager = new DatabaseEntityManager(typeof(ScriptedDbEntity));
+            modelProvider.AddEntity(myTableManager);
+            var dbContext = provider.GetService<ApplicationDbContext>();
+            dbContext.ModelProvider = modelProvider;
+
+            var arr = dbContext.Model.GetEntityTypes("MyCatalog");
+            Assert.Equal(1, arr.Count);
         }
     }
 }
