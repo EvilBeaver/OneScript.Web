@@ -76,12 +76,7 @@ namespace OneScript.WebHost
             // анализ имеющихся компонентов представлений
             var manager = services.GetService<ApplicationPartManager>();
             var provider = manager.FeatureProviders.OfType<ScriptedViewComponentFeatureProvider>().FirstOrDefault();
-            if (provider != null)
-            {
-                provider.Application = oscriptApp;
-                provider.Engine = services.GetService<IApplicationRuntime>().Engine;
-                provider.ScriptsProvider = services.GetService<IFileProvider>();
-            }
+            provider?.Configure(services);
         }
 
         private void PrepareEnvironment(IServiceProvider services)

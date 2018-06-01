@@ -12,6 +12,7 @@ using ScriptEngine.HostedScript;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using OneScript.WebHost.Application;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.Extensions.FileProviders;
 using OneScript.WebHost.Infrastructure.Implementations;
 
@@ -29,8 +30,16 @@ namespace OneScript.WebHost.Infrastructure
             services.AddTransient<IControllerActivator, ScriptedControllerActivator>();
 
             InitializeScriptedLayer(services);
+            InitializeViewComponents(services);
         }
-        
+
+        private static void InitializeViewComponents(IServiceCollection services)
+        {
+            services.AddSingleton<IViewComponentInvokerFactory, OscriptViewComponentInvokerFactory>();
+            services.AddScoped<IViewComponentInvoker, OscriptViewComponentInvoker>();
+            services.AddSingleton<IViewComponentActivator, OscriptViewComponentActivator>();
+        }
+
         private static void InitializeScriptedLayer(IServiceCollection services)
         {
             services.TryAddSingleton<IApplicationRuntime, WebApplicationEngine>();

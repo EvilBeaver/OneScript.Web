@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
+using OneScript.WebHost.Infrastructure;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
@@ -15,24 +16,33 @@ namespace OneScript.WebHost.Application
         public const string InvokeMethodNameRu = "ОбработкаВызова";
         public const string InvokeMethodNameEn = "CallProcessing";
 
+        private Func<object> _invoker;
+
         public ScriptedViewComponent(LoadedModule module, string dynamicTypeName) : base(module, true)
         {
             var td = TypeManager.RegisterType(dynamicTypeName, typeof(ScriptedViewComponent));           
             DefineType(td);
             InitOwnData();
-        }
 
-        public ViewComponentResult Invoke()
-        {
+
             var methId = GetScriptMethod(InvokeMethodNameRu, InvokeMethodNameEn);
             if (methId == -1)
             {
-                return null;
+                throw new RuntimeException("Invoke method not found");
             }
 
-            CallAsFunction(methId, new IValue[0], out IValue result);
+            object Invoker()
+            {
+                CallAsFunction(methId, new IValue[0], out IValue result);
+                return CustomMarshaller.ConvertToCLRObject(result);
+            }
 
-            return result.AsObject() as ViewComponentResult;
+            _invoker = Invoker;
+        }
+
+        public ActionResult Invoke()
+        {
+            return _invoker() as ActionResult;
         }
 
         [ViewComponentContext]

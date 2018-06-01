@@ -1,13 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Threading.Tasks;
 using Dazinator.AspNet.Extensions.FileProviders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,6 +77,41 @@ namespace OneScriptWeb.Tests
                 Assert.Equal(0, feature.ViewComponents.Count);
             }
         }
+        
+        [Fact]
+        public void CanActivateVC_Through_Activator()
+        {
+            lock (TestOrderingLock.Lock)
+            {
+                var services = new ServiceCollection();
+                var fakefs = new InMemoryFileProvider();
+                fakefs.AddFile("viewComponents/test.os", "Функция ОбработкаВызова() КонецФункции");
+                services.AddSingleton<IFileProvider>(fakefs);
+
+                var serviceProvider = services.BuildServiceProvider();
+
+                var cp = new ScriptedViewComponentFeatureProvider();
+                cp.Engine = new ScriptingEngine();
+                cp.Engine.Environment = new RuntimeEnvironment();
+                cp.ScriptsProvider = serviceProvider.GetService<IFileProvider>();
+
+                var feature = new ViewComponentFeature();
+                var pm = new ApplicationPartManager();
+                pm.ApplicationParts.Add(new AssemblyPart(Assembly.GetExecutingAssembly()));
+                pm.FeatureProviders.Add(cp);
+                pm.PopulateFeature(feature);
+
+                var descriptorProvider = new DefaultViewComponentDescriptorProvider(pm);
+                var activator = new OscriptViewComponentActivator();
+                var descriptor = descriptorProvider.GetViewComponents().First();
+                var context = new ViewComponentContext();
+                context.ViewComponentDescriptor = descriptor;
+                var result = activator.Create(context);
+
+                Assert.IsType<ScriptedViewComponent>(result);
+            }
+        }
+
         private static IApplicationRuntime CreateWebEngineMock()
         {
             var webAppMoq = new Mock<IApplicationRuntime>();
@@ -85,6 +124,7 @@ namespace OneScriptWeb.Tests
             webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
             return webAppMoq.Object;
         }
+
         [Fact]
         public void CanDiscoverVCThroughAllPipeline()
         {
