@@ -54,7 +54,7 @@ namespace OneScript.WebHost.Application
             }
         }
 
-        internal void OnControllersCreation(out IEnumerable<string> files, ref bool standardHandling)
+        public void OnControllersCreation(out IEnumerable<string> files, ref bool standardHandling)
         {
             var mId = GetScriptMethod("ПриРегистрацииКонтроллеров");
             if (mId == -1)
@@ -76,7 +76,7 @@ namespace OneScript.WebHost.Application
             standardHandling = parameters[1].AsBoolean();
         }
 
-        internal void OnViewComponentsCreation(out IEnumerable<string> files, ref bool standardHandling)
+        public void OnViewComponentsCreation(out IEnumerable<string> files, ref bool standardHandling)
         {
             var mId = GetScriptMethod("ПриРегистрацииКомпонентовПредставлений");
             if (mId == -1)

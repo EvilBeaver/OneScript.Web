@@ -79,7 +79,7 @@ namespace OneScript.WebHost
             if (provider != null)
             {
                 provider.Application = oscriptApp;
-                provider.Framework = services.GetService<IApplicationRuntime>();
+                provider.Engine = services.GetService<IApplicationRuntime>().Engine;
                 provider.ScriptsProvider = services.GetService<IFileProvider>();
             }
         }

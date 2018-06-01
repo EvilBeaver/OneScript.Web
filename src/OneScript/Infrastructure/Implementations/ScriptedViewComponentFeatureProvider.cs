@@ -7,10 +7,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders.Physical;
 using OneScript.WebHost.Application;
-using ScriptEngine.Machine.Contexts;
+using ScriptEngine;
 using ScriptEngine.Machine.Reflection;
 
 namespace OneScript.WebHost.Infrastructure.Implementations
@@ -19,9 +20,17 @@ namespace OneScript.WebHost.Infrastructure.Implementations
     {
         public ApplicationInstance Application { get; set;  }
         public IFileProvider ScriptsProvider { get; set; }
-        public IApplicationRuntime Framework { get; set; }
+        public ScriptingEngine Engine { get; set; }
 
         private TypeInfo[] _discoveredTypes;
+
+        public void Configure(IServiceProvider services)
+        {
+            // в режиме тестирования app-instance может быть null
+            Application = services.GetService<ApplicationInstance>();
+            ScriptsProvider = services.GetRequiredService<IFileProvider>();
+            Engine = services.GetRequiredService<IApplicationRuntime>().Engine;
+        }
 
         public void PopulateFeature(IEnumerable<ApplicationPart> parts, ViewComponentFeature feature)
         {
@@ -36,10 +45,10 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         private void DiscoverViewComponents()
         {
-            IEnumerable<string> files;
+            IEnumerable<string> files = null;
             bool standardHandling = true;
 
-            Application.OnViewComponentsCreation(out files, ref standardHandling);
+            Application?.OnViewComponentsCreation(out files, ref standardHandling);
 
             var sources = new List<IFileInfo>();
             if (files != null)
@@ -60,9 +69,16 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             foreach (var virtualPath in sources)
             {
                 var code = new FileInfoCodeSource(virtualPath);
-                var compiler = Framework.Engine.GetCompilerService();
+                var compiler = Engine.GetCompilerService();
                 var img = compiler.Compile(code);
-                var module = Framework.Engine.LoadModuleImage(img);
+                var invokatorExist = img.Methods.Any(x =>
+                    StringComparer.OrdinalIgnoreCase.Compare(ScriptedViewComponent.InvokeMethodNameRu, x.Signature.Name) == 0
+                    || StringComparer.OrdinalIgnoreCase.Compare(ScriptedViewComponent.InvokeMethodNameEn, x.Signature.Name) == 0);
+
+                if(!invokatorExist)
+                    continue;
+
+                var module = Engine.LoadModuleImage(img);
                 var baseFileName = System.IO.Path.GetFileNameWithoutExtension(code.SourceDescription);
 
                 var builder = new ClassBuilder<ScriptedViewComponent>();
@@ -71,18 +87,8 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                     .ExportMethods()
                     .ExportProperties()
                     .ExportConstructor((parameters) => new ScriptedViewComponent(builder.Module, builder.TypeName))
-                    // TODO: Раскомментировать после выпуска ошибки рефлексии в preview10
-                    //.ExportClassMethod("Invoke") 
+                    .ExportClassMethod("Invoke") 
                     .Build();
-
-                // обход ошибки с недобавлением нативного метода в ClassBuilder
-                var refl = type as ReflectedClassType<ScriptedViewComponent>;
-                Debug.Assert(refl != null);
-
-                var allMethods = refl.GetMethods().ToList();
-                allMethods.Add(typeof(ScriptedViewComponent).GetMethod("Invoke"));
-                refl.SetMethods(allMethods);
-                // конец костыля
 
                 typeInfos.Add(type.GetTypeInfo());
             }
