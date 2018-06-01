@@ -3,7 +3,9 @@ using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using Microsoft.AspNetCore.Hosting;
+#if NET461
 using Microsoft.AspNetCore.Hosting.WindowsServices;
+#endif
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
@@ -45,10 +47,15 @@ namespace OneScript.WebHost
 
             var host = builder.Build();
 
-            if(options.RunAsService)
+#if NET461
+            if (options.RunAsService)
                 host.RunAsService();
             else
                 host.Run();
+#else
+            host.Run();
+#endif
+
         }
 
         private static HostingOptions ConfigureHostingMode(WebHostBuilder builder, IConfigurationRoot config)
