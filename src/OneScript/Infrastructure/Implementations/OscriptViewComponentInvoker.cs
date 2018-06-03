@@ -24,7 +24,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             var result = component.Invoke();
             _viewComponentFactory.ReleaseViewComponent(context, component);
 
-            return result.ExecuteResultAsync(context.ViewContext);
+            return result.ExecuteAsync(context);
         }
     }
 }
