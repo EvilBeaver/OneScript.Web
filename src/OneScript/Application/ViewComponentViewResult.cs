@@ -9,7 +9,7 @@ using ScriptEngine.Machine.Contexts;
 namespace OneScript.WebHost.Application
 {
     [ContextClass("РезультатКомпонентаПредставление")]
-    public class ViewComponentViewResult : IActionResult
+    public class ViewComponentViewResult : AutoContext<ViewComponentViewResult>, IViewComponentResult
     {
         public ViewComponentViewResult()
         {
@@ -21,13 +21,24 @@ namespace OneScript.WebHost.Application
         [ContextProperty("ДанныеПредставления")]
         public ViewDataDictionaryWrapper ViewData { get; set; }
 
-        public Task ExecuteResultAsync(ActionContext context)
+        public void Execute(ViewComponentContext context)
+        {
+            ExecuteAsync(context).GetAwaiter().GetResult();
+        }
+
+        public Task ExecuteAsync(ViewComponentContext context)
         {
             var result = new ViewViewComponentResult();
             result.ViewData = ViewData.GetDictionary();
             result.ViewName = ViewName;
 
-            return result.ExecuteAsync((ViewComponentContext)context);
+            return result.ExecuteAsync(context);
+        }
+
+        [ScriptConstructor]
+        public static ViewComponentViewResult Construct()
+        {
+            return new ViewComponentViewResult();
         }
     }
 }

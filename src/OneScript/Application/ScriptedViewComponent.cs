@@ -40,9 +40,9 @@ namespace OneScript.WebHost.Application
             _invoker = Invoker;
         }
 
-        public ActionResult Invoke()
+        public IViewComponentResult Invoke()
         {
-            return _invoker() as ActionResult;
+            return _invoker() as IViewComponentResult;
         }
 
         [ViewComponentContext]

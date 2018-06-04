@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
+using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
@@ -29,11 +30,11 @@ namespace OneScript.WebHost.Application
         }
 
         [ScriptConstructor]
-        public static ViewComponentContentResult Constructor(string content)
+        public static ViewComponentContentResult Constructor(IValue content)
         {
             return new ViewComponentContentResult()
             {
-                Content = content
+                Content = content.AsString()
             };
         }
     }
