@@ -9,18 +9,17 @@ using ScriptEngine.Machine.Contexts;
 namespace OneScript.WebHost.Application
 {
     [ContextClass("РезультатКомпонентаПредставление")]
-    public class ViewComponentViewResult : IViewComponentResult
+    public class ViewComponentViewResult : AutoContext<ViewComponentViewResult>, IViewComponentResult
     {
         [ContextProperty("ИмяШаблона")]
         public string ViewName { get; set; }
 
         [ContextProperty("ДанныеПредставления")]
         public ViewDataDictionaryWrapper ViewData { get; set; }
-        
+
         public void Execute(ViewComponentContext context)
         {
-            var task = ExecuteAsync(context);
-            task.GetAwaiter().GetResult();
+            ExecuteAsync(context).GetAwaiter().GetResult();
         }
 
         public Task ExecuteAsync(ViewComponentContext context)
@@ -30,6 +29,12 @@ namespace OneScript.WebHost.Application
             result.ViewName = ViewName;
 
             return result.ExecuteAsync(context);
+        }
+
+        [ScriptConstructor]
+        public static ViewComponentViewResult Construct()
+        {
+            return new ViewComponentViewResult();
         }
     }
 }
