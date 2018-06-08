@@ -13,9 +13,13 @@ pipeline {
 				dir('src'){
 					bat '''
 					@echo off
-					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f net461 -o ../../artifact -r win7-x64
+					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f net461 -o ../../artifact/net461/win7-x64 -r win7-x64
+					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f net461 -o ../../artifact/net461/debian-x64 -r debian-x64
 					'''
 				}
+				
+				zip archive: true, dir: 'artifact/net461/win7-x64', glob: '', zipFile: 'oscript.web-win7-x64.zip'
+				zip archive: true, dir: 'artifact/net461/debian-x64', glob: '', zipFile: 'oscript.web-debian-x64.zip'
 				
 				dir('src/OneScriptWeb.Tests'){
 					bat '''
@@ -26,10 +30,7 @@ pipeline {
 					
 					nunit testResultsPattern: 'testresult.xml'
 				}
-				
-				dir('artifact'){
-					archiveArtifacts '**'
-				}
+
 			}
 		}
 	}
