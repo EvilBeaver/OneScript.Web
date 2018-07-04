@@ -165,7 +165,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private LoadedModule LoadControllerCode(ICodeSource src)
         {
             var compiler = _fw.Engine.GetCompilerService();
-            compiler.DefineVariable("ЭтотОбъект", "ThisObject", SymbolType.ContextProperty);
             var byteCode = ScriptedController.CompileModule(compiler, src);
             return _fw.Engine.LoadModuleImage(byteCode);
         }

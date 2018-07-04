@@ -475,6 +475,7 @@ namespace OneScript.WebHost.Application
 
         public static ModuleImage CompileModule(CompilerService compiler, ICodeSource src)
         {
+            compiler.DefineVariable(THISOBJ_RU, THISOBJ_EN, SymbolType.ContextProperty);
             for (int i = 0; i < _ownProperties.Count; i++)
             {
                 var currentProp = _ownProperties.GetProperty(i);

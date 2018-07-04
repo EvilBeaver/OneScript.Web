@@ -70,7 +70,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             {
                 var code = new FileInfoCodeSource(virtualPath);
                 var compiler = Engine.GetCompilerService();
-                var img = compiler.Compile(code);
+                var img = ScriptedViewComponent.CompileModule(compiler,code);
                 var invokatorExist = img.Methods.Any(x =>
                     StringComparer.OrdinalIgnoreCase.Compare(ScriptedViewComponent.InvokeMethodNameRu, x.Signature.Name) == 0
                     || StringComparer.OrdinalIgnoreCase.Compare(ScriptedViewComponent.InvokeMethodNameEn, x.Signature.Name) == 0);
