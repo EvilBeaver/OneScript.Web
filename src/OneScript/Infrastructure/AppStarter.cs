@@ -63,7 +63,7 @@ namespace OneScript.WebHost.Infrastructure
         public ApplicationInstance CreateApp()
         {
             var codeSrc = new FileInfoCodeSource(_scripts.GetFileInfo("main.os"));
-            _webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc));
+            _webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc, _webEng));
             _webEng.Engine.UpdateContexts();
             
             return ApplicationInstance.Create(codeSrc, _webEng);
