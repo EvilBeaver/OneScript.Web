@@ -20,6 +20,7 @@ using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using OneScript.WebHost.Database;
 using OneScript.WebHost.BackgroundJobs;
+using OneScript.WebHost.Infobase;
 using ScriptEngine;
 
 namespace OneScript.WebHost
@@ -49,7 +50,7 @@ namespace OneScript.WebHost
             services.AddDatabaseByConfiguration(Configuration);
             services.AddIdentityByConfiguration(Configuration);
             services.AddBackgroundJobsByConfiguration(Configuration);
-            
+
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
@@ -84,6 +85,7 @@ namespace OneScript.WebHost
             var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
             DatabaseExtensions.PrepareDbEnvironment(services, environment);
             BackgroundJobsExtensions.PrepareBgJobsEnvironment(services, environment);
+            InfobaseExtensions.PrepareIbEnvironment(services, environment);
         }
         
     }

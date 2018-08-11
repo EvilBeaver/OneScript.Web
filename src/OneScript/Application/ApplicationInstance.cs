@@ -170,7 +170,6 @@ namespace OneScript.WebHost.Application
 
         }
 
-
         private void CallRoutesRegistrationHandler(string handler)
         {
             var handlerIndex = GetScriptMethod(handler);
