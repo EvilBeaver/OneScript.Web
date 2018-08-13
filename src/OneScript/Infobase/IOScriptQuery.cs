@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using System.Data.SqlClient;
 using Microsoft.Data.Sqlite;
 using System.Data.Common;
-
+using OneScript.WebHost.Infobase;
 
 namespace OScriptSql
 {
@@ -25,7 +25,7 @@ namespace OScriptSql
         void SetParameter(string ParametrName, IValue ParametrValue);
 
         // my methods
-        void SetConnection(SqliteConnection connector);
+        void SetConnection(InfobaseManagerContext connector);
 
 
     }

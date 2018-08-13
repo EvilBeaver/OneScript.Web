@@ -15,7 +15,9 @@ namespace OScriptSql
 
         private string _text;
         private SqliteCommand _command;
+        private SqliteConnection _connector;
         private StructureImpl _parameters;
+        private InfobaseManagerContext _connection;
 
         public Query()
         {
@@ -166,9 +168,16 @@ namespace OScriptSql
             _parameters.Insert(ParametrName, ParametrValue);
         }
 
-        public void SetConnection(SqliteConnection connector)
+        public void SetConnection(InfobaseManagerContext connection)
         {
-            _command = new SqliteCommand("",connector);
+
+            _connection = connection;
+            _connector = connection.Connection;
+
+            if (_connection.DbType == (new EnumDBType()).sqlite)
+            {
+                _command = new SqliteCommand("", _connector);
+            }
 
         }
 
