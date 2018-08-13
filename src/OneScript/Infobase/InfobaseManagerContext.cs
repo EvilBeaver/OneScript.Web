@@ -13,11 +13,7 @@ namespace OneScript.WebHost.Infobase
         private SqliteConnection _connection;
 
         private int _dbType;
-        private int _port;
-        private string _server;
         private string _dbName;
-        private string _login;
-        private string _password;
         private string _connectionString;
         private string _lastErrorMessage;
 
@@ -25,14 +21,9 @@ namespace OneScript.WebHost.Infobase
 
         {
             _dbType = 0;
-            _port = 0;
-            _server = "";
             _dbName = "";
-            _login = "";
-            _password = "";
             _connectionString = "";
             _lastErrorMessage = "";
-
 
         }
 
@@ -40,7 +31,6 @@ namespace OneScript.WebHost.Infobase
         {
             return "Соединение";
         }
-
 
         /// <summary>
         /// Типы поддерживаемых СУБД
@@ -55,7 +45,6 @@ namespace OneScript.WebHost.Infobase
                 return dtype;
             }
         }
-
 
         /// <summary>
         /// Тип подключенной СУБД
@@ -75,42 +64,6 @@ namespace OneScript.WebHost.Infobase
             }
         }
 
-        ///// <summary>
-        ///// Порт подключения
-        ///// </summary>
-        ///// <value>Число</value>
-        //[ContextProperty("Порт", "Port")]
-        //public int Port
-        //{
-        //    get
-        //    {
-        //        return _port;
-        //    }
-
-        //    set
-        //    {
-        //        _port = value;
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Имя или IP сервера
-        ///// </summary>
-        ///// <value>Строка</value>
-        //[ContextProperty("Сервер", "Server")]
-        //public string Server
-        //{
-        //    get
-        //    {
-        //        return _server;
-        //    }
-
-        //    set
-        //    {
-        //        _server = value;
-        //    }
-        //}
-
         /// <summary>
         /// Имя базы, в случае с SQLITE - путь к базе
         /// </summary>
@@ -128,43 +81,6 @@ namespace OneScript.WebHost.Infobase
                 _dbName = value;
             }
         }
-
-        ///// <summary>
-        ///// Пользователь под которым происходит подключение.
-        ///// Если СУБД MS SQL и пользователь не указан - используется Windows авторизация.
-        ///// </summary>
-        ///// <value>Строка</value>
-        //[ContextProperty("ИмяПользователя", "Login")]
-        //public string Login
-        //{
-        //    get
-        //    {
-        //        return _login;
-        //    }
-
-        //    set
-        //    {
-        //        _login = value;
-        //    }
-        //}
-
-        ///// <summary>
-        ///// Пароль пользователя
-        ///// </summary>
-        ///// <value>Строка</value>
-        //[ContextProperty("Пароль", "Password")]
-        //public string Password
-        //{
-        //    get
-        //    {
-        //        return _password;
-        //    }
-
-        //    set
-        //    {
-        //        _password = value;
-        //    }
-        //}
 
         /// <summary>
         /// Статус соединения с БД
@@ -217,12 +133,6 @@ namespace OneScript.WebHost.Infobase
                 _connectionString = value;
             }
         }
-
-        //[ScriptConstructor]
-        //public static IRuntimeContextInstance Constructor()
-        //{
-        //    return new InfobaseManagerContext();
-        //}
 
         /// <summary>
         /// Открыть соединение с БД

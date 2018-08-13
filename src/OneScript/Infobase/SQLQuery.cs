@@ -31,7 +31,6 @@ namespace OScriptSql
             return new Query();
         }
 
-
         [ContextProperty("Параметры", "Parameters")]
         public StructureImpl Parameters
         {
@@ -137,11 +136,6 @@ namespace OScriptSql
             string versionOnescript = sec.Version;
 
             string[] verInfo = versionOnescript.Split('.');
-
-            //if (Convert.ToInt64(verInfo[2]) >= 15)
-            //{
-            //    Console.WriteLine("> 15");
-            //}
 
             var result = new QueryResult();
 

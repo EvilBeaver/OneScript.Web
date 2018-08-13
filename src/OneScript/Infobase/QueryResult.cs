@@ -20,7 +20,6 @@ namespace OScriptSql
         {
         }
 
-
         public QueryResult(DbDataReader reader)
         {
             _reader = reader;
