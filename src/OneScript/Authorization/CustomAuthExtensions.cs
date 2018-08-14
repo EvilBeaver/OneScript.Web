@@ -11,14 +11,9 @@ namespace OneScript.WebHost.Authorization
 {
     public static class CustomAuthExtensions
     {
-        public const string ConfigSectionName = "Authorization:Custom";
-
-        public static void AddCustomAuthorization(this IServiceCollection services, IFileProvider filesystem)
+        public static void AddCustomAuthorization(this IServiceCollection services)
         {
-            var authFile = filesystem.GetFileInfo("auth.os");
-            if (authFile.Exists && !authFile.IsDirectory)
-            {
-            }
+            services.AddSingleton<IAuthorizationHandlerProvider, OneScriptAuthorizationHandlerProvider>();
         }
     }
 }

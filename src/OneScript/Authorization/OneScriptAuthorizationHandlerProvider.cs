@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
+using OneScript.WebHost.Infrastructure;
+using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Authorization
 {
@@ -11,10 +13,25 @@ namespace OneScript.WebHost.Authorization
     {
         private readonly List<IAuthorizationHandler> _handlers;
 
-        public OneScriptAuthorizationHandlerProvider(IEnumerable<IAuthorizationHandler> defaultHandlers, IFileProvider filesystem)
+        public OneScriptAuthorizationHandlerProvider(IEnumerable<IAuthorizationHandler> defaultHandlers, IFileProvider filesystem, IApplicationRuntime runtime)
         {
             _handlers = new List<IAuthorizationHandler>(defaultHandlers);
-            //_handlers.Add(ScriptedAuthorizationHandler);
+            
+            AppendScriptedHandlers(runtime, filesystem);
+        }
+
+        private void AppendScriptedHandlers(IApplicationRuntime runtime, IFileProvider filesystem)
+        {
+            var authFile = filesystem.GetFileInfo("auth.os");
+            if(!authFile.Exists || authFile.IsDirectory)
+                return;
+
+            runtime.Environment.LoadMemory(MachineInstance.Current);
+
+            var codeSource = new FileInfoCodeSource(authFile);
+            
+            var registrator = AuthorizationModule.CreateInstance(codeSource, runtime, filesystem);
+            registrator.OnRegistration(_handlers);
         }
 
         public Task<IEnumerable<IAuthorizationHandler>> GetHandlersAsync(AuthorizationHandlerContext context)

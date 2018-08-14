@@ -11,6 +11,8 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.FileProviders;
 using Moq;
 using OneScript.WebHost.Authorization;
+using OneScript.WebHost.Infrastructure;
+using ScriptEngine;
 using Xunit;
 
 namespace OneScriptWeb.Tests
@@ -21,22 +23,38 @@ namespace OneScriptWeb.Tests
         public void CheckIfCustomHandlerIsRegistered()
         {
             var services = new ServiceCollection();
-            services.AddSingleton<IAuthorizationHandlerProvider, OneScriptAuthorizationHandlerProvider>();
-            services.AddSingleton<IAuthorizationHandler, ScriptedAuthorizationHandler>();
-            var fakeFS = new InMemoryFileProvider();
-            fakeFS.AddFile("auth.os","");
+            services.AddSingleton<IApplicationRuntime>(CreateWebEngineMock());
+            services.AddCustomAuthorization();
 
-            services.AddCustomAuthorization(fakeFS);
-            services.AddSingleton<IFileProvider>(fakeFS);
+            var fakeFs = new InMemoryFileProvider();
+            fakeFs.AddFile("auth.os", "Процедура ПриРегистрацииОбработчиков(Список)\n" +
+                                      "   Список.Добавить(\"customAuth.os\");\n" +
+                                      "КонецПроцедуры");
+            fakeFs.AddFile("customAuth.os","");
+
+            services.AddSingleton<IFileProvider>(fakeFs);
 
             var provider = services.BuildServiceProvider();
 
-            var handlers = provider.GetService<IAuthorizationHandlerProvider>();
+            var handlers = provider.GetRequiredService<IAuthorizationHandlerProvider>();
             var context = new AuthorizationHandlerContext(new IAuthorizationRequirement[0], new ClaimsPrincipal(), null);
             var result = handlers.GetHandlersAsync(context).Result;
             Assert.IsType<OneScriptAuthorizationHandlerProvider>(handlers);
             Assert.True(result.Count() == 1);
             
         }
+
+        private static IApplicationRuntime CreateWebEngineMock()
+        {
+            var webAppMoq = new Mock<IApplicationRuntime>();
+            var engine = new ScriptingEngine()
+            {
+                Environment = new RuntimeEnvironment()
+            };
+            webAppMoq.SetupGet(x => x.Engine).Returns(engine);
+            webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
+            return webAppMoq.Object;
+        }
+
     }
 }

@@ -205,17 +205,17 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             foreach (var annotation in annotations)
             {
                 var name = annotation.Name.ToLowerInvariant();
-                if (name == "Авторизовать" || name == "Authorize")
+                if (name == "авторизовать" || name == "authorize")
                 {
                     attrList.Add(new AuthorizeAttribute());
                 }
 
-                if (name == "HttpPost")
+                if (name == "httppost")
                 {
                     attrList.Add(new HttpPostAttribute());
                 }
 
-                if (name == "HttpGet")
+                if (name == "httpget")
                 {
                     attrList.Add(new HttpGetAttribute());
                 }
