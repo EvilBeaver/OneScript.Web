@@ -18,3 +18,5 @@ examples/hello/oscript_modules/
 
 .env
 src/.idea
+src/OneScriptWeb.Infobase/bin
+src/OneScriptWeb.Infobase/obj
