@@ -1,0 +1,29 @@
+@{
+    Layout = "_noSidebarLayout";
+}
+
+<h2 class="ui header">Список номенклатуры</h2>
+
+<div id="cmdbar" class="ui float right">
+    <a class="ui tiny primary button" asp-action="add">Добавить</a>
+    <a class="ui tiny primary button" asp-action="backup">Сохранить все в JSON</a>
+    <div class="ui divider"></div>
+</div>
+
+<div class="ui divided items">
+    @foreach(var row in Model) {
+      <div class="item">
+        <div class="middle aligned content">
+            <a class="header" 
+                asp-action="edit" 
+                asp-route-id="@row.id">@row.name</a>
+            <div class="meta">
+                <span>Цена: @row.price</span>
+                <span>Артикул: @row.article</span>
+            </div>
+        </div>
+      </div>
+    }
+</div>
+
+

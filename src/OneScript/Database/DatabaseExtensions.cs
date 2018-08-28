@@ -17,10 +17,8 @@ namespace OneScript.WebHost.Database
 
         public static void AddDatabaseByConfiguration(this IServiceCollection services, IConfiguration config)
         {
-            if (!config.GetChildren().Any(item =>
-            {
-                return item.Key == ConfigSectionName;
-            }));
+            if (!config.GetChildren().Any(item => item.Key == ConfigSectionName))
+                return;
 
             var dbSettings = config.GetSection(ConfigSectionName);
 

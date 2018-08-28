@@ -14,6 +14,7 @@ using OneScript.WebHost.Application;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.Extensions.FileProviders;
+using OneScript.WebHost.Authorization;
 using OneScript.WebHost.Infrastructure.Implementations;
 
 namespace OneScript.WebHost.Infrastructure
@@ -31,6 +32,12 @@ namespace OneScript.WebHost.Infrastructure
 
             InitializeScriptedLayer(services);
             InitializeViewComponents(services);
+            InitializeAuthorization(services);
+        }
+
+        private static void InitializeAuthorization(IServiceCollection services)
+        {
+            services.AddCustomAuthorization();
         }
 
         private static void InitializeViewComponents(IServiceCollection services)

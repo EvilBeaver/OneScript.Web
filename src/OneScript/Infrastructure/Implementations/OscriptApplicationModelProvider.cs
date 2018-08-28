@@ -7,8 +7,10 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders.Physical;
 using Microsoft.Extensions.FileSystemGlobbing;
@@ -202,9 +204,20 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             var attrList = new List<object>();
             foreach (var annotation in annotations)
             {
-                if (annotation.Name == "Авторизовать" || annotation.Name == "Authorize")
+                var name = annotation.Name.ToLowerInvariant();
+                if (name == "авторизовать" || name == "authorize")
                 {
                     attrList.Add(new AuthorizeAttribute());
+                }
+
+                if (name == "httppost")
+                {
+                    attrList.Add(new HttpPostAttribute());
+                }
+
+                if (name == "httpget")
+                {
+                    attrList.Add(new HttpGetAttribute());
                 }
             }
 

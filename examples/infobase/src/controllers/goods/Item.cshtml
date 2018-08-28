@@ -1,0 +1,27 @@
+@{
+    Layout = "_noSidebarLayout";
+}
+<h2 class="ui dividing header">Номенклатура</h2>
+
+<form asp-route-id="@Model?.id" class="ui form">
+    <div asp-validation-summary="All"></div>
+    <p class="field">
+        <label for="name">Наименование</label>
+        <input name="name" value="@Model?.name"/>
+    </p>
+    <p class="field">
+        <label for="article">Артикул</label>
+        <input name="article" value="@Model?.article"/>
+    </p>
+    <p class="field">
+        <label for="price">Цена</label>
+        <input name="price" value="@Model?.price"/>
+    </p>
+    <p class="field">
+        <label for="description">Описание</label>
+        <textarea rows="2" name="description">@Model?.description</textarea>
+    </p>
+    <button type="submit" class="ui primary button">Сохранить</button>    
+    <button type="submit" class="ui primary button" asp-action="Delete" asp-route-id="@Model?.id">Удалить</button>
+    <button class="ui primary button" asp-action="Index">Назад</button>
+</form>

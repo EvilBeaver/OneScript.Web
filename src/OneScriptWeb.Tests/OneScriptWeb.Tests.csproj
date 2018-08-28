@@ -31,6 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OneScriptWeb.Infobase\OneScriptWeb.Infobase.csproj" />
     <ProjectReference Include="..\OneScript\OneScriptWeb.csproj" />
   </ItemGroup>
 
