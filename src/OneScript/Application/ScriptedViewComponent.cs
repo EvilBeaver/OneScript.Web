@@ -21,7 +21,7 @@ namespace OneScript.WebHost.Application
         public const string InvokeMethodNameRu = "ОбработкаВызова";
         public const string InvokeMethodNameEn = "CallProcessing";
 
-        private Func<object> _invoker;
+        private Func<IDictionary<string, object>, object> _invoker;
 
         private IUrlHelper _url;
         private SessionImpl _session;
@@ -49,13 +49,30 @@ namespace OneScript.WebHost.Application
                 throw new RuntimeException("Invoke method not found");
             }
 
-            object Invoker()
+            object Invoker(IDictionary<string, object> arguments)
             {
-                var result = CallScriptMethod(methId, new IValue[0]);
+                var args = MapArguments(methId, arguments);
+                var result = CallScriptMethod(methId, args);
                 return CustomMarshaller.ConvertToCLRObject(result);
             }
 
             _invoker = Invoker;
+        }
+
+        private IValue[] MapArguments(int methId, IDictionary<string, object> arguments)
+        {
+            var parameters = GetMethodInfo(methId).Params;
+            IValue[] args = new IValue[parameters.Length];
+
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                var obj = arguments[parameters[i].Name];
+                var type = obj is IValue ? typeof(IValue) : obj.GetType();
+
+                args[i] = CustomMarshaller.ConvertToIValueSafe(obj, type);
+            }
+
+            return args;
         }
 
         private void OnContextChange()
@@ -146,9 +163,9 @@ namespace OneScript.WebHost.Application
             set => _osViewData = value ?? throw new ArgumentException();
         }
 
-        public IViewComponentResult Invoke()
+        public IViewComponentResult Invoke(IDictionary<string, object> arguments)
         {
-            return _invoker() as IViewComponentResult;
+            return _invoker(arguments) as IViewComponentResult;
         }
 
         [ViewComponentContext]

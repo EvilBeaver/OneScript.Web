@@ -33,6 +33,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             if(cInfo == null)
                 throw new RuntimeException($"No constructor found in type {type}");
 
+            // TODO: переделать на Expressions
             object Launch() => cInfo.Invoke(new object[0]);
             _constructorsCache[type] = Launch;
 

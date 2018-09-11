@@ -20,8 +20,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             
             Debug.Assert(uncastedcomponent is ScriptedViewComponent);
             var component = (ScriptedViewComponent) uncastedcomponent;
-
-            var result = component.Invoke();
+            var result = component.Invoke(context.Arguments);
             _viewComponentFactory.ReleaseViewComponent(context, component);
 
             return result.ExecuteAsync(context);
