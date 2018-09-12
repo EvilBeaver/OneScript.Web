@@ -13,11 +13,25 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 {
     public class OscriptViewComponentActivator : IViewComponentActivator
     {
-        private readonly Dictionary<Type, Func<object>> _constructorsCache;
+        private readonly Dictionary<Type, ConstructorInfo> _constructorsCache;
+
+        private class DynTypeEqualityComparer : IEqualityComparer<Type>
+        {
+            public bool Equals(Type x, Type y)
+            {
+                return Object.ReferenceEquals(x, y);
+            }
+
+            public int GetHashCode(Type obj)
+            {
+                return obj.GetHashCode();
+            }
+        }
+
 
         public OscriptViewComponentActivator()
         {
-            _constructorsCache = new Dictionary<Type, Func<object>>();
+            _constructorsCache = new Dictionary<Type, ConstructorInfo>(new DynTypeEqualityComparer());
         }
 
         public object Create(ViewComponentContext context)
@@ -26,18 +40,17 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             if (_constructorsCache.TryGetValue(type.AsType()
                 , out var constructor))
             {
-                return constructor();
+                return constructor.Invoke(new object[0]);
             }
 
             var cInfo = type.GetConstructors().OfType<ReflectedConstructorInfo>().FirstOrDefault();
             if(cInfo == null)
                 throw new RuntimeException($"No constructor found in type {type}");
 
-            // TODO: переделать на Expressions
-            object Launch() => cInfo.Invoke(new object[0]);
-            _constructorsCache[type] = Launch;
+            constructor = cInfo;
+            _constructorsCache[type] = constructor;
 
-            return Launch();
+            return constructor.Invoke(new object[0]); ;
         }
 
         public void Release(ViewComponentContext context, object viewComponent)

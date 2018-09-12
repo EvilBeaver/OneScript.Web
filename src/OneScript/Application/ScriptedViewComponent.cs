@@ -55,19 +55,32 @@ namespace OneScript.WebHost.Application
                 var result = CallScriptMethod(methId, args);
                 return CustomMarshaller.ConvertToCLRObject(result);
             }
-
+            
             _invoker = Invoker;
         }
 
         private IValue[] MapArguments(int methId, IDictionary<string, object> arguments)
         {
-            var parameters = GetMethodInfo(methId).Params;
+            var parameters = GetMethodInfo(methId + GetOwnMethodCount()).Params;
             IValue[] args = new IValue[parameters.Length];
+
+            if (parameters.Length == 0 && arguments.Count != 0)
+            {
+                throw RuntimeException.TooManyArgumentsPassed();
+            }
 
             for (int i = 0; i < parameters.Length; i++)
             {
                 var obj = arguments[parameters[i].Name];
                 var type = obj is IValue ? typeof(IValue) : obj.GetType();
+
+                if (obj is DynamicContextWrapper dyn)
+                {
+                    obj = dyn.UnderlyingObject;
+
+                    if (type == typeof(DynamicContextWrapper))
+                        type = obj.GetType();
+                }
 
                 args[i] = CustomMarshaller.ConvertToIValueSafe(obj, type);
             }
@@ -163,9 +176,9 @@ namespace OneScript.WebHost.Application
             set => _osViewData = value ?? throw new ArgumentException();
         }
 
-        public IViewComponentResult Invoke(IDictionary<string, object> arguments)
+        public object Invoke(IDictionary<string, object> arguments)
         {
-            return _invoker(arguments) as IViewComponentResult;
+            return _invoker(arguments);
         }
 
         [ViewComponentContext]
@@ -251,6 +264,56 @@ namespace OneScript.WebHost.Application
             return result;
         }
 
+        /// <summary>
+        /// Вспомогательный метод генерации ответа в виде представления.
+        /// </summary>
+        /// <param name="nameOrModel">Имя представления или объект Модели (если используется представление по умолчанию)</param>
+        /// <param name="model">Объект модели (произвольный)</param>
+        /// <returns>РезультатКомпонентаПредставление.</returns>
+        [ContextMethod("Представление")]
+        public ViewComponentViewResult View(IValue nameOrModel = null, IValue model = null)
+        {
+            if (nameOrModel == null && model == null)
+            {
+                return DefaultViewResult();
+            }
+
+            if (model == null)
+            {
+                if (nameOrModel.DataType == DataType.String)
+                {
+                    return ViewResultByName(nameOrModel.AsString(), null);
+                }
+                else
+                {
+                    return ViewResultByName(null, nameOrModel);
+                }
+            }
+
+            if (nameOrModel == null)
+                return ViewResultByName(null, model);
+
+            return ViewResultByName(nameOrModel.AsString(), model);
+        }
+
+        private ViewComponentViewResult ViewResultByName(string viewname, IValue model)
+        {
+            if (model != null)
+                ViewData.Model = model;
+
+            var va = new ViewComponentViewResult()
+            {
+                ViewName = viewname,
+                ViewData = ViewData
+            };
+
+            return va;
+        }
+
+        private ViewComponentViewResult DefaultViewResult()
+        {
+            return new ViewComponentViewResult() { ViewData = ViewData };
+        }
 
         #region SDO Methods
 
