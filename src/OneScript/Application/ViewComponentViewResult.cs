@@ -25,7 +25,7 @@ namespace OneScript.WebHost.Application
         public Task ExecuteAsync(ViewComponentContext context)
         {
             var result = new ViewViewComponentResult();
-            result.ViewData = ViewData.GetDictionary();
+            result.ViewData = ViewData?.GetDictionary();
             result.ViewName = ViewName;
 
             return result.ExecuteAsync(context);
