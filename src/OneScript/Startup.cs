@@ -1,6 +1,8 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net.Mime;
 using System.Reflection;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
@@ -11,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -50,7 +53,24 @@ namespace OneScript.WebHost
             services.AddDatabaseByConfiguration(Configuration);
             services.AddIdentityByConfiguration(Configuration);
             services.AddBackgroundJobsByConfiguration(Configuration);
+            
+            services.AddResponseCompression(options =>
+            {
+                options.Providers.Add<GzipCompressionProvider>();
+                
+            });
 
+            services.Configure<GzipCompressionProviderOptions>(options => 
+            {
+                options.Level = CompressionLevel.Fastest;
+            });
+
+
+            //https://stackoverflow.com/questions/40511103/using-the-antiforgery-cookie-in-asp-net-core-but-with-a-non-default-cookiename
+            //TODO добавить sha256 идентификатор приложения генерируемый в момент сборки - чтобы не было пересечений
+            //TODO подумать как вывести данную конструкцию в конфигурацю доступную для разработчика 1С
+            services.AddAntiforgery(options => options.Cookie.Name = "OScriptWeb.Antiforgery");
+            
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
@@ -60,6 +80,9 @@ namespace OneScript.WebHost
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider services)
         {
+
+            app.UseResponseCompression();
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
