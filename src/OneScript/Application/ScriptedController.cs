@@ -17,6 +17,7 @@ namespace OneScript.WebHost.Application
     /// <summary>
     /// Главный класс, отвечающий за обработку входящего запроса и генерацию ответа.
     /// </summary>
+    [ContextClass("Контроллер")]
     [NonController]
     public class ScriptedController : ScriptDrivenObject
     {
@@ -70,12 +71,16 @@ namespace OneScript.WebHost.Application
             meth.Invoke(this, parameters);
         }
 
-        public IActionResult ResultAction(params object[] parameters)
+        public IActionResult ResultAction()
         {
             var meth = (System.Reflection.MethodInfo)_ctx.ActionDescriptor.Properties["actionMethod"];
-            if (parameters == null)
-                parameters = new object[0];
-            var result = meth.Invoke(this, parameters) as IActionResult;
+            
+            IActionResult result;
+            if (meth is ReflectedMethodInfo reflected)
+                result = reflected.InvokeDirect(this, new IValue[0]) as IActionResult;
+            else
+                result = meth.Invoke(this, new object[0]) as IActionResult;
+
             if(result == null)
                 throw new InvalidOperationException("Function must return an IActionResult value");
 

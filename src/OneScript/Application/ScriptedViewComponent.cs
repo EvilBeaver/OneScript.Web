@@ -15,6 +15,7 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    [ContextClass("КомпонентПредставления")]
     [NonViewComponent]
     public class ScriptedViewComponent : ScriptDrivenObject
     {
