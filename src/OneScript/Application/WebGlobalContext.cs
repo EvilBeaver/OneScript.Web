@@ -32,7 +32,7 @@ namespace OneScript.WebHost.Application
             sys.ApplicationHost = host;
             sys.CodeSource = entryScript;
             if (webEng != null)
-                SetEngineForContext(sys, webEng.Engine);
+                sys.EngineInstance = webEng.Engine;
 
             _osGlobal = new RCIRedirector(sys);
             _osGlobal.PublishProperty("Символы", null);
@@ -63,16 +63,6 @@ namespace OneScript.WebHost.Application
             _osGlobal.PublishMethod("СтартовыйСценарий", "StartupScript");
 
             sys.InitInstance();
-        }
-
-        private void SetEngineForContext(SystemGlobalContext sys, ScriptingEngine webEng)
-        {
-            // TODO после выпуска 1.0.21 свойство будет публичным
-            var prop = sys.GetType().GetProperty("EngineInstance", BindingFlags.Instance | BindingFlags.NonPublic);
-            Debug.Assert(prop != null);
-
-            prop.SetValue(sys, webEng);
-
         }
 
         public IValue GetIndexedValue(IValue index)
