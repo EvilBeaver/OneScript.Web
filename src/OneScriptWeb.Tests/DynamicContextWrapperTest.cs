@@ -25,7 +25,7 @@ namespace OneScriptWeb.Tests
 
             dynamic dynStructure = new DynamicContextWrapper(structure);
             Assert.Equal<int>(1, (int)dynStructure.Свойство1);
-            Assert.Equal<string>("Hello", dynStructure.Свойство2); 
+            Assert.Equal("Hello", dynStructure.Свойство2); 
         }
 
         [Fact]
@@ -37,7 +37,7 @@ namespace OneScriptWeb.Tests
 
             dynamic dynStructure = new DynamicContextWrapper(structure);
             Assert.Equal<int>(1, (int)dynStructure["Свойство1"]);
-            Assert.Equal<string>("Hello", dynStructure["Свойство2"]); 
+            Assert.Equal("Hello", dynStructure["Свойство2"]); 
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace OneScriptWeb.Tests
             dynStructure.Вставить("Свойство2", "Hello");
 
             Assert.Equal<int>(1, (int)dynStructure["Свойство1"]);
-            Assert.Equal<string>("Hello", dynStructure["Свойство2"]); 
+            Assert.Equal("Hello", dynStructure["Свойство2"]); 
         }
 
         [Fact]
@@ -66,7 +66,7 @@ namespace OneScriptWeb.Tests
             foreach (var kv in dynStructure)
             {
                 ++cnt;
-                Assert.IsType(typeof(DynamicContextWrapper), kv);
+                Assert.IsType<DynamicContextWrapper>(kv);
             }
 
             Assert.Equal(2, cnt); 
