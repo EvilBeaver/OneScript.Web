@@ -152,6 +152,12 @@ namespace OneScript.WebHost.Application
             _startupBuilder.UseHangfireServer();
         }
 
+        [ContextMethod("ИспользоватьСжатиеОтветов")]
+        public void UseResponseCompression()
+        {
+            _startupBuilder.UseResponseCompression();
+        }
+
         // TODO:
         // Включить управление консолью, когда будет готова архитектура ролей в целом.
         //[ContextMethod("ИспользоватьКонсольЗаданий")]
