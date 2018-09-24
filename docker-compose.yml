@@ -1,7 +1,7 @@
 version: '3'
 services:
   engine:
-    build: ./src/OneScript
+    build: .
     image: omvc-engine-developer
   auth-example:
     image: omvc-engine-developer
@@ -19,6 +19,14 @@ services:
     - postgresql:db
     volumes:
     - ./examples/backgroundjobs/src:/app
+  infobase-example:
+    image: omvc-engine-developer
+    ports:
+    - 5003:5000
+    links: 
+    - postgresql:db
+    volumes:
+    - ./examples/infobase/src:/app
   postgresql:
     restart: always
     image: sameersbn/postgresql:9.6-2

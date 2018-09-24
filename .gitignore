@@ -20,3 +20,5 @@ examples/hello/oscript_modules/
 src/.idea
 src/OneScriptWeb.Infobase/bin
 src/OneScriptWeb.Infobase/obj
+
+artifact
