@@ -19,6 +19,12 @@ namespace OneScript.WebHost.BackgroundJobs
             _globalEnv = env;
         }
 
+        /// <summary>
+        /// Выполняет заданный метод в фоновом режиме. Метод должен располагаться в общем модуле и быть экспортным.
+        /// Параметры метода в текущей версии не поддерживаются.
+        /// </summary>
+        /// <param name="method"></param>
+        /// <returns></returns>
         [ContextMethod("Выполнить", "Execute")]
         public BackgroundJobContext Execute(string method)
         {

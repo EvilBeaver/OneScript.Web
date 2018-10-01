@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
@@ -77,7 +77,13 @@ namespace OneScript.WebHost.Application
             
             IActionResult result;
             if (meth is ReflectedMethodInfo reflected)
-                result = reflected.InvokeDirect(this, new IValue[0]) as IActionResult;
+            {
+                var res = reflected.InvokeDirect(this, new IValue[0]);
+
+                result = res is IObjectWrapper wrapper
+                    ? wrapper.UnderlyingObject as IActionResult
+                    : res as IActionResult;
+            }
             else
                 result = meth.Invoke(this, new object[0]) as IActionResult;
 

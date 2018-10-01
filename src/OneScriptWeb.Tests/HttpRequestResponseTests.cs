@@ -48,8 +48,8 @@ namespace OneScriptWeb.Tests
             var scriptRequest = new HttpResponseImpl(response.Object);
             scriptRequest.SetHeaders(headers);
 
-            Assert.Equal(testedHeaders["Content-Length"], "123456");
-            Assert.Equal(testedHeaders["Content-Encoding"], "utf-8"); 
+            Assert.Equal("123456", testedHeaders["Content-Length"]);
+            Assert.Equal("utf-8", testedHeaders["Content-Encoding"]); 
         }
 
         [Fact]
@@ -60,7 +60,7 @@ namespace OneScriptWeb.Tests
 
             var scriptRequest = new HttpResponseImpl(response);
             scriptRequest.ContentType = "text/plain";
-            Assert.True(scriptRequest.Headers.GetIndexedValue(ValueFactory.Create("Content-Type")).AsString().Equals("text/plain"));
+            Assert.Equal("text/plain", scriptRequest.Headers.GetIndexedValue(ValueFactory.Create("Content-Type")).AsString());
             Assert.Equal("text/plain", scriptRequest.RealObject.Headers["Content-Type"]);
             Assert.Equal("text/plain", scriptRequest.RealObject.ContentType); 
         }
@@ -76,7 +76,7 @@ namespace OneScriptWeb.Tests
 
             var scriptRequest = new HttpResponseImpl(response);
             scriptRequest.SetHeaders(headers);
-            Assert.True(scriptRequest.Headers.GetIndexedValue(ValueFactory.Create("Content-Type")).AsString().Equals("text/plain"));
+            Assert.Equal("text/plain", scriptRequest.Headers.GetIndexedValue(ValueFactory.Create("Content-Type")).AsString());
             Assert.Equal("text/plain", scriptRequest.RealObject.Headers["Content-Type"]);
             Assert.Equal("text/plain", scriptRequest.RealObject.ContentType); 
         }
@@ -109,8 +109,8 @@ namespace OneScriptWeb.Tests
             var request = new HttpRequestImpl(requestMock.Object);
 
             Assert.Equal(1, request.FormData.Files.Count());
-            Assert.IsType(typeof(FormDataCollectionContext), request.FormData);
-            Assert.IsType(typeof(FormFilesCollectionContext), request.FormData.Files);
+            Assert.IsType<FormDataCollectionContext>(request.FormData);
+            Assert.IsType<FormFilesCollectionContext>(request.FormData.Files);
 
             var fFile = request.FormData.Files[0];
             var fFileInt = request.FormData.Files["uploaded"];
@@ -130,7 +130,7 @@ namespace OneScriptWeb.Tests
 
             var request = new HttpRequestImpl(requestMock.Object);
 
-            Assert.Equal(request.Cookies.GetIndexedValue(ValueFactory.Create("test")).AsString(), "test");
+            Assert.Equal("test", request.Cookies.GetIndexedValue(ValueFactory.Create("test")).AsString());
         }
     }
 }
