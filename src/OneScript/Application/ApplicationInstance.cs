@@ -15,6 +15,10 @@ using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Application
 {
+    /// <summary>
+    ////Экземпляр серверного приложения. Представлен модулем приложения main.os
+    /// </summary>
+    [ContextClass("Приложение")]
     public class ApplicationInstance : ScriptDrivenObject
     {
         private static readonly ContextMethodsMapper<ApplicationInstance> OwnMethods = new ContextMethodsMapper<ApplicationInstance>();
@@ -113,18 +117,31 @@ namespace OneScript.WebHost.Application
             return OwnMethods.GetMethod(index)(this, arguments);
         }
 
+        /// <summary>
+        /// Добавляет компонент конвейера, отвечающий за обработку исключений
+        /// </summary>
+        /// <param name="errorRoute">Маршрут URL, который будет отображаться при возникновении исключения</param>
         [ContextMethod("ИспользоватьОбработчикОшибок")]
         public void UseErrorHandler(string errorRoute)
         {
             _startupBuilder.UseExceptionHandler(errorRoute);
         }
 
+        /// <summary>
+        /// Добавляет компонент конвейера, отвечающий за выдачу статического содержимого (картинок, скриптов, стилей и т.п.)
+        /// </summary>
         [ContextMethod("ИспользоватьСтатическиеФайлы")]
         public void UseStaticFiles()
         {
             _startupBuilder.UseStaticFiles();
         }
 
+        /// <summary>
+        /// Добавляет компонент конвейера, отвечающий за обработку MVC-маршрутов, контроллеры и представления.
+        /// По умолчанию добавляется маршрут /{controller=home}/{action=index}/{id?}.
+        /// В метод можно передать имя процедуры-обработчика, в которой можно будет перенастроить шаблоны URL.
+        /// </summary>
+        /// <param name="handler">Имя процедуры-обработчика, в которой будет настраиваться маршрутизация.</param>
         [ContextMethod("ИспользоватьМаршруты")]
         public void UseMvcRoutes(string handler = null)
         {
@@ -134,18 +151,27 @@ namespace OneScript.WebHost.Application
                 CallRoutesRegistrationHandler(handler);
         }
 
+        /// <summary>
+        /// Использовать обработчик cookies, отвечающих за клиентские сессии. Позволяет применять http-сессии в контроллерах
+        /// </summary>
         [ContextMethod("ИспользоватьСессии")]
         public void UseSessions()
         {
             _startupBuilder.UseSession();
         }
 
+        /// <summary>
+        /// Использовать обработчик cookies, отвечающих за клиентскую аутентификацию.
+        /// </summary>
         [ContextMethod("ИспользоватьАвторизацию")]
         public void UseAuthorization()
         {
             _startupBuilder.UseAuthentication();
         }
-        
+
+        /// <summary>
+        /// Разрешает использование фоновых и регламентных заданий. Запускает сервер обслуживания заданий Hangfire.
+        /// </summary>
         [ContextMethod("ИспользоватьФоновыеЗадания")]
         public void UseBackgroundJobs()
         {
