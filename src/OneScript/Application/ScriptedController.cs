@@ -315,7 +315,7 @@ namespace OneScript.WebHost.Application
         /// Генерирует Url для действия в контроллере
         /// </summary>
         /// <param name="action">Имя действия</param>
-        /// <param name="fieldsOrController">Имя контроллера строкой или структура полей маршрута.</param>
+        /// <param name="fieldsOrController">Имя контроллера строкой или структура/соответствие полей маршрута.</param>
         /// <returns></returns>
         [ContextMethod("АдресДействия", "ActionUrl")]
         public string ActionUrl(string action, IValue fieldsOrController = null)
@@ -327,10 +327,10 @@ namespace OneScript.WebHost.Application
                 {
                     result = Url.Action(action, fieldsOrController.AsString());
                 }
-                else if(fieldsOrController.GetRawValue() is StructureImpl)
+                else if(fieldsOrController.GetRawValue() is IEnumerable<KeyAndValueImpl>)
                 {
                     var values = new Dictionary<string, object>();
-                    foreach (var kv in (StructureImpl) fieldsOrController.GetRawValue())
+                    foreach (var kv in (IEnumerable<KeyAndValueImpl>) fieldsOrController.GetRawValue())
                     {
                         values.Add(kv.Key.AsString(), CustomMarshaller.ConvertToCLRObject(kv.Value));
                     }
