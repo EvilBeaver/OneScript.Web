@@ -13,7 +13,7 @@ namespace OneScript.WebHost.Application
     /// <summary>
     /// Описание входящего запроса HTTP
     /// </summary>
-    [ContextClass("HTTPЗапросВходящий", "HTTPIncomingRequest")]
+    [ContextClass("HttpЗапросВходящий", "HttpIncomingRequest")]
     public class HttpRequestImpl : AutoContext<HttpRequestImpl>
     {
         private readonly HttpRequest _realObject;
