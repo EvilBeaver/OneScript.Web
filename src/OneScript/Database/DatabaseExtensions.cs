@@ -47,6 +47,9 @@ namespace OneScript.WebHost.Database
                 case SupportedDatabase.Postgres:
                     builder.UseNpgsql(options.ConnectionString);
                     break;
+                case SupportedDatabase.SQLite:
+                    builder.UseSqlite(options.ConnectionString);
+                    break;
                 default:
                     throw new InvalidOperationException("Unknown database type in configuration");
             }
@@ -80,7 +83,8 @@ namespace OneScript.WebHost.Database
     {
         Unknown,
         MSSQLServer,
-        Postgres
+        Postgres,
+        SQLite
     }
 
 }

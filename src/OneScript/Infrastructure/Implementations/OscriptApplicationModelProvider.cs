@@ -93,9 +93,10 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 string typeName;
                 if (virtualPath.IsDirectory)
                 {
-                    var path = Path.Combine("controllers", virtualPath.Name, MODULE_FILENAME);
-                    var info = _scriptsProvider.GetFileInfo(path);
-                    if(!info.Exists || info.IsDirectory)
+                    var info = FindModule(virtualPath.Name, MODULE_FILENAME) 
+                               ?? FindModule(virtualPath.Name, virtualPath.Name);
+
+                    if(info == null)
                         continue;
 
                     codeSrc = new FileInfoCodeSource(info);
@@ -130,6 +131,16 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
                 context.Result.Controllers.Add(cm);
             }
+        }
+
+        private IFileInfo FindModule(string controllerName, string moduleName)
+        {
+            var path = Path.Combine("controllers", controllerName, moduleName);
+            var info = _scriptsProvider.GetFileInfo(path);
+            if (!info.Exists || info.IsDirectory)
+                return null;
+
+            return info;
         }
 
         private void FillFilters(ControllerModel cm)
