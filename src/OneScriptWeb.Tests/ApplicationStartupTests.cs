@@ -103,6 +103,13 @@ namespace OneScriptWeb.Tests
             services.AddTransient(typeof(IActionSelector), (s) => Mock.Of<IActionSelector>());
             services.AddTransient(typeof(DiagnosticSource), (s) => Mock.Of<DiagnosticSource>());
 
+            services.TryAddSingleton<IOptions<ApiBehaviorOptions>>(x=>
+            {
+                var options = new ApiBehaviorOptions();
+                options.InvalidModelStateResponseFactory = (a) => null;
+                return new OptionsWrapper<ApiBehaviorOptions>(options);
+            });
+
             var roMock = new Mock<IOptions<RouteOptions>>();
             roMock.SetupGet(x => x.Value).Returns(new RouteOptions()
             {
@@ -187,7 +194,6 @@ namespace OneScriptWeb.Tests
             services.TryAddSingleton(Mock.Of<IAuthorizationPolicyProvider>());
             var loggerMock = new Mock<ILogger<ApplicationInstance>>();
             services.TryAddSingleton(loggerMock.Object);
-
             var provider = services.BuildServiceProvider();
 
             var fakeFs = (InMemoryFileProvider)provider.GetService<IFileProvider>();
@@ -196,9 +202,6 @@ namespace OneScriptWeb.Tests
                                    "КонецПроцедуры");
             fakeFs.AddFile( "controllers/test.os", "");
 
-            var mvcAppBuilder = new Mock<IApplicationBuilder>();
-            mvcAppBuilder.SetupGet(x => x.ApplicationServices).Returns(provider);
-            
             var appModel = provider.GetServices<IApplicationModelProvider>().OfType<OscriptApplicationModelProvider>().First();
 
             //act
