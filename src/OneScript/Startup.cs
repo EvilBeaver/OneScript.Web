@@ -92,6 +92,7 @@ namespace OneScript.WebHost
             PrepareEnvironment(services);
 
             var oscriptApp = services.GetService<ApplicationInstance>();
+            oscriptApp.UseServices(services);
             oscriptApp.OnStartup(app);
             
             // анализ имеющихся компонентов представлений
@@ -105,7 +106,6 @@ namespace OneScript.WebHost
             var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
             DatabaseExtensions.PrepareDbEnvironment(services, environment);
             BackgroundJobsExtensions.PrepareBgJobsEnvironment(services, environment);
-            InfobaseExtensions.PrepareIbEnvironment(services, environment);
         }
         
     }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using OneScript.WebHost.Application;
+using OneScript.WebHost.Database;
 using ScriptEngine;
 using ScriptEngine.Environment;
 using ScriptEngine.Machine;
@@ -14,9 +15,12 @@ namespace OneScript.WebHost.Infrastructure.Implementations
     public class ScriptedControllerActivator : IControllerActivator
     {
         private ScriptingEngine _engine;
-        public ScriptedControllerActivator(IApplicationRuntime app)
+        private ApplicationDbContext _dbContext;
+
+        public ScriptedControllerActivator(IApplicationRuntime app, ApplicationDbContext dbContext)
         {
             _engine = app.Engine;
+            _dbContext = dbContext;
         }
 
         public object Create(ControllerContext context)

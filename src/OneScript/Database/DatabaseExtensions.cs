@@ -66,9 +66,12 @@ namespace OneScript.WebHost.Database
                 dbctx.Database.EnsureCreated();
 
                 var userManager = new InfobaseUsersManagerContext(services);
-
                 environment.InjectGlobalProperty(userManager, "ПользователиИнформационнойБазы", true);
                 environment.InjectGlobalProperty(userManager, "InfoBaseUsers", true);
+
+                var ib = new InfobaseContext(services);
+                environment.InjectGlobalProperty(ib, "ИнформационнаяБаза", true);
+                environment.InjectGlobalProperty(ib, "InfoBase", true);
             }
         }
     }
