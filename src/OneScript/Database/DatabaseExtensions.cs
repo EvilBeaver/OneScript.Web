@@ -57,6 +57,8 @@ namespace OneScript.WebHost.Database
             return builder.Options;
         }
 
+        internal static InfobaseContext Infobase { get; set; }
+
         public static void PrepareDbEnvironment(IServiceProvider services, RuntimeEnvironment environment)
         {
             var dbOptions = services.GetService<IOptions<OscriptDbOptions>>().Value;
@@ -69,7 +71,9 @@ namespace OneScript.WebHost.Database
                 environment.InjectGlobalProperty(userManager, "ПользователиИнформационнойБазы", true);
                 environment.InjectGlobalProperty(userManager, "InfoBaseUsers", true);
 
-                var ib = new InfobaseContext(services);
+                var ib = new InfobaseContext();
+                Infobase = ib; // Костыль
+                ib.DbContext = services.GetRequiredService<ApplicationDbContext>();
                 environment.InjectGlobalProperty(ib, "ИнформационнаяБаза", true);
                 environment.InjectGlobalProperty(ib, "InfoBase", true);
             }

@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.DependencyInjection;
-using OneScript.WebHost.Infobase;
 using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Database
@@ -15,11 +10,17 @@ namespace OneScript.WebHost.Database
     [ContextClass("СоединениеИнформационнойБазы", "InfobaseConnection")]
     public class InfobaseContext : AutoContext<InfobaseContext>
     {
-        private readonly IServiceProvider _services;
-
-        public InfobaseContext(IServiceProvider services)
+        public InfobaseContext()
         {
-            _services = services;
+        }
+
+        [ThreadStatic]
+        private static ApplicationDbContext _dbContext;
+
+        public ApplicationDbContext DbContext
+        {
+            get => _dbContext;
+            set => _dbContext = value;
         }
 
         /// <summary>
@@ -29,7 +30,7 @@ namespace OneScript.WebHost.Database
         [ContextMethod("НовыйЗапрос")]
         public DbQueryContext NewQuery()
         {
-            return new DbQueryContext(_services.GetRequiredService<ApplicationDbContext>());
+            return new DbQueryContext(DbContext);
         }
     }
 }

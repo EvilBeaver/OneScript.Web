@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
-using OScriptSql;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
@@ -42,15 +37,16 @@ namespace OneScript.WebHost.Database
         [ContextMethod("Выполнить", "Execute")]
         public QueryResult Execute()
         {
-            // соединение управляется внешним контекстом EFCore
-            // явно ничего не закрываем, т.к. контекст у нас Scoped - на запрос
-            // https://github.com/aspnet/EntityFrameworkCore/issues/7810
-            var connection = _dbContext.Database.GetDbConnection();
-            var command = connection.CreateCommand();
-            command.CommandText = Text;
-            SetDbCommandParameters(command);
-            var reader = command.ExecuteReader();
-            return new QueryResult(reader);
+            /*using (*/
+            var connection = _dbContext.Database.GetDbConnection();/*)*/
+            using (var command = connection.CreateCommand())
+            {
+                connection.Open();
+                command.CommandText = Text;
+                SetDbCommandParameters(command);
+                var reader = command.ExecuteReader();
+                return new QueryResult(reader);
+            }
         }
 
         /// <summary>
@@ -60,13 +56,17 @@ namespace OneScript.WebHost.Database
         [ContextMethod("ВыполнитьКоманду", "ExecuteCommand")]
         public int ExecuteCommand()
         {
-            var connection = _dbContext.Database.GetDbConnection();
-            var command = connection.CreateCommand();
-            command.CommandText = Text;
-            SetDbCommandParameters(command);
+            /*using (*/
+            var connection = _dbContext.Database.GetDbConnection();/*)*/
+            using (var command = connection.CreateCommand())
+            {
+                connection.Open();
+                command.CommandText = Text;
+                SetDbCommandParameters(command);
 
-            SetDbCommandParameters(command);
-            return command.ExecuteNonQuery();
+                SetDbCommandParameters(command);
+                return command.ExecuteNonQuery();
+            }
         }
 
         /// <summary>
