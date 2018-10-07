@@ -6,7 +6,6 @@ pipeline {
 		{
 			agent { label 'windows' }
 			steps {
-				cleanWs()
 				dir('artifact'){
 					deleteDir()
 				}
