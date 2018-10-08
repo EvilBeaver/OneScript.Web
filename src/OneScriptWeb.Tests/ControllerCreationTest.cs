@@ -38,7 +38,7 @@ namespace OneScriptWeb.Tests
             cc.HttpContext = new DefaultHttpContext();
             cc.HttpContext.Session = null;
                 
-            var activator = new ScriptedControllerActivator(appEngine, null);
+            var activator = new ScriptedControllerActivator(appEngine);
             var controller = (ScriptedController)activator.Create(cc);
 
             Assert.Equal("test", controller.SystemType.Name);
@@ -65,7 +65,7 @@ namespace OneScriptWeb.Tests
             cc.HttpContext = new DefaultHttpContext();
             cc.HttpContext.Session = null;
 
-            var activator = new ScriptedControllerActivator(appEngine, null);
+            var activator = new ScriptedControllerActivator(appEngine);
             var controller = (ScriptedController)activator.Create(cc);
 
             Assert.Equal(controller, controller.GetPropValue(0));

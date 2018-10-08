@@ -17,6 +17,10 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private IApplicationRuntime _runtime;
         private ApplicationDbContext _dbContext;
 
+        public ScriptedControllerActivator(IApplicationRuntime app) : this (app, null)
+        { 
+        }
+
         public ScriptedControllerActivator(IApplicationRuntime app, ApplicationDbContext dbContext)
         {
             _runtime = app;
