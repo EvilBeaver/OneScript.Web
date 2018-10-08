@@ -42,7 +42,6 @@ namespace OneScript.WebHost
                 {
                     logging.AddConfiguration(hosting.Configuration.GetSection("Logging"));
                     logging.AddConsole();
-                    logging.AddDebug();
                 });
 
             var host = builder.Build();
