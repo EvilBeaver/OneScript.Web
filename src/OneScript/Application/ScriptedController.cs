@@ -50,7 +50,7 @@ namespace OneScript.WebHost.Application
                     var rv = RouteValues.AsObject();
                     rv.SetIndexedValue(
                         ValueFactory.Create(routeData.Key),
-                        CustomMarshaller.ConvertToIValueSafe(routeData.Value, routeData.Value.GetType())
+                        CustomMarshaller.ConvertToIValueSafe(routeData.Value, routeData.Value?.GetType())
                     );
                 }
             }
