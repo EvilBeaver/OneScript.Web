@@ -17,7 +17,7 @@ namespace OneScript.WebHost.Application
         public FileActionResult(string file, string contentType)
         {
             src = new FileStream(file, FileMode.Open, FileAccess.Read);
-            ContentType = contentType;
+            ContentType = contentType ?? "application/octet-stream";
         }
 
         public FileActionResult(BinaryDataContext binaryData, string contentType)

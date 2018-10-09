@@ -16,12 +16,22 @@ namespace OneScript.WebHost.Infrastructure
             _requestSession = requestSession;
         }
 
+        /// <summary>
+        /// Возвращает Истина, если пользовательская сессия была инициирована
+        /// </summary>
         [ContextProperty("Доступна")]
         public bool IsAvailable => _requestSession.IsAvailable;
 
+        /// <summary>
+        /// Идентификатор сессии
+        /// </summary>
         [ContextProperty("Идентификатор")]
         public string Identifier => _requestSession.Id;
 
+        /// <summary>
+        /// Метод получает набор ключей, сохраненных в сессии
+        /// </summary>
+        /// <returns>Массив ключей</returns>
         [ContextMethod("ПолучитьКлючи")]
         public ArrayImpl GetKeys()
         {
@@ -29,6 +39,11 @@ namespace OneScript.WebHost.Infrastructure
             return arr;
         }
 
+        /// <summary>
+        /// Получить строковое значение из сессии
+        /// </summary>
+        /// <param name="key">Ключ значения</param>
+        /// <returns></returns>
         [ContextMethod("ПолучитьСтроку")]
         public IValue GetString(string key)
         {
@@ -36,12 +51,22 @@ namespace OneScript.WebHost.Infrastructure
             return str == null ? ValueFactory.Create() : ValueFactory.Create(str);
         }
 
+        /// <summary>
+        /// Установить строковое значение в сессию
+        /// </summary>
+        /// <param name="key">Ключ значения</param>
+        /// <param name="value">Устанавливаемое значение</param>
         [ContextMethod("УстановитьСтроку")]
         public void SetString(string key, string value)
         {
             _requestSession.SetString(key, value);
         }
 
+        /// <summary>
+        /// Получить числовое значение из сессии
+        /// </summary>
+        /// <param name="key">Ключ значения</param>
+        /// <returns></returns>
         [ContextMethod("ПолучитьЧисло")]
         public IValue GetNumber(string key)
         {
@@ -49,18 +74,30 @@ namespace OneScript.WebHost.Infrastructure
             return num == null ? ValueFactory.Create() : ValueFactory.Create((decimal) num.Value);
         }
 
+        /// <summary>
+        /// Установить числовое значение в сессию
+        /// </summary>
+        /// <param name="key">Ключ значения</param>
+        /// <param name="value">Устанавливаемое значение</param>
         [ContextMethod("УстановитьЧисло")]
         public void SetNumber(string key, int value)
         {
             _requestSession.SetInt32(key, value);
         }
 
+        /// <summary>
+        /// Очистить все значения сессии
+        /// </summary>
         [ContextMethod("Очистить")]
         public void Clear()
         {
             _requestSession.Clear();
         }
 
+        /// <summary>
+        /// Удалить значение из сессии
+        /// </summary>
+        /// <param name="key">Ключ значения</param>
         [ContextMethod("Удалить")]
         public void Remove(string key)
         {

@@ -1,45 +1,45 @@
 ﻿using System;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net.Mime;
 using System.Reflection;
+using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OneScript.WebHost.Application;
+using OneScript.WebHost.Identity;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
+using OneScript.WebHost.Database;
+using OneScript.WebHost.BackgroundJobs;
 
 namespace OneScript.WebHost
 {
     public class Startup
     {
-        public Startup(IHostingEnvironment env, ILoggerFactory logs)
+        public Startup(IConfiguration conf)
         {
-            if(env.IsDevelopment())
-                logs.AddConsole();
-
-            var confBuilder = new ConfigurationBuilder();
-            var location = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            confBuilder.AddJsonFile(Path.Combine(location, "appsettings.json"), optional:true);
-            confBuilder.SetBasePath(Directory.GetCurrentDirectory());
-            confBuilder.AddJsonFile("appsettings.json", optional: true);
-
-            Configuration = confBuilder.Build();
-            logs.AddConsole(Configuration);
+            Configuration = conf;
         }
         
-        private IConfigurationRoot Configuration { get; set; }
+        private IConfiguration Configuration { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IConfigurationRoot>(Configuration);
+            services.AddSingleton<IConfiguration>(Configuration);
 
             services.Configure<RazorViewEngineOptions>(options =>
             {
@@ -48,6 +48,27 @@ namespace OneScript.WebHost
             
             services.AddMemoryCache();
             services.AddSession();
+            services.AddDatabaseByConfiguration(Configuration);
+            services.AddIdentityByConfiguration(Configuration);
+            services.AddBackgroundJobsByConfiguration(Configuration);
+            
+            services.AddResponseCompression(options =>
+            {
+                options.Providers.Add<GzipCompressionProvider>();
+                
+            });
+
+            services.Configure<GzipCompressionProviderOptions>(options => 
+            {
+                options.Level = CompressionLevel.Fastest;
+            });
+
+
+            //https://stackoverflow.com/questions/40511103/using-the-antiforgery-cookie-in-asp-net-core-but-with-a-non-default-cookiename
+            //TODO добавить sha256 идентификатор приложения генерируемый в момент сборки - чтобы не было пересечений
+            //TODO подумать как вывести данную конструкцию в конфигурацю доступную для разработчика 1С
+            services.AddAntiforgery(options => options.Cookie.Name = "OScriptWeb.Antiforgery");
+            
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
@@ -61,19 +82,29 @@ namespace OneScript.WebHost
             {
                 app.UseDeveloperExceptionPage();
             }
+            else
+            {
+                app.UseStatusCodePages();
+            }
+
+            PrepareEnvironment(services);
 
             var oscriptApp = services.GetService<ApplicationInstance>();
+            oscriptApp.UseServices(services);
             oscriptApp.OnStartup(app);
             
             // анализ имеющихся компонентов представлений
             var manager = services.GetService<ApplicationPartManager>();
             var provider = manager.FeatureProviders.OfType<ScriptedViewComponentFeatureProvider>().FirstOrDefault();
-            if (provider != null)
-            {
-                provider.Application = oscriptApp;
-                provider.Framework = services.GetService<IApplicationRuntime>();
-                provider.ScriptsProvider = services.GetService<IScriptsProvider>();
-            }
+            provider?.Configure(services);
         }
+
+        private void PrepareEnvironment(IServiceProvider services)
+        {
+            var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
+            DatabaseExtensions.PrepareDbEnvironment(services, environment);
+            BackgroundJobsExtensions.PrepareBgJobsEnvironment(services, environment);
+        }
+        
     }
 }

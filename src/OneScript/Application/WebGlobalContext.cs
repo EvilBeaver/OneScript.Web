@@ -2,11 +2,15 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
+using OneScript.WebHost.Infrastructure;
+using ScriptEngine;
 using ScriptEngine.Environment;
 using ScriptEngine.HostedScript;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
+using MethodInfo = ScriptEngine.Machine.MethodInfo;
 
 namespace OneScript.WebHost.Application
 {
@@ -18,16 +22,23 @@ namespace OneScript.WebHost.Application
         // а пока, спрячем его здесь и выставим только некоторые вещи
         private readonly RCIRedirector _osGlobal;
 
-        public WebGlobalContext(IHostApplication host, ICodeSource entryScript)
+        public WebGlobalContext(IHostApplication host, ICodeSource entryScript) : this(host,entryScript,null)
+        {   
+        }
+
+        public WebGlobalContext(IHostApplication host, ICodeSource entryScript, IApplicationRuntime webEng)
         {
             var sys = new SystemGlobalContext();
             sys.ApplicationHost = host;
             sys.CodeSource = entryScript;
+            if (webEng != null)
+                sys.EngineInstance = webEng.Engine;
+
             _osGlobal = new RCIRedirector(sys);
-            _osGlobal.PublishProperty("Символы",null);
-            _osGlobal.PublishProperty("Chars",null);
-            _osGlobal.PublishProperty("ФайловыеПотоки",null);
-            _osGlobal.PublishProperty("FileStreams",null);
+            _osGlobal.PublishProperty("Символы", null);
+            _osGlobal.PublishProperty("Chars", null);
+            _osGlobal.PublishProperty("ФайловыеПотоки", null);
+            _osGlobal.PublishProperty("FileStreams", null);
 
             _osGlobal.PublishMethod("ОсвободитьОбъект", "FreeObject");
             _osGlobal.PublishMethod("ВыполнитьСборкуМусора", "RunGarbageCollection");
@@ -49,10 +60,9 @@ namespace OneScript.WebHost.Application
             _osGlobal.PublishMethod("ЗагрузитьСценарийИзСтроки", "LoadScriptFromString");
             _osGlobal.PublishMethod("ПодключитьСценарий", "AttachScript");
             _osGlobal.PublishMethod("Сообщить", "Message");
-            _osGlobal.PublishMethod("СтартовыйСценарий","StartupScript");
+            _osGlobal.PublishMethod("СтартовыйСценарий", "StartupScript");
 
             sys.InitInstance();
-            
         }
 
         public IValue GetIndexedValue(IValue index)

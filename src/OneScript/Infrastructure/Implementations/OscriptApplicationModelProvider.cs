@@ -2,29 +2,57 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
+using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Routing;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.FileProviders.Physical;
+using Microsoft.Extensions.FileSystemGlobbing;
 using OneScript.WebHost.Application;
 using ScriptEngine.Environment;
+using ScriptEngine.HostedScript;
 using ScriptEngine.Machine.Contexts;
 using ScriptEngine.Machine;
+using ScriptEngine.Machine.Reflection;
 
 namespace OneScript.WebHost.Infrastructure.Implementations
 {
     public class OscriptApplicationModelProvider : IApplicationModelProvider
     {
+        private const string MODULE_FILENAME = "module.os";
         private readonly IApplicationRuntime _fw;
-        private readonly IScriptsProvider _scriptsProvider;
+        private readonly IFileProvider _scriptsProvider;
         private readonly int _controllersMethodOffset;
         private readonly ApplicationInstance _app;
+        private readonly IAuthorizationPolicyProvider _policyProvider;
+        private readonly ClassAttributeResolver _classAttribResolver;
 
-        public OscriptApplicationModelProvider(ApplicationInstance appObject, IApplicationRuntime framework, IScriptsProvider sourceProvider)
+        public OscriptApplicationModelProvider(ApplicationInstance appObject,
+            IApplicationRuntime framework,
+            IFileProvider sourceProvider,
+            IAuthorizationPolicyProvider authPolicyProvider)
         {
             _fw = framework;
             _app = appObject;
             _scriptsProvider = sourceProvider;
             _controllersMethodOffset = ScriptedController.GetOwnMethodsRelectionOffset();
+            _policyProvider = authPolicyProvider;
+            _classAttribResolver = new ClassAttributeResolver();
+
+            if (_fw.Engine.DirectiveResolver is DirectiveMultiResolver resolvers)
+            {
+                if (!resolvers.Any(x => x is ClassAttributeResolver))
+                {
+                    resolvers.Add(_classAttribResolver);
+                }
+            }
+
         }
 
         public void OnProvidersExecuting(ApplicationModelProviderContext context)
@@ -34,40 +62,119 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
             _app.OnControllersCreation(out files, ref standardHandling);
 
-            var sources = new List<string>();
+            var sources = new List<IFileInfo>();
             if (files != null)
-                sources.AddRange(files);
+                sources.AddRange(files.Select(x => new PhysicalFileInfo(new FileInfo(x))));
 
             if (standardHandling)
             {
-                var filesystemSources = _scriptsProvider.EnumerateFiles("/controllers");
+                // прямые контроллеры
+                var filesystemSources = _scriptsProvider.GetDirectoryContents("controllers").Where(x => !x.IsDirectory && x.PhysicalPath.EndsWith(".os"));
+                sources.AddRange(filesystemSources);
+
+                // контроллеры в папках
+                filesystemSources = _scriptsProvider.GetDirectoryContents("controllers")
+                    .Where(x => x.IsDirectory);
+
                 sources.AddRange(filesystemSources);
             }
 
             FillContext(sources, context);
         }
 
-        private void FillContext(IEnumerable<string> sources, ApplicationModelProviderContext context)
+        private void FillContext(IEnumerable<IFileInfo> sources, ApplicationModelProviderContext context)
         {
-            var attrList = new List<string>();
             var reflector = new TypeReflectionEngine();
             _fw.Environment.LoadMemory(MachineInstance.Current);
             foreach (var virtualPath in sources)
             {
-                var codeSrc = _scriptsProvider.Get(virtualPath);
-                var module = LoadControllerCode(codeSrc);
-                var baseFileName = System.IO.Path.GetFileNameWithoutExtension(codeSrc.SourceDescription);
-                var type = reflector.Reflect<ScriptedController>(module, baseFileName);
+                LoadedModule module;
+                ICodeSource codeSrc;
+                string typeName;
+                if (virtualPath.IsDirectory)
+                {
+                    var info = FindModule(virtualPath.Name, MODULE_FILENAME) 
+                               ?? FindModule(virtualPath.Name, virtualPath.Name);
+
+                    if(info == null)
+                        continue;
+
+                    codeSrc = new FileInfoCodeSource(info);
+                    typeName = virtualPath.Name;
+
+                }
+                else
+                {
+                    codeSrc = new FileInfoCodeSource(virtualPath);
+                    typeName = System.IO.Path.GetFileNameWithoutExtension(virtualPath.Name);
+                }
+
+                try
+                {
+                    _classAttribResolver.BeforeCompilation();
+                    module = LoadControllerCode(codeSrc);
+                }
+                finally
+                {
+                    _classAttribResolver.AfterCompilation();
+                }
+
+                var reflectedType = reflector.Reflect<ScriptedController>(module, typeName);
+                var attrList = MapAnnotationsToAttributes(_classAttribResolver.Attributes);
                 var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), attrList.AsReadOnly());
-                cm.ControllerName = type.Name;
+                cm.ControllerName = reflectedType.Name;
                 cm.Properties.Add("module", module);
-                cm.Properties.Add("type", type);
-                FillActions(cm, type);
+                cm.Properties.Add("type", reflectedType);
+
+                FillActions(cm, reflectedType);
+                FillFilters(cm);
 
                 context.Result.Controllers.Add(cm);
             }
         }
-        
+
+        private IFileInfo FindModule(string controllerName, string moduleName)
+        {
+            var path = Path.Combine("controllers", controllerName, moduleName);
+            var info = _scriptsProvider.GetFileInfo(path);
+            if (!info.Exists || info.IsDirectory)
+                return null;
+
+            return info;
+        }
+
+        private void FillFilters(ControllerModel cm)
+        {
+            foreach (var actionModel in cm.Actions)
+            {
+                var actionModelAuthData = actionModel.Attributes.OfType<IAuthorizeData>().ToArray();
+                if (actionModelAuthData.Length > 0)
+                {
+                    actionModel.Filters.Add(GetFilter(_policyProvider, actionModelAuthData));
+                }
+
+                foreach (var attribute in actionModel.Attributes.OfType<IAllowAnonymous>())
+                {
+                    actionModel.Filters.Add(new AllowAnonymousFilter());
+                }
+            }
+        }
+
+        public static AuthorizeFilter GetFilter(IAuthorizationPolicyProvider policyProvider, IEnumerable<IAuthorizeData> authData)
+        {
+            // The default policy provider will make the same policy for given input, so make it only once.
+            // This will always execute synchronously.
+            if (policyProvider.GetType() == typeof(DefaultAuthorizationPolicyProvider))
+            {
+                var policy = AuthorizationPolicy.CombineAsync(policyProvider, authData).GetAwaiter().GetResult();
+                return new AuthorizeFilter(policy);
+            }
+            else
+            {
+                return new AuthorizeFilter(policyProvider, authData);
+            }
+        }
+
         private LoadedModule LoadControllerCode(ICodeSource src)
         {
             var compiler = _fw.Engine.GetCompilerService();
@@ -77,7 +184,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         private void FillActions(ControllerModel cm, Type type)
         {
-            var attrList = new List<object>() { 0 };
             foreach (var method in type.GetMethods())
             {
                 var scriptMethodInfo = method as ReflectedMethodInfo;
@@ -85,6 +191,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                     continue;
 
                 var clrMethodInfo = MapToActionMethod(scriptMethodInfo);
+                var attrList = MapAnnotationsToAttributes(scriptMethodInfo);
                 var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
                 actionModel.ActionName = method.Name;
                 actionModel.Controller = cm;
@@ -93,6 +200,39 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 cm.Actions.Add(actionModel);
             }
 
+        }
+
+        private List<object> MapAnnotationsToAttributes(ReflectedMethodInfo scriptMethodInfo)
+        {
+            var annotations = scriptMethodInfo.GetCustomAttributes(typeof(UserAnnotationAttribute), false)
+                .Select(x=> ((UserAnnotationAttribute)x).Annotation);
+         
+            return MapAnnotationsToAttributes(annotations);
+        }
+
+        private List<object> MapAnnotationsToAttributes(IEnumerable<AnnotationDefinition> annotations)
+        {
+            var attrList = new List<object>();
+            foreach (var annotation in annotations)
+            {
+                var name = annotation.Name.ToLowerInvariant();
+                if (name == "авторизовать" || name == "authorize")
+                {
+                    attrList.Add(new AuthorizeAttribute());
+                }
+
+                if (name == "httppost")
+                {
+                    attrList.Add(new HttpPostAttribute());
+                }
+
+                if (name == "httpget")
+                {
+                    attrList.Add(new HttpGetAttribute());
+                }
+            }
+
+            return attrList;
         }
 
         private void CorrectDispId(ReflectedMethodInfo scriptMethodInfo)

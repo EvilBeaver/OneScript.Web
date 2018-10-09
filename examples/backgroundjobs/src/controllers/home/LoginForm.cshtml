@@ -1,0 +1,17 @@
+
+<h1>Войти в систему (вы не авторизованы)</h1>
+
+<form method="POST" asp-action="Login">
+    <div asp-validation-summary="All"></div>
+    <div class="field">
+        <label for="Name">Идентификатор</label>
+        <input name="Name"/>
+    </div>
+    <div class="field">
+        <label for="Password">Пароль</label>
+        <input type="password" name="Password"/>
+    </div>
+    <button type="submit">Вход</button>
+</form>
+
+<div><a asp-action="Create">Регистрация (если еще не зарегистрированы)</a></div>

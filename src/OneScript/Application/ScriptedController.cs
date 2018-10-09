@@ -1,6 +1,9 @@
-﻿using System;
+using System;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.DependencyInjection;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.Environment;
@@ -14,10 +17,12 @@ namespace OneScript.WebHost.Application
     /// <summary>
     /// Главный класс, отвечающий за обработку входящего запроса и генерацию ответа.
     /// </summary>
+    [ContextClass("Контроллер")]
     [NonController]
     public class ScriptedController : ScriptDrivenObject
     {
         private ControllerContext _ctx;
+        private IUrlHelper _url;
 
         private SessionImpl _session;
 
@@ -25,6 +30,11 @@ namespace OneScript.WebHost.Application
         private ModelStateDictionaryWrapper _modelState;
         private static ContextPropertyMapper<ScriptedController> _ownProperties = new ContextPropertyMapper<ScriptedController>();
         private static ContextMethodsMapper<ScriptedController> _ownMethods = new ContextMethodsMapper<ScriptedController>();
+
+        private const int THISOBJ_VARIABLE_INDEX = 0;
+        private const string THISOBJ_EN = "ThisObject";
+        private const string THISOBJ_RU = "ЭтотОбъект";
+        private const int PRIVATE_PROPS_OFFSET = 1;
         
         public ScriptedController(ControllerContext context, LoadedModule module) : base(module, true)
         {
@@ -40,7 +50,7 @@ namespace OneScript.WebHost.Application
                     var rv = RouteValues.AsObject();
                     rv.SetIndexedValue(
                         ValueFactory.Create(routeData.Key),
-                        CustomMarshaller.ConvertToIValueSafe(routeData.Value, routeData.Value.GetType())
+                        CustomMarshaller.ConvertToIValueSafe(routeData.Value, routeData.Value?.GetType())
                     );
                 }
             }
@@ -61,12 +71,22 @@ namespace OneScript.WebHost.Application
             meth.Invoke(this, parameters);
         }
 
-        public IActionResult ResultAction(params object[] parameters)
+        public IActionResult ResultAction()
         {
             var meth = (System.Reflection.MethodInfo)_ctx.ActionDescriptor.Properties["actionMethod"];
-            if (parameters == null)
-                parameters = new object[0];
-            var result = meth.Invoke(this, parameters) as IActionResult;
+            
+            IActionResult result;
+            if (meth is ReflectedMethodInfo reflected)
+            {
+                var res = reflected.InvokeDirect(this, new IValue[0]);
+
+                result = res is IObjectWrapper wrapper
+                    ? wrapper.UnderlyingObject as IActionResult
+                    : res as IActionResult;
+            }
+            else
+                result = meth.Invoke(this, new object[0]) as IActionResult;
+
             if(result == null)
                 throw new InvalidOperationException("Function must return an IActionResult value");
 
@@ -235,6 +255,122 @@ namespace OneScript.WebHost.Application
             return RedirectActionResult.Create(url, permanent);
         }
 
+        /// <summary>
+        /// Вспомогательный метод, генерирующий ответ в виде http-редиректа
+        /// </summary>
+        /// <param name="action">Имя действия перенаправления</param>
+        /// <param name="controller">Контроллер перенаправления</param>
+        /// <param name="fields">Дополнительные поля</param>
+        /// <param name="permanent">Признак постоянного (permanent) перенаправления.</param>
+        /// <returns>РезультатДействияПеренаправление</returns>
+        [ContextMethod("ПеренаправлениеНаДействие")]
+        public RedirectActionResult RedirectToAction(string action, string controller = null, StructureImpl fields = null, bool permanent = false)
+        {
+            if(fields == null)
+                fields = new StructureImpl();
+
+            if(controller != null)
+                fields.Insert("controller", ValueFactory.Create(controller));
+
+            var url = ActionUrl(action, fields);
+            if(url == null)
+                throw new RuntimeException("Не обнаружен заданный маршрут.");
+
+            return RedirectActionResult.Create(url, permanent);
+        }
+
+        /// <summary>
+        /// Генерирует URL для маршрута, заданного в приложении.
+        /// Параметр routeName позволяет жестко привязать генерацию адреса к конкретному маршруту
+        /// </summary>
+        /// <param name="routeName">Строка. Имя маршрута</param>
+        /// <param name="fields">Структура. Поля маршрута в виде структуры.</param>
+        /// <returns>РезультатДействияПеренаправление</returns>
+        [ContextMethod("АдресМаршрута")]
+        public string RouteUrl(string routeName = null, StructureImpl fields = null)
+        {
+            string result;
+            if (fields != null)
+            {
+                var values = new Dictionary<string, object>();
+                foreach (var kv in fields)
+                {
+                    values.Add(kv.Key.AsString(), CustomMarshaller.ConvertToCLRObject(kv.Value));
+                }
+
+                result = routeName != null ? Url.RouteUrl(routeName, values) : Url.RouteUrl(values);
+            }
+            else
+            {
+                if (routeName == null)
+                    throw RuntimeException.TooLittleArgumentsPassed();
+
+                result = Url.RouteUrl(routeName);
+            }
+
+            return result;
+        }
+
+        /// <summary>
+        /// Генерирует Url для действия в контроллере
+        /// </summary>
+        /// <param name="action">Имя действия</param>
+        /// <param name="fieldsOrController">Имя контроллера строкой или структура/соответствие полей маршрута.</param>
+        /// <returns></returns>
+        [ContextMethod("АдресДействия", "ActionUrl")]
+        public string ActionUrl(string action, IValue fieldsOrController = null)
+        {
+            string result;
+            if (fieldsOrController != null)
+            {
+                if (fieldsOrController.DataType == DataType.String)
+                {
+                    result = Url.Action(action, fieldsOrController.AsString());
+                }
+                else if(fieldsOrController.GetRawValue() is IEnumerable<KeyAndValueImpl>)
+                {
+                    var values = new Dictionary<string, object>();
+                    foreach (var kv in (IEnumerable<KeyAndValueImpl>) fieldsOrController.GetRawValue())
+                    {
+                        values.Add(kv.Key.AsString(), CustomMarshaller.ConvertToCLRObject(kv.Value));
+                    }
+
+                    result = Url.Action(action, values);
+                }
+                else
+                {
+                    throw RuntimeException.InvalidArgumentType(nameof(fieldsOrController));
+                }
+                
+            }
+            else
+            {
+                result = Url.Action(action);
+            }
+
+            return result;
+        }
+        
+        public IUrlHelper Url
+        {
+            get
+            {
+                if (_url == null)
+                {
+                    var services = _ctx?.HttpContext?.RequestServices;
+                    if (services == null)
+                    {
+                        return null;
+                    }
+
+                    var factory = services.GetRequiredService<IUrlHelperFactory>();
+                    _url = factory.GetUrlHelper(_ctx);
+                }
+
+                return _url;
+            }
+        }
+
         private ViewActionResult ViewResultByName(string viewname, IValue model)
         {
             if(model != null)
@@ -258,12 +394,15 @@ namespace OneScript.WebHost.Application
 
         protected override string GetOwnPropName(int index)
         {
-            return _ownProperties.GetProperty(index).Name;
+            if (index == THISOBJ_VARIABLE_INDEX)
+                return THISOBJ_RU;
+
+            return _ownProperties.GetProperty(index-PRIVATE_PROPS_OFFSET).Name;
         }
 
         protected override int GetOwnVariableCount()
         {
-            return _ownProperties.Count;
+            return _ownProperties.Count+PRIVATE_PROPS_OFFSET;
         }
 
         protected override int GetOwnMethodCount()
@@ -277,27 +416,42 @@ namespace OneScript.WebHost.Application
 
         protected override int FindOwnProperty(string name)
         {
-            return _ownProperties.FindProperty(name);
+            if (string.Compare(name, THISOBJ_RU, StringComparison.OrdinalIgnoreCase) == 0
+                || string.Compare(name, THISOBJ_EN, StringComparison.OrdinalIgnoreCase) == 0)
+            {
+                return THISOBJ_VARIABLE_INDEX;
+            }
+
+            return _ownProperties.FindProperty(name) + PRIVATE_PROPS_OFFSET;
         }
 
         protected override bool IsOwnPropReadable(int index)
         {
-            return _ownProperties.GetProperty(index).CanRead;
+            if (index == THISOBJ_VARIABLE_INDEX)
+                return true;
+
+            return _ownProperties.GetProperty(index - PRIVATE_PROPS_OFFSET).CanRead;
         }
 
         protected override bool IsOwnPropWritable(int index)
         {
-            return _ownProperties.GetProperty(index).CanWrite;
+            if (index == THISOBJ_VARIABLE_INDEX)
+                return false;
+
+            return _ownProperties.GetProperty(index - PRIVATE_PROPS_OFFSET).CanWrite;
         }
 
         protected override IValue GetOwnPropValue(int index)
         {
-            return _ownProperties.GetProperty(index).Getter(this);
+            if (index == THISOBJ_VARIABLE_INDEX)
+                return this;
+
+            return _ownProperties.GetProperty(index - PRIVATE_PROPS_OFFSET).Getter(this);
         }
 
         protected override void SetOwnPropValue(int index, IValue val)
         {
-            _ownProperties.GetProperty(index).Setter(this, val);
+            _ownProperties.GetProperty(index - PRIVATE_PROPS_OFFSET).Setter(this, val);
         }
 
         protected override int FindOwnMethod(string name)
@@ -332,6 +486,7 @@ namespace OneScript.WebHost.Application
 
         public static ModuleImage CompileModule(CompilerService compiler, ICodeSource src)
         {
+            compiler.DefineVariable(THISOBJ_RU, THISOBJ_EN, SymbolType.ContextProperty);
             for (int i = 0; i < _ownProperties.Count; i++)
             {
                 var currentProp = _ownProperties.GetProperty(i);

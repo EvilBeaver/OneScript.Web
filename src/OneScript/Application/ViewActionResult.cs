@@ -12,7 +12,7 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
-    [ContextClass("РезультатДействияСтраница")]
+    [ContextClass("РезультатДействияПредставление")]
     public class ViewActionResult : AutoContext<ViewActionResult>, IActionResult, IObjectWrapper
     {
         [ContextProperty("ИмяШаблона")]

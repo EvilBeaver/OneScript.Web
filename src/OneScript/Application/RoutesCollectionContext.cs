@@ -9,11 +9,27 @@ using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application
 {
+    /// <summary>
+    /// Класс предназначен для описания URL-шаблонов, по которым будет откликаться веб-приложение.
+    ///  Пример шаблона с 3-мя переменными. Переменные controller и action являются предопределенными.
+    /// /{controller}/{action}/{id?}
+    /// </summary>
     [ContextClass("КоллекцияМаршрутов","RoutesCollection")]
     public class RoutesCollectionContext : AutoContext<RoutesCollectionContext>, IEnumerable<RouteDescriptionContext>, ICollectionContext
     {
         List<RouteDescriptionContext> _routes = new List<RouteDescriptionContext>();
 
+        /// <summary>
+        /// Добавление шаблона URL в коллекцию.
+        /// </summary>
+        /// <param name="name">Имя маршрута. Позволяет строить исходящие URL по заданному шаблону</param>
+        /// <param name="template">Шаблон адреса. Формируется по правилам шаблонов ASP.NET MVC Core</param>
+        /// <param name="defaults">Соответствие. Определяет значения по-умолчанию для переменных маршрута.</param>
+        /// <example>
+        /// Умолчания = Новый Соответствие;
+        /// Умолчания.Вставить("shopId", 12344); // если магазин не указан - взять магазин 12344
+        /// КоллекцияМаршрутов.Добавить("ПоМагазину","{controller}/{action}/{shopId}", Умолчания);
+        /// </example>
         [ContextMethod("Добавить")]
         public void Add(string name, string template, MapImpl defaults = null)
         {
