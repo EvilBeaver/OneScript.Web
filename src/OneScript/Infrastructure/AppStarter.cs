@@ -10,6 +10,7 @@ using OneScript.WebHost.Application;
 using ScriptEngine;
 using ScriptEngine.HostedScript;
 using ScriptEngine.HostedScript.Library;
+using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure
 {
@@ -38,6 +39,14 @@ namespace OneScript.WebHost.Infrastructure
 
                 libRoot = libRoot.Replace("$appBinary", binFolder);
                 InitializeDirectiveResolver(_webEng.Engine, _webEng.Environment, libRoot, additionals);
+            }
+
+            var traceEnabled = configSection?.GetValue<bool>("trace:enable");
+            if (traceEnabled == true)
+            {
+                var traceFile = configSection?.GetValue<string>("trace:file");
+                var codeStat = new CodeStatProcessor();
+                _webEng.Engine.SetCodeStatisticsCollector(codeStat);
             }
         }
 
