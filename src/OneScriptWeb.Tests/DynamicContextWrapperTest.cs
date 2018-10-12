@@ -10,6 +10,7 @@ using ScriptEngine.Machine;
 using Xunit;
 using System.Dynamic;
 using ScriptEngine;
+using ScriptEngine.Machine.Contexts;
 
 namespace OneScriptWeb.Tests
 {
@@ -70,6 +71,28 @@ namespace OneScriptWeb.Tests
             }
 
             Assert.Equal(2, cnt); 
+        }
+
+        [Fact]
+        public void DefaultArgumentsArePassedCorrectly()
+        {
+            var dummy = new DummyClass();
+            dynamic dynStructure = new DynamicContextWrapper(dummy);
+
+            dynStructure.Установить("привет");
+            
+            Assert.True(dummy.Answer);
+        }
+
+        private class DummyClass : AutoContext<DummyClass>
+        {
+            public bool Answer { get; private set; }
+
+            [ContextMethod("Установить")]
+            public void Set(string firstArg, bool secondArg = true)
+            {
+                Answer = secondArg;
+            }
         }
     }
 }
