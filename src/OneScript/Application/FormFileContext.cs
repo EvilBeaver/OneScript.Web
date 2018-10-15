@@ -76,7 +76,7 @@ namespace OneScript.WebHost.Application
         public GenericStream OpenReadStream()
         {
             var stream = _realObject.OpenReadStream();
-            return new GenericStream(stream, true);
+            return new GenericStream(stream);
         }
     }
 }
