@@ -107,7 +107,17 @@ namespace OneScript.WebHost.Infrastructure
                 return false;
             }
 
-            var valueArgs = args.Select(x => CustomMarshaller.ConvertReturnValue(x, x.GetType())).ToArray();
+            var methInfo = _context.GetMethodInfo(methIdx);
+            var valueArgs = new IValue[methInfo.Params.Length];
+            var passedArgs = args.Select(x => CustomMarshaller.ConvertReturnValue(x, x.GetType())).ToArray();
+            for (int i = 0; i < valueArgs.Length; i++)
+            {
+                if (i < passedArgs.Length)
+                    valueArgs[i] = passedArgs[i];
+                else
+                    valueArgs[i] = ValueFactory.CreateInvalidValueMarker();
+            }
+
             IValue methResult;
             _context.CallAsFunction(methIdx, valueArgs, out methResult);
             result = methResult == null? null : CustomMarshaller.ConvertToDynamicCLRObject(methResult);

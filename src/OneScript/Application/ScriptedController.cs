@@ -58,7 +58,7 @@ namespace OneScript.WebHost.Application
                 RouteValues = ValueFactory.Create();
 
             var typeClr = (Type)context.ActionDescriptor.Properties["type"];
-            var type = TypeManager.RegisterType(typeClr.Name, typeof(ScriptedController));
+            var type = TypeManager.RegisterType("Контроллер."+typeClr.Name, typeof(ScriptedController));
             DefineType(type);
             InitOwnData();
         }

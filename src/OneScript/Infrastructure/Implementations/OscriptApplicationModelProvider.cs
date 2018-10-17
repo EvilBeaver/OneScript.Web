@@ -94,7 +94,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 if (virtualPath.IsDirectory)
                 {
                     var info = FindModule(virtualPath.Name, MODULE_FILENAME) 
-                               ?? FindModule(virtualPath.Name, virtualPath.Name);
+                               ?? FindModule(virtualPath.Name, virtualPath.Name+".os");
 
                     if(info == null)
                         continue;

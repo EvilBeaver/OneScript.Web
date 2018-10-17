@@ -41,7 +41,7 @@ namespace OneScriptWeb.Tests
             var activator = new ScriptedControllerActivator(appEngine);
             var controller = (ScriptedController)activator.Create(cc);
 
-            Assert.Equal("test", controller.SystemType.Name);
+            Assert.Equal("Контроллер.test", controller.SystemType.Name);
         }
 
         [Fact]

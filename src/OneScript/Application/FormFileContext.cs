@@ -35,8 +35,17 @@ namespace OneScript.WebHost.Application
             );
         }
 
+        /// <summary>
+        /// Имя поля формы, в котором был получен данный файл
+        /// </summary>
         [ContextProperty("Имя")]
         public string Name => _realObject.Name;
+
+        /// <summary>
+        /// Имя переданного файла, как указано в заголовке Content-Disposition
+        /// </summary>
+        [ContextProperty("ИмяФайла")]
+        public string FileName => _realObject.FileName;
 
         [ContextProperty("Размер")]
         public long Length => _realObject.Length;
@@ -67,7 +76,7 @@ namespace OneScript.WebHost.Application
         public GenericStream OpenReadStream()
         {
             var stream = _realObject.OpenReadStream();
-            return new GenericStream(stream, true);
+            return new GenericStream(stream);
         }
     }
 }
