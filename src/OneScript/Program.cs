@@ -23,7 +23,8 @@ namespace OneScript.WebHost
             config.SetBasePath(Directory.GetCurrentDirectory());
             config.AddJsonFile("appsettings.json", optional: true);
             config.AddEnvironmentVariables("OSWEB_");
-            
+            config.AddEnvironmentVariables("ASPNETCORE_");
+
             if (args != null)
             {
                 config.AddCommandLine(args);
