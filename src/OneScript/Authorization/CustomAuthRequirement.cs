@@ -15,5 +15,10 @@ namespace OneScript.WebHost.Authorization
         {
             _provider = provider;
         }
+
+        public bool Handle(AuthorizationHandlerContext context)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
