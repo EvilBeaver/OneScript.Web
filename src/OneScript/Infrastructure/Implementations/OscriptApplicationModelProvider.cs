@@ -5,8 +5,11 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Internal;
+using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders.Physical;
 using OneScript.WebHost.Application;
@@ -234,18 +237,183 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                         }
                     }
                 }
-
+                
                 workSet.Add(workAnnotation);
 
             }
 
             var attrList = MapAnnotationsToAttributes(workSet);
+            var annotatedActionName = attrList.OfType<ActionNameAttribute>().FirstOrDefault();
+            if (annotatedActionName?.Name != null)
+            {
+                actionName = annotatedActionName.Name;
+            }
+            
             var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
             actionModel.ActionName = actionName;
             actionModel.Properties.Add("actionMethod", scriptMethodInfo);
-            actionModel.Selectors.Add(new SelectorModel());
+            foreach(var selector in CreateSelectors(actionModel.Attributes))
+                actionModel.Selectors.Add(selector);
 
             return actionModel;
+        }
+
+        private IEnumerable<SelectorModel> CreateSelectors(IEnumerable<object> attributes)
+        {
+            var routeProviders = new List<IRouteTemplateProvider>();
+            var createSelectorForSilentRouteProviders = false;
+            foreach (var attribute in attributes)
+            {
+                if (attribute is IRouteTemplateProvider routeTemplateProvider)
+                {
+                    if (IsSilentRouteAttribute(routeTemplateProvider))
+                    {
+                        createSelectorForSilentRouteProviders = true;
+                    }
+                    else
+                    {
+                        routeProviders.Add(routeTemplateProvider);
+                    }
+                }
+            }
+
+            foreach (var routeProvider in routeProviders)
+            {
+                // If we see an attribute like
+                // [Route(...)]
+                //
+                // Then we want to group any attributes like [HttpGet] with it.
+                //
+                // Basically...
+                //
+                // [HttpGet]
+                // [HttpPost("Products")]
+                // public void Foo() { }
+                //
+                // Is two selectors. And...
+                //
+                // [HttpGet]
+                // [Route("Products")]
+                // public void Foo() { }
+                //
+                // Is one selector.
+                if (!(routeProvider is IActionHttpMethodProvider))
+                {
+                    createSelectorForSilentRouteProviders = false;
+                }
+            }
+
+            var selectorModels = new List<SelectorModel>();
+            if (routeProviders.Count == 0 && !createSelectorForSilentRouteProviders)
+            {
+                // Simple case, all attributes apply
+                selectorModels.Add(CreateSelectorModel(route: null, attributes: attributes));
+            }
+            else
+            {
+                // Each of these routeProviders are the ones that actually have routing information on them
+                // something like [HttpGet] won't show up here, but [HttpGet("Products")] will.
+                foreach (var routeProvider in routeProviders)
+                {
+                    var filteredAttributes = new List<object>();
+                    foreach (var attribute in attributes)
+                    {
+                        if (ReferenceEquals(attribute, routeProvider))
+                        {
+                            filteredAttributes.Add(attribute);
+                        }
+                        else if (InRouteProviders(routeProviders, attribute))
+                        {
+                            // Exclude other route template providers
+                            // Example:
+                            // [HttpGet("template")]
+                            // [Route("template/{id}")]
+                        }
+                        else if (
+                            routeProvider is IActionHttpMethodProvider &&
+                            attribute is IActionHttpMethodProvider)
+                        {
+                            // Example:
+                            // [HttpGet("template")]
+                            // [AcceptVerbs("GET", "POST")]
+                            //
+                            // Exclude other http method providers if this route is an
+                            // http method provider.
+                        }
+                        else
+                        {
+                            filteredAttributes.Add(attribute);
+                        }
+                    }
+
+                    selectorModels.Add(CreateSelectorModel(routeProvider, filteredAttributes));
+                }
+
+                if (createSelectorForSilentRouteProviders)
+                {
+                    var filteredAttributes = new List<object>();
+                    foreach (var attribute in attributes)
+                    {
+                        if (!InRouteProviders(routeProviders, attribute))
+                        {
+                            filteredAttributes.Add(attribute);
+                        }
+                    }
+
+                    selectorModels.Add(CreateSelectorModel(route: null, attributes: filteredAttributes));
+                }
+            }
+
+            return selectorModels;
+        }
+
+        private bool IsSilentRouteAttribute(IRouteTemplateProvider routeTemplateProvider)
+        {
+            return
+                routeTemplateProvider.Template == null &&
+                routeTemplateProvider.Order == null &&
+                routeTemplateProvider.Name == null;
+        }
+
+        private static bool InRouteProviders(List<IRouteTemplateProvider> routeProviders, object attribute)
+        {
+            foreach (var rp in routeProviders)
+            {
+                if (ReferenceEquals(rp, attribute))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static SelectorModel CreateSelectorModel(IRouteTemplateProvider route, IEnumerable<object> attributes)
+        {
+            var selectorModel = new SelectorModel();
+            if (route != null)
+            {
+                selectorModel.AttributeRouteModel = new AttributeRouteModel(route);
+            }
+
+            foreach (var constraint in attributes.OfType<IActionConstraintMetadata>())
+            {
+                selectorModel.ActionConstraints.Add(constraint);
+            }
+            
+            // Simple case, all HTTP method attributes apply
+            var httpMethods = attributes
+                .OfType<IActionHttpMethodProvider>()
+                .SelectMany(a => a.HttpMethods)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (httpMethods.Length > 0)
+            {
+                selectorModel.ActionConstraints.Add(new HttpMethodActionConstraint(httpMethods));
+            }
+
+            return selectorModel;
         }
 
         private List<object> MapAnnotationsToAttributes(IEnumerable<AnnotationDefinition> annotations)
