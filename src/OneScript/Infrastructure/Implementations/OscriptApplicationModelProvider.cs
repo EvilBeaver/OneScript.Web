@@ -278,6 +278,15 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
                 return new ActionNameAttribute(annotation.Parameters[0].RuntimeValue.AsString());
             });
+
+            // TODO: refactor me
+            _annotationMapper.AddMapper("Route", "Маршрут", (annotation) =>
+            {
+                if (annotation.ParamCount != 1)
+                    throw new AnnotationException(annotation, "Incorrect annotation parameter count");
+
+                return new RouteAttribute(annotation.Parameters[0].RuntimeValue.AsString());
+            });
         }
 
         private static object MapHttpMethod(AnnotationDefinition anno)
