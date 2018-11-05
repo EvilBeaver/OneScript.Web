@@ -32,6 +32,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private readonly ApplicationInstance _app;
         private readonly IAuthorizationPolicyProvider _policyProvider;
         private readonly ClassAttributeResolver _classAttribResolver;
+        private readonly AnnotationAttributeMapper _annotationMapper = new AnnotationAttributeMapper();
 
         public OscriptApplicationModelProvider(ApplicationInstance appObject,
             IApplicationRuntime framework,
@@ -52,6 +53,8 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                     resolvers.Add(_classAttribResolver);
                 }
             }
+
+            FillDefaultMappers();
 
         }
 
@@ -215,21 +218,9 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             var attrList = new List<object>();
             foreach (var annotation in annotations)
             {
-                var name = annotation.Name.ToLowerInvariant();
-                if (name == "авторизовать" || name == "authorize")
-                {
-                    attrList.Add(new AuthorizeAttribute());
-                }
-
-                if (name == "httppost")
-                {
-                    attrList.Add(new HttpPostAttribute());
-                }
-
-                if (name == "httpget")
-                {
-                    attrList.Add(new HttpGetAttribute());
-                }
+                var attribute = _annotationMapper.Get(annotation);
+                if(attribute != null)
+                    attrList.Add(attribute);
             }
 
             return attrList;
@@ -265,5 +256,53 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         }
 
         public int Order => -850;
+
+
+        // TODO: Для быстрого старта. По мере развития будет заменяться на параметризованные версии
+        private void MapDirect(string name, string alias, Type attrType)
+        {
+            _annotationMapper.AddMapper(name, alias, (anno) => Activator.CreateInstance(attrType));
+        }
+
+        private void FillDefaultMappers()
+        {
+            MapDirect("Authorize", "Авторизовать", typeof(AuthorizeAttribute));
+            MapDirect("HttpPost", null, typeof(HttpPostAttribute));
+            MapDirect("HttpGet", null, typeof(HttpGetAttribute));
+
+            _annotationMapper.AddMapper("Http", MapHttpMethod);
+            _annotationMapper.AddMapper("Action", "Действие", (annotation) =>
+            {
+                if (annotation.ParamCount != 1)
+                    throw new AnnotationException(annotation, "Incorrect annotation parameter count");
+
+                return new ActionNameAttribute(annotation.Parameters[0].RuntimeValue.AsString());
+            });
+        }
+
+        private static object MapHttpMethod(AnnotationDefinition anno)
+        {
+            if (anno.ParamCount < 1)
+                throw new AnnotationException(anno, "Missing parameter <Method>");
+
+            var methodNames = anno.Parameters[0].RuntimeValue.AsString();
+            if (anno.ParamCount == 2)
+            {
+                return new CustomHttpMethodAttribute(methodNames.Split(
+                        new[] { ',' },
+                        StringSplitOptions.RemoveEmptyEntries),
+                    anno.Parameters[1].RuntimeValue.AsString());
+            }
+
+            if (anno.ParamCount == 1)
+            {
+                return new CustomHttpMethodAttribute(methodNames.Split(
+                    new[] { ',' },
+                    StringSplitOptions.RemoveEmptyEntries));
+            }
+
+            throw new AnnotationException(anno, "Too many parameters");
+
+        }
     }
 }
