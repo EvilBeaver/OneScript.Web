@@ -13,7 +13,9 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using OneScript.WebHost.Application;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
 using OneScript.WebHost.Authorization;
 using OneScript.WebHost.Infrastructure.Implementations;
 
@@ -49,6 +51,13 @@ namespace OneScript.WebHost.Infrastructure
 
         private static void InitializeScriptedLayer(IServiceCollection services)
         {
+            services.TryAddSingleton<IOptions<RuntimeOptions>>(provider =>
+            {
+                var opts = new RuntimeOptions();
+                provider.GetService<IConfiguration>()?.Bind("OneScript:Runtime", opts);
+                return new OptionsWrapper<RuntimeOptions>(opts);
+            });
+
             services.TryAddSingleton<IApplicationRuntime, WebApplicationEngine>();
             services.AddTransient<IApplicationFactory, AppStarter>();
             services.AddSingleton<ApplicationInstance>((sp) => 

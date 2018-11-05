@@ -40,14 +40,6 @@ namespace OneScript.WebHost.Infrastructure
                 libRoot = libRoot.Replace("$appBinary", binFolder);
                 InitializeDirectiveResolver(_webEng.Engine, _webEng.Environment, libRoot, additionals);
             }
-
-            var traceEnabled = configSection?.GetValue<bool>("trace:enable");
-            if (traceEnabled == true)
-            {
-                var traceFile = configSection?.GetValue<string>("trace:file");
-                var codeStat = new CodeStatProcessor();
-                _webEng.Engine.SetCodeStatisticsCollector(codeStat);
-            }
         }
 
         private void InitializeDirectiveResolver(ScriptingEngine engine, RuntimeEnvironment env, string libRoot, string[] additionals)
