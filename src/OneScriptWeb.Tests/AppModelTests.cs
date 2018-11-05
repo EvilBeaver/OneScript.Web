@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using System.Linq;
+using System.Reflection;
 using Dazinator.AspNet.Extensions.FileProviders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -105,6 +106,43 @@ namespace OneScriptWeb.Tests
             Assert.Equal("mycontroller", result.Controllers[0].ControllerName);
 
             Assert.IsType<AuthorizeAttribute>(result.Controllers[0].Attributes[0]);
+        }
+
+        [Fact]
+        public void TestActionAnnotationHttpMethod()
+        {
+            string testControllerSrc = "&HttpMethod(\"GET\")\n" +
+                                       "Процедура Метод1() Экспорт КонецПроцедуры";
+
+            var scriptsProvider = new InMemoryFileProvider();
+            scriptsProvider.AddFile("main.os", "");
+            scriptsProvider.AddFile("controllers/mycontroller.os", testControllerSrc);
+
+            var result = CreateApplicationModel(scriptsProvider);
+
+            var attribs = result.Controllers[0].Actions[0].Attributes;
+            Assert.True(attribs.Count == 1);
+            Assert.IsType<CustomHttpMethodAttribute>(attribs[0]);
+            Assert.Equal("GET", ((CustomHttpMethodAttribute)attribs[0]).HttpMethods.First());
+        }
+
+        [Fact]
+        public void TestMagicHttpMethodFromActionName()
+        {
+            string testControllerSrc = "&HttpMethod\n" +
+                                       "Процедура Метод1_POST() Экспорт КонецПроцедуры";
+
+            var scriptsProvider = new InMemoryFileProvider();
+            scriptsProvider.AddFile("main.os", "");
+            scriptsProvider.AddFile("controllers/mycontroller.os", testControllerSrc);
+
+            var result = CreateApplicationModel(scriptsProvider);
+
+            Assert.Equal("Метод1", result.Controllers[0].Actions[0].ActionName);
+            var attribs = result.Controllers[0].Actions[0].Attributes;
+            Assert.True(attribs.Count == 1);
+            Assert.IsType<CustomHttpMethodAttribute>(attribs[0]);
+            Assert.Equal("POST", ((CustomHttpMethodAttribute)attribs[0]).HttpMethods.First());
         }
 
         private static IApplicationRuntime CreateWebEngineMock()

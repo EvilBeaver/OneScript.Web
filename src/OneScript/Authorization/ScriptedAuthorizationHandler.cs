@@ -17,6 +17,13 @@ namespace OneScript.WebHost.Authorization
 
         public Task HandleAsync(AuthorizationHandlerContext context)
         {
+            var reqs = context.PendingRequirements.OfType<CustomAuthRequirement>();
+            foreach (var currentRequirement in reqs)
+            {
+                var success = currentRequirement.Handle(context);
+                if(success)
+                    context.Succeed(currentRequirement);
+            }
             return Task.CompletedTask;
         }
 
