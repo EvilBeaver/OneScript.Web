@@ -193,24 +193,64 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 if (scriptMethodInfo == null)
                     continue;
 
-                var clrMethodInfo = MapToActionMethod(scriptMethodInfo);
-                var attrList = MapAnnotationsToAttributes(scriptMethodInfo);
-                var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
-                actionModel.ActionName = method.Name;
+                var actionModel = CreateActionModel(scriptMethodInfo);
                 actionModel.Controller = cm;
-                actionModel.Properties.Add("actionMethod", scriptMethodInfo);
-                actionModel.Selectors.Add(new SelectorModel());
                 cm.Actions.Add(actionModel);
             }
 
         }
 
-        private List<object> MapAnnotationsToAttributes(ReflectedMethodInfo scriptMethodInfo)
+        private ActionModel CreateActionModel(ReflectedMethodInfo scriptMethodInfo)
         {
-            var annotations = scriptMethodInfo.GetCustomAttributes(typeof(UserAnnotationAttribute), false)
-                .Select(x=> ((UserAnnotationAttribute)x).Annotation);
-         
-            return MapAnnotationsToAttributes(annotations);
+            var clrMethodInfo = MapToActionMethod(scriptMethodInfo);
+            var userAnnotations = scriptMethodInfo.GetCustomAttributes(typeof(UserAnnotationAttribute), false)
+                .Select(x => ((UserAnnotationAttribute) x).Annotation);
+
+            string actionName = scriptMethodInfo.Name;
+            string magicHttpMethod = null;
+            List<AnnotationDefinition> workSet = new List<AnnotationDefinition>();
+
+            var pos = actionName.LastIndexOf('_');
+            if (pos > 0 && pos < actionName.Length - 1)
+            {
+                magicHttpMethod = actionName.Substring(pos + 1);
+            }
+
+            foreach (var annotation in userAnnotations)
+            {
+                var loCase = annotation.Name.ToLowerInvariant();
+                var workAnnotation = annotation;
+                if (loCase == "httpmethod")
+                {
+                    if (magicHttpMethod != null)
+                    {
+                        if (annotation.ParamCount == 0)
+                        {
+                            // наш случай.
+                            actionName = actionName.Substring(0, pos);
+                            workAnnotation.Parameters = new[]
+                            {
+                                new AnnotationParameter()
+                                {
+                                    Name = "Method",
+                                    RuntimeValue = ValueFactory.Create(magicHttpMethod)
+                                }
+                            };
+                        }
+                    }
+                }
+
+                workSet.Add(workAnnotation);
+
+            }
+
+            var attrList = MapAnnotationsToAttributes(workSet);
+            var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
+            actionModel.ActionName = actionName;
+            actionModel.Properties.Add("actionMethod", scriptMethodInfo);
+            actionModel.Selectors.Add(new SelectorModel());
+
+            return actionModel;
         }
 
         private List<object> MapAnnotationsToAttributes(IEnumerable<AnnotationDefinition> annotations)
@@ -225,17 +265,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
             return attrList;
         }
-
-        private void CorrectDispId(ReflectedMethodInfo scriptMethodInfo)
-        {
-            var fieldId = typeof(ReflectedMethodInfo).GetField("_dispId",
-                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
-
-            var currId = (int)fieldId.GetValue(scriptMethodInfo);
-            currId += _controllersMethodOffset;
-            fieldId.SetValue(scriptMethodInfo, currId);
-        }
-
+        
         private static System.Reflection.MethodInfo MapToActionMethod(ReflectedMethodInfo reflectedMethodInfo)
         {
             System.Reflection.MethodInfo clrMethodInfo;
@@ -270,7 +300,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             MapDirect("HttpPost", null, typeof(HttpPostAttribute));
             MapDirect("HttpGet", null, typeof(HttpGetAttribute));
 
-            _annotationMapper.AddMapper("Http", MapHttpMethod);
+            _annotationMapper.AddMapper("HttpMethod", MapHttpMethod);
             _annotationMapper.AddMapper("Action", "Действие", (annotation) =>
             {
                 if (annotation.ParamCount != 1)
