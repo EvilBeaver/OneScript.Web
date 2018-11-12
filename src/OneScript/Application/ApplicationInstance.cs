@@ -191,6 +191,13 @@ namespace OneScript.WebHost.Application
             {
                 options.PreSerializeFilters.Add((swaggerDoc, httpReq) => swaggerDoc.Host = httpReq.Host.Value);
             });
+            
+            //TODO: Get url and name from config
+
+            _startupBuilder.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1");
+            });
         }
 
         // TODO:
