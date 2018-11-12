@@ -73,6 +73,7 @@ namespace OneScript.WebHost
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
 
             services.AddOneScript();
+            services.AddOneScriptSwagger(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

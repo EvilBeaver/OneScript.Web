@@ -184,6 +184,15 @@ namespace OneScript.WebHost.Application
             _startupBuilder.UseResponseCompression();
         }
 
+        [ContextMethod("ИспользоватьДокументацию")]
+        public void UseSwagger()
+        {
+            _startupBuilder.UseSwagger(options =>
+            {
+                options.PreSerializeFilters.Add((swaggerDoc, httpReq) => swaggerDoc.Host = httpReq.Host.Value);
+            });
+        }
+
         // TODO:
         // Включить управление консолью, когда будет готова архитектура ролей в целом.
         //[ContextMethod("ИспользоватьКонсольЗаданий")]
