@@ -45,7 +45,8 @@ namespace OneScript.WebHost.BackgroundJobs
             throw new NotImplementedException();
         }
 
-        private static void PerformAction(string module, string method)
+        // должен быть public, т.к. hangfire не умеет вызывать private
+        public static void PerformAction(string module, string method)
         {
             var machine = MachineInstance.Current;
             _globalEnv.LoadMemory(machine);
