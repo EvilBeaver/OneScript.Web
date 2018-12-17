@@ -41,7 +41,7 @@ namespace OneScript.WebHost.Database
             var connection = _dbContext.Database.GetDbConnection();/*)*/
             using (var command = connection.CreateCommand())
             {
-                if (connection.ConnectionString != "Data Source=:memory:")
+                if (!connection.ConnectionString.StartsWith(":memory:"))
                 {
                     connection.Open();
                 }
@@ -63,7 +63,7 @@ namespace OneScript.WebHost.Database
             var connection = _dbContext.Database.GetDbConnection();/*)*/
             using (var command = connection.CreateCommand())
             {
-                if (connection.ConnectionString != "Data Source=:memory:")
+                if (!connection.ConnectionString.StartsWith(":memory:"))
                 {
                     connection.Open();
                 }
