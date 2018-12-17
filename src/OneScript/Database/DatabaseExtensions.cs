@@ -74,11 +74,6 @@ namespace OneScript.WebHost.Database
                 var ib = new InfobaseContext();
                 Infobase = ib; // Костыль
                 ib.DbContext = services.GetRequiredService<ApplicationDbContext>();
-                if (dbOptions.DbType == SupportedDatabase.SQLite && dbOptions.ConnectionString.StartsWith(":memory:"))
-                {
-                    var connection = ib.DbContext.Database.GetDbConnection();
-                    connection.Open();
-                }
                 environment.InjectGlobalProperty(ib, "ИнформационнаяБаза", true);
                 environment.InjectGlobalProperty(ib, "InfoBase", true);
             }
