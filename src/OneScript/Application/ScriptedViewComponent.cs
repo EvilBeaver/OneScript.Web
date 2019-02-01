@@ -73,6 +73,12 @@ namespace OneScript.WebHost.Application
             for (int i = 0; i < parameters.Length; i++)
             {
                 var obj = arguments[parameters[i].Name];
+                if (obj == null)
+                {
+                    args[i] = ValueFactory.Create();
+                    continue;
+                }
+
                 var type = obj is IValue ? typeof(IValue) : obj.GetType();
 
                 if (obj is DynamicContextWrapper dyn)
