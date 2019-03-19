@@ -16,18 +16,18 @@ namespace OneScript.WebHost.Database
     [ContextClass("МенеджерПользователейИнформационнойБазы", "InfoBaseUsersManager")]
     public class InfobaseUsersManagerContext : AutoContext<InfobaseUsersManagerContext>
     {
-        private readonly IServiceProvider _services;
+        private readonly IHttpContextAccessor _requestAccessor;
 
-        public InfobaseUsersManagerContext(IServiceProvider services)
+        public InfobaseUsersManagerContext(IHttpContextAccessor requestAccessor)
         {
-            _services = services;
+            _requestAccessor = requestAccessor;
         }
 
         [ContextMethod("ПолучитьПользователей")]
         public ArrayImpl GetUsers()
         {
             var arr = new ArrayImpl();
-            var usersManager = _services.GetRequiredService<UserManager<ApplicationUser>>();
+            var usersManager = _requestAccessor.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
             foreach (var sysUser in usersManager.Users.OrderBy(x=>x.UserName).ToList())
             {
                 arr.Add(HydrateUserContext(usersManager, sysUser));
@@ -81,17 +81,17 @@ namespace OneScript.WebHost.Database
 
         private UserManager<ApplicationUser> GetUsersManager()
         {
-            return _services.GetRequiredService<UserManager<ApplicationUser>>();
+            return _requestAccessor.HttpContext.RequestServices.GetRequiredService<UserManager<ApplicationUser>>();
         }
 
         [ContextMethod("ТекущийПользователь")]
         public IValue CurrentUser()
         {
-            var contextObj = _services.GetService<IHttpContextAccessor>();
+            var contextObj = _requestAccessor.HttpContext;
             if (contextObj == null)
                 return ValueFactory.Create();
 
-            var user = contextObj.HttpContext.User;
+            var user = contextObj.User;
             if (user == null)
                 return ValueFactory.Create();
 
@@ -114,7 +114,7 @@ namespace OneScript.WebHost.Database
             if (appUser == null)
                 return false;
 
-            var signer = _services.GetRequiredService<SignInManager<ApplicationUser>>();
+            var signer = _requestAccessor.HttpContext.RequestServices.GetRequiredService<SignInManager<ApplicationUser>>();
             signer.SignOutAsync().Wait();
             var result = signer.PasswordSignInAsync(appUser, password, remember, false).Result;
 
@@ -125,7 +125,7 @@ namespace OneScript.WebHost.Database
         [ContextMethod("СброситьАутентификацию")]
         public bool ResetAuthorization()
         {
-            var signer = _services.GetRequiredService<SignInManager<ApplicationUser>>();
+            var signer = _requestAccessor.HttpContext.RequestServices.GetRequiredService<SignInManager<ApplicationUser>>();
             
             return signer.SignOutAsync().IsCompleted;
 
