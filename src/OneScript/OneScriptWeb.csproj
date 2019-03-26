@@ -44,11 +44,14 @@
     <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="2.1.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.1.1" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.1.2" />
-    <PackageReference Include="OneScript" Version="1.0.21" />
-    <PackageReference Include="OneScript.StandardLibrary" Version="1.0.21" />
+    
   </ItemGroup>
   <ItemGroup>
     <Folder Include="wwwroot\" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Include\OneScript\src\ScriptEngine.HostedScript\ScriptEngine.HostedScript.csproj" />
+    <ProjectReference Include="..\Include\OneScript\src\ScriptEngine\ScriptEngine.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="appsettings.json">
