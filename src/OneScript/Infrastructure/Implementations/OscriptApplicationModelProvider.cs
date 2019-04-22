@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
@@ -12,6 +13,8 @@ using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders.Physical;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using OneScript.WebHost.Application;
 using ScriptEngine.Environment;
 using ScriptEngine.HostedScript;
@@ -24,6 +27,8 @@ namespace OneScript.WebHost.Infrastructure.Implementations
     public class OscriptApplicationModelProvider : IApplicationModelProvider
     {
         private const string MODULE_FILENAME = "module.os";
+        private const string CONTROLLERS_FOLDER = "controllers";
+        
         private readonly IApplicationRuntime _fw;
         private readonly IFileProvider _scriptsProvider;
         private readonly int _controllersMethodOffset;
@@ -31,6 +36,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private readonly IAuthorizationPolicyProvider _policyProvider;
         private readonly ClassAttributeResolver _classAttribResolver;
         private readonly AnnotationAttributeMapper _annotationMapper = new AnnotationAttributeMapper();
+        private ILogger _logger;
 
         public OscriptApplicationModelProvider(ApplicationInstance appObject,
             IApplicationRuntime framework,
@@ -55,6 +61,15 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             FillDefaultMappers();
 
         }
+        
+        public OscriptApplicationModelProvider(ApplicationInstance appObject,
+            IApplicationRuntime framework,
+            IFileProvider sourceProvider,
+            IAuthorizationPolicyProvider authPolicyProvider,
+            ILoggerFactory loggerFactory):this(appObject,framework,sourceProvider,authPolicyProvider)
+        {
+            _logger = loggerFactory.CreateLogger(GetType());
+        }
 
         public void OnProvidersExecuting(ApplicationModelProviderContext context)
         {
@@ -70,11 +85,11 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             if (standardHandling)
             {
                 // прямые контроллеры
-                var filesystemSources = _scriptsProvider.GetDirectoryContents("controllers").Where(x => !x.IsDirectory && x.PhysicalPath.EndsWith(".os"));
+                var filesystemSources = _scriptsProvider.GetDirectoryContents(CONTROLLERS_FOLDER).Where(x => !x.IsDirectory && x.PhysicalPath.EndsWith(".os"));
                 sources.AddRange(filesystemSources);
 
                 // контроллеры в папках
-                filesystemSources = _scriptsProvider.GetDirectoryContents("controllers")
+                filesystemSources = _scriptsProvider.GetDirectoryContents(CONTROLLERS_FOLDER)
                     .Where(x => x.IsDirectory);
 
                 sources.AddRange(filesystemSources);
@@ -90,7 +105,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             foreach (var virtualPath in sources)
             {
                 LoadedModule module;
-                ICodeSource codeSrc;
+                FileInfoCodeSource codeSrc;
                 string typeName;
                 if (virtualPath.IsDirectory)
                 {
@@ -110,28 +125,91 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                     typeName = System.IO.Path.GetFileNameWithoutExtension(virtualPath.Name);
                 }
 
-                try
-                {
-                    _classAttribResolver.BeforeCompilation();
-                    module = LoadControllerCode(codeSrc);
-                }
-                finally
-                {
-                    _classAttribResolver.AfterCompilation();
-                }
+                module = CompileControllerModule(codeSrc);
 
                 var reflectedType = reflector.Reflect<ScriptedController>(module, typeName);
                 var attrList = MapAnnotationsToAttributes(_classAttribResolver.Attributes);
                 var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), attrList.AsReadOnly());
                 cm.ControllerName = reflectedType.Name;
-                cm.Properties.Add("module", module);
+                var recompileInfo = new DynamicCompilationInfo()
+                {
+                    Module = module,
+                    CodeSource = codeSrc,
+                    Tag = cm
+                };
+                
+                cm.Properties.Add("CompilationInfo", recompileInfo);
                 cm.Properties.Add("type", reflectedType);
-
+                
+                ChangeToken.OnChange(()=>CreateWatchToken(codeSrc),
+                    RecompileController,
+                    recompileInfo);
+                
                 FillActions(cm, reflectedType);
                 FillFilters(cm);
 
                 context.Result.Controllers.Add(cm);
             }
+        }
+
+        private IChangeToken CreateWatchToken(FileInfoCodeSource codeSrc)
+        {
+            var cPath = codeSrc.FileInfo.PhysicalPath.Replace('\\', '/');
+            var root = Path.GetDirectoryName(_app.Module.ModuleInfo.Origin).Replace('\\','/');
+            if (!cPath.StartsWith(root))
+            {
+                _logger.LogWarning($"file {cPath} can't be watched since it's not in root folder {root}");
+                return NullChangeToken.Singleton;
+            }
+            
+            return _scriptsProvider.Watch(cPath.Substring(root.Length));
+        }
+
+        private LoadedModule CompileControllerModule(ICodeSource codeSrc)
+        {
+            LoadedModule module;
+            try
+            {
+                _classAttribResolver.BeforeCompilation();
+                module = LoadControllerCode(codeSrc);
+            }
+            finally
+            {
+                _classAttribResolver.AfterCompilation();
+            }
+
+            return module;
+        }
+
+        private void RecompileController(DynamicCompilationInfo info)
+        {
+            if (info.TimeStamp != default(DateTime))
+            {
+                if ((DateTime.Now - info.TimeStamp).Seconds < 1)
+                {
+                    _logger.LogDebug("Skipping duplicate change token");
+                    return;
+                }
+            }
+
+            var controllerModel = (ControllerModel) info.Tag;
+            _logger?.LogInformation($"Start recompiling controller {controllerModel.ControllerName}");
+
+            var module = CompileControllerModule(info.CodeSource);
+            var canRecompile = controllerModel.Attributes.OrderBy(x => x.GetType())
+                .SequenceEqual(MapAnnotationsToAttributes(_classAttribResolver.Attributes)
+                    .OrderBy(x => x.GetType()));
+            
+            if (!canRecompile)
+            {
+                _logger?.LogError($"Can't recompile controller {controllerModel.ControllerName} when list of attributes has changed");
+                return;
+            }
+
+            info.Module = module;
+            info.TimeStamp = DateTime.Now;
+            _logger?.LogInformation($"Controller {controllerModel.ControllerName} has been recompiled");
+
         }
 
         private IFileInfo FindModule(string controllerName, string moduleName)

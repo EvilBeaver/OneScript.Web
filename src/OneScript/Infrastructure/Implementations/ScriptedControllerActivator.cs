@@ -34,7 +34,10 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             {
                 DatabaseExtensions.Infobase.DbContext = _dbContext;
             }
-            var instance = new ScriptedController(context, (LoadedModule)context.ActionDescriptor.Properties["module"]);
+
+            var info = (DynamicCompilationInfo) context.ActionDescriptor.Properties["CompilationInfo"];
+            var module = info.Module;
+            var instance = new ScriptedController(context, module);
             var machine = MachineInstance.Current;
             engine.Environment.LoadMemory(machine);
             engine.InitializeSDO(instance);

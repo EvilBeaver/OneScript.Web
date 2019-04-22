@@ -27,6 +27,8 @@ namespace OneScript.WebHost.Infrastructure
             }
         }
 
+        public IFileInfo FileInfo => _fi;
+
         public string SourceDescription => _fi.PhysicalPath;
     }
 }
