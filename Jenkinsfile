@@ -4,8 +4,9 @@ pipeline {
 	stages {
 		stage('Build everything')
 		{
-			agent { label 'windows'
-                options { skipDefaultCheckout() }
+			options { skipDefaultCheckout() }
+            agent { 
+                label 'windows'
             }
 			steps {
 				checkout(
