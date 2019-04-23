@@ -4,9 +4,24 @@ pipeline {
 	stages {
 		stage('Build everything')
 		{
-			agent { label 'windows' }
+			agent { label 'windows'
+                options { skipDefaultCheckout() }
+            }
 			steps {
-				dir('artifact'){
+				checkout(
+                    [$class: 'GitSCM', branches: [[name: "${env.BRANCH_NAME}"]],
+                     doGenerateSubmoduleConfigurations: false,
+                     extensions: [
+                         [$class: 'SubmoduleOption', 
+                         disableSubmodules: false,
+                         parentCredentials: false,
+                         recursiveSubmodules: true,
+                         reference: '',
+                         trackingSubmodules: false]],
+                         submoduleCfg: [],
+                         userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
+
+                dir('artifact'){
 					deleteDir()
 				}
 				
