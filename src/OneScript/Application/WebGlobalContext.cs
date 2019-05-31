@@ -49,7 +49,6 @@ namespace OneScript.WebHost.Application
             _osGlobal.PublishMethod("КраткоеПредставлениеОшибки", "BriefErrorDescription");
             _osGlobal.PublishMethod("КаталогПрограммы", "ProgramDirectory");
             _osGlobal.PublishMethod("ПодробноеПредставлениеОшибки", "DetailErrorDescription");
-            _osGlobal.PublishMethod("ТекущаяДата", "CurrentDate");
             _osGlobal.PublishMethod("ТекущаяУниверсальнаяДатаВМиллисекундах", "CurrentUniversalDateInMilliseconds");
             _osGlobal.PublishMethod("ЗначениеЗаполнено", "IsValueFilled");
             _osGlobal.PublishMethod("ЗаполнитьЗначенияСвойств", "FillPropertyValues");
