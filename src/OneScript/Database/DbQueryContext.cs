@@ -41,7 +41,10 @@ namespace OneScript.WebHost.Database
             var connection = _dbContext.Database.GetDbConnection();/*)*/
             using (var command = connection.CreateCommand())
             {
-                connection.Open();
+                if (ConnectionIsOpen(connection))
+                {
+                    connection.Open();
+                }
                 command.CommandText = Text;
                 SetDbCommandParameters(command);
                 var reader = command.ExecuteReader();
@@ -60,7 +63,10 @@ namespace OneScript.WebHost.Database
             var connection = _dbContext.Database.GetDbConnection();/*)*/
             using (var command = connection.CreateCommand())
             {
-                connection.Open();
+                if (ConnectionIsOpen(connection))
+                {
+                    connection.Open();
+                }
                 command.CommandText = Text;
                 SetDbCommandParameters(command);
 
@@ -84,6 +90,11 @@ namespace OneScript.WebHost.Database
         public void SetParameter(string parametrName, IValue parametrValue)
         {
             Parameters.Insert(parametrName, parametrValue);
+        }
+
+        private bool ConnectionIsOpen(DbConnection connection)
+        {
+            return connection.State != System.Data.ConnectionState.Open;
         }
 
         private void SetDbCommandParameters(DbCommand command)
