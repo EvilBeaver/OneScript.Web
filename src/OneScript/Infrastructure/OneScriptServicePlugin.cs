@@ -1,14 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Builder;
+﻿#if NETCOREAPP
+using System.Text;
+#endif
+
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using ScriptEngine.HostedScript;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using OneScript.WebHost.Application;
 using Microsoft.AspNetCore.Mvc.Controllers;
@@ -33,6 +29,10 @@ namespace OneScript.WebHost.Infrastructure
             InitializeScriptedLayer(services);
             InitializeViewComponents(services);
             InitializeAuthorization(services);
+
+#if NETCOREAPP
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+#endif
         }
 
         private static void InitializeAuthorization(IServiceCollection services)
