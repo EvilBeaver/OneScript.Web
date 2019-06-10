@@ -4,9 +4,6 @@
 @foreach(var kv in Model) {
     <h3>Секция @kv.Key (@kv.Value)</h3>
 
-    @foreach (var item in kv.Value) {
-        <p>@item.Key : @item.Value</p>
-    }
 }
 
 <h2>Параметры сервера</h2>
