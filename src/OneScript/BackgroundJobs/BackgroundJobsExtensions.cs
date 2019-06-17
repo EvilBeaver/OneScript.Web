@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OneScript.WebHost.Database;
+using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 
 namespace OneScript.WebHost.BackgroundJobs
@@ -74,16 +75,8 @@ namespace OneScript.WebHost.BackgroundJobs
             var hfOptions = services.GetService<IOptions<OscriptBackgroundJobsOptions>>().Value;
             if (hfOptions != null)
             {
-                var jobsManager = new ScheduledJobsManagerContext(environment);
-                var dbInject = services.GetService<ApplicationDbContext>();
-                if (dbInject != null)
-                {
-                    if (DatabaseExtensions.Infobase != null)
-                    {
-                        DatabaseExtensions.Infobase.DbContext = dbInject;
-                    }
-                }
-
+                var jobsManager = new ScheduledJobsManagerContext(environment, services.GetService<DbContextProvider>());
+                
                 environment.InjectGlobalProperty(jobsManager, "РегламентныеЗадания", true);
                 environment.InjectGlobalProperty(jobsManager, "ScheduledJobs", true);
 

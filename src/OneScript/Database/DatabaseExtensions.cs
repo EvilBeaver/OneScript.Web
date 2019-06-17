@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 
 namespace OneScript.WebHost.Database
@@ -33,6 +34,7 @@ namespace OneScript.WebHost.Database
         {
             services.AddTransient<DbContextOptions<ApplicationDbContext>>(ConfigureDbOptions);
             services.AddDbContext<ApplicationDbContext>();
+            services.AddTransient<DbContextProvider>();
         }
 
         private static DbContextOptions<ApplicationDbContext> ConfigureDbOptions(IServiceProvider serviceProvider)
