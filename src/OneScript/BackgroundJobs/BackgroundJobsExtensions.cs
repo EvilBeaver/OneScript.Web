@@ -75,6 +75,14 @@ namespace OneScript.WebHost.BackgroundJobs
             if (hfOptions != null)
             {
                 var jobsManager = new ScheduledJobsManagerContext(environment);
+                var dbInject = services.GetService<ApplicationDbContext>();
+                if (dbInject != null)
+                {
+                    if (DatabaseExtensions.Infobase != null)
+                    {
+                        DatabaseExtensions.Infobase.DbContext = dbInject;
+                    }
+                }
 
                 environment.InjectGlobalProperty(jobsManager, "РегламентныеЗадания", true);
                 environment.InjectGlobalProperty(jobsManager, "ScheduledJobs", true);
