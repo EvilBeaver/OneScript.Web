@@ -56,7 +56,7 @@ pipeline {
 		stage('Create docker image'){
 			options { skipDefaultCheckout() }
             agent { 
-                label 'windows'
+                label 'linux'
             }
 			steps {
 				checkout(
