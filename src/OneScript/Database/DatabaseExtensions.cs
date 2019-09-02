@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -53,6 +54,9 @@ namespace OneScript.WebHost.Database
                 case SupportedDatabase.SQLite:
                     builder.UseSqlite(options.ConnectionString);
                     break;
+                case SupportedDatabase.MySQL:
+                    builder.UseMysql(options.ConnectionString);
+                    break;
                 default:
                     throw new InvalidOperationException("Unknown database type in configuration");
             }
@@ -94,7 +98,8 @@ namespace OneScript.WebHost.Database
         Unknown,
         MSSQLServer,
         Postgres,
-        SQLite
+        SQLite,
+        MySQL
     }
 
 }
