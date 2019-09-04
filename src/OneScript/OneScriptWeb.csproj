@@ -62,7 +62,4 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Mono.CSharp" Condition="'$(TargetFramework)' == 'net461'" />
-  </ItemGroup>
 </Project>
