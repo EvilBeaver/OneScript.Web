@@ -53,6 +53,9 @@ namespace OneScript.WebHost.Database
                 case SupportedDatabase.SQLite:
                     builder.UseSqlite(options.ConnectionString);
                     break;
+                case SupportedDatabase.MySQL:
+                    builder.UseMySql(options.ConnectionString);
+                    break;
                 default:
                     throw new InvalidOperationException("Unknown database type in configuration");
             }
@@ -94,7 +97,8 @@ namespace OneScript.WebHost.Database
         Unknown,
         MSSQLServer,
         Postgres,
-        SQLite
+        SQLite,
+        MySQL
     }
 
 }
