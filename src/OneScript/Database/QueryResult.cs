@@ -96,5 +96,15 @@ namespace OneScript.WebHost.Database
         {
             return _resultTable;
         }
+
+        /// <summary>
+        /// Возвращает Истина, если в результате запроса нет ни одной записи.
+        /// </summary>
+        /// <returns>Булево</returns>
+        [ContextMethod("Пустой", "IsEmpty")]
+        public Boolean IsEmpty()
+        {
+            return _resultTable.Count() == 0;
+        }
     }
 }
