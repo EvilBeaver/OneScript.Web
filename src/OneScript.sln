@@ -1,4 +1,4 @@
-
+﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.28714.193
@@ -10,6 +10,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptEngine", "Include\OneScript\src\ScriptEngine\ScriptEngine.csproj", "{59C56111-1C71-475C-8BE9-1173C9E7B7E0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptEngine.HostedScript", "Include\OneScript\src\ScriptEngine.HostedScript\ScriptEngine.HostedScript.csproj", "{E0753066-45FE-4A74-9E25-D1D0A6EE1162}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneScript.Language", "Include\OneScript\src\OneScript.Language\OneScript.Language.csproj", "{778596E5-05C4-4775-A88B-34B3B48B56BA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -42,6 +44,12 @@ Global
 		{E0753066-45FE-4A74-9E25-D1D0A6EE1162}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E0753066-45FE-4A74-9E25-D1D0A6EE1162}.ReleaseNetStandard|Any CPU.ActiveCfg = ReleaseNetStandard|Any CPU
 		{E0753066-45FE-4A74-9E25-D1D0A6EE1162}.ReleaseNetStandard|Any CPU.Build.0 = ReleaseNetStandard|Any CPU
+		{778596E5-05C4-4775-A88B-34B3B48B56BA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{778596E5-05C4-4775-A88B-34B3B48B56BA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{778596E5-05C4-4775-A88B-34B3B48B56BA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{778596E5-05C4-4775-A88B-34B3B48B56BA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{778596E5-05C4-4775-A88B-34B3B48B56BA}.ReleaseNetStandard|Any CPU.ActiveCfg = Debug|Any CPU
+		{778596E5-05C4-4775-A88B-34B3B48B56BA}.ReleaseNetStandard|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

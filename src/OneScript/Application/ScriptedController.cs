@@ -296,7 +296,7 @@ namespace OneScript.WebHost.Application
             else
             {
                 if (routeName == null)
-                    throw RuntimeException.TooLittleArgumentsPassed();
+                    throw RuntimeException.TooFewArgumentsPassed();
 
                 result = Url.RouteUrl(routeName);
             }
