@@ -10,6 +10,7 @@ using OneScript.WebHost.Application;
 using ScriptEngine;
 using ScriptEngine.HostedScript;
 using ScriptEngine.HostedScript.Library;
+using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure
 {
@@ -64,7 +65,13 @@ namespace OneScript.WebHost.Infrastructure
         {
             var codeSrc = new FileInfoCodeSource(_scripts.GetFileInfo("main.os"));
             _webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc, _webEng));
+
+            var templateFactory = new DefaultTemplatesFactory();
+            
+            var storage = new TemplateStorage(templateFactory);
+            _webEng.Environment.InjectObject(storage);
             _webEng.Engine.UpdateContexts();
+            GlobalsManager.RegisterInstance(storage);
             
             return ApplicationInstance.Create(codeSrc, _webEng);
         }
