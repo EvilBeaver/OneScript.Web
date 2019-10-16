@@ -22,7 +22,7 @@ pipeline {
                          submoduleCfg: [],
                          userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
 
-                dir('src/OneScriptWeb.Tests'){
+                /*dir('src/OneScriptWeb.Tests'){
 					bat '''
 					@echo off
 					dotnet restore
@@ -30,7 +30,7 @@ pipeline {
 					'''
 					
 					nunit testResultsPattern: 'testresult.xml'
-				}
+				}*/
 
 				dir('artifact'){
 					deleteDir()
