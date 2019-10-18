@@ -27,12 +27,12 @@ namespace OneScript.WebHost
 
             var configInstance = config.Build();
 
-            string BasePath = configInstance.GetValue<string>("BasePath", "");
+            string applicationPath = configInstance.GetValue<string>("ApplicationPath", "");
 
-            if (BasePath == "")
-                BasePath = Directory.GetCurrentDirectory();
+            if (applicationPath == "")
+                applicationPath = Directory.GetCurrentDirectory();
 
-            config.SetBasePath(BasePath);
+            config.SetBasePath(applicationPath);
             config.AddJsonFile("appsettings.json", optional: true);
             config.AddEnvironmentVariables("OSWEB_");
             config.AddEnvironmentVariables("ASPNETCORE_");
@@ -75,10 +75,10 @@ namespace OneScript.WebHost
             var options = new HostingOptions();
             config.GetSection("Hosting").Bind(options);
 
-            string BasePath = config.GetValue<string>("BasePath", "");
+            string applicationPath = config.GetValue<string>("ApplicationPath", "");
 
-            if (BasePath != "")
-                options.ContentRoot = BasePath;
+            if (applicationPath != "")
+                options.ContentRoot = applicationPath;
 
             if (options.ContentRoot == null)
             {
