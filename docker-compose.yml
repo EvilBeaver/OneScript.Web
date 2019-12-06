@@ -1,7 +1,9 @@
 version: '3'
 services:
   engine:
-    build: .
+    build:
+      context: ./src
+      dockerfile: ../Dockerfile
     image: omvc-engine-developer
   auth-example:
     image: omvc-engine-developer
