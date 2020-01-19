@@ -8,7 +8,7 @@ services:
       - LOGGING_LEVEL=DEBUG
       - LOGGING_CONSOLE=true
     volumes: 
-      - /src:/app
+      - ./src:/app
     depends_on: 
       - db
   db:
