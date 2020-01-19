@@ -1,0 +1,17 @@
+version: '3'
+services: 
+  osweb:
+    image: evilbeaver/oscript-web:0.5.0
+    ports: 
+      - "5000:5000"
+    environment: 
+      - LOGGING_LEVEL=DEBUG
+      - LOGGING_CONSOLE=true
+    volumes: 
+      - ./src:/app
+    depends_on: 
+      - db
+  db:
+    image: postgres:latest
+    volumes: 
+      - my_db_volume:/var/lib/postgresql/data
