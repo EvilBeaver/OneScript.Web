@@ -49,6 +49,8 @@ namespace OneScript.WebHost.Application
             _osGlobal.PublishMethod("КраткоеПредставлениеОшибки", "BriefErrorDescription");
             _osGlobal.PublishMethod("КаталогПрограммы", "ProgramDirectory");
             _osGlobal.PublishMethod("ПодробноеПредставлениеОшибки", "DetailErrorDescription");
+            _osGlobal.PublishMethod("ТекущаяДата", "CurrentDate");
+            _osGlobal.PublishMethod("ТекущаяУниверсальнаяДата", "CurrentUniversalDate");
             _osGlobal.PublishMethod("ТекущаяУниверсальнаяДатаВМиллисекундах", "CurrentUniversalDateInMilliseconds");
             _osGlobal.PublishMethod("ЗначениеЗаполнено", "IsValueFilled");
             _osGlobal.PublishMethod("ЗаполнитьЗначенияСвойств", "FillPropertyValues");
@@ -60,6 +62,7 @@ namespace OneScript.WebHost.Application
             _osGlobal.PublishMethod("ПодключитьСценарий", "AttachScript");
             _osGlobal.PublishMethod("Сообщить", "Message");
             _osGlobal.PublishMethod("СтартовыйСценарий", "StartupScript");
+            _osGlobal.PublishMethod("ПолучитьHexСтрокуИзДвоичныхДанных", "GetHexStringFromBinaryData");
 
             sys.InitInstance();
         }
