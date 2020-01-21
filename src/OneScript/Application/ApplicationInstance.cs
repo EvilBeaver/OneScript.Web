@@ -152,6 +152,17 @@ namespace OneScript.WebHost.Application
         }
 
         /// <summary>
+        /// Добавляет middleware в конвейер.
+        /// В метод нужно передать имя файла скрипта относительно /app, в котором лежит обработчик middleware.
+        /// </summary>
+        /// <param name="handler">Имя процедуры-обработчика, в которой будет настраиваться маршрутизация.</param>
+        [ContextMethod("ИспользоватьПосредника")]
+        public void UseMiddleware(string handler)
+        {
+            CallRoutesRegistrationHandler(handler);
+        }
+
+        /// <summary>
         /// Использовать обработчик cookies, отвечающих за клиентские сессии. Позволяет применять http-сессии в контроллерах
         /// </summary>
         [ContextMethod("ИспользоватьСессии")]
