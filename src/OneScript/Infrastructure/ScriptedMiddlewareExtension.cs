@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using OneScript.WebHost.Application;
+using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine.Environment;
 using ScriptEngine.Machine;
 using System;
@@ -15,10 +16,9 @@ namespace OneScript.WebHost.Infrastructure
     public static class ScriptedMiddlewareExtension
     {
         public static IApplicationBuilder UseScriptedMiddleware(
-             this IApplicationBuilder app, ICodeSource src, IApplicationRuntime webApp)
+             this IApplicationBuilder app, ICodeSource src, IApplicationRuntime runtime)
         {
-            var moduleImage = MiddlewareInstance.CompileModule(webApp.Engine.GetCompilerService(), src);
-            return app.UseMiddleware<MiddlewareInstance>(new LoadedModule(moduleImage));
+            return app.UseMiddleware<ScriptedMiddlewareActivator>(src, runtime);
         }
 
     }

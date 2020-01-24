@@ -71,9 +71,10 @@ namespace OneScript.WebHost.Application
         /// 
         /// </summary>
         [ContextMethod("ПродолжитьОбработку")]
-        public async Task InvokeNext()
+        public void InvokeNext()
         {
-            await _next(_context);
+            var t = Task.Run(() => _next(_context));
+            t.Wait();
         }
 
         // TODO: Костыль вызванный ошибкой https://github.com/EvilBeaver/OneScript/issues/660
