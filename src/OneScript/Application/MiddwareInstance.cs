@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
@@ -11,44 +13,46 @@ namespace OneScript.WebHost.Application
     /// <summary>
     /// Экземпляр посредника. Представлен модулем посредника в подпапке middleware проекта
     /// </summary>
-    [ContextClass("Посредник")]
-    public class MiddlewareInstance : AutoScriptDrivenObject<ScriptedController>
+    [ContextClass("Посредник", "Middleware")]
+    [NonController]
+    public class MiddlewareInstance : AutoScriptDrivenObject<MiddlewareInstance>
     {
         private readonly RequestDelegate _next;
         private HttpContext _context;
 
+        #region Construction
+
         /// <summary>
         /// Конструктор посредника
         /// </summary>
-        /// <param name="next"></param>
+        /// <param name="next">Следующий обработчик в конвейере</param>
+        /// <param name="module">Скомпилированный модуль посредника</param>
         public MiddlewareInstance(RequestDelegate next, LoadedModule module) : base(module, true)
         {
-            this._next = next;
+            _next = next;
+            InitOwnData();
         }
 
+        #endregion
+
+        /// <summary>
+        /// Основная нагрузка, выполняет метод ОбработкаВызова посредника
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
         public async Task InvokeAsync(HttpContext context)
         {
-            this._context = context;
+            _context = context;
             var mId = GetScriptMethod("ОбработкаВызова");
             if (mId == -1)
             {
-                return;
+                throw RuntimeException.MethodNotFoundException("ОбработкаВызова");
             }
             HttpRequest = new HttpRequestImpl(_context.Request);
             HttpResponse = new HttpResponseImpl(_context.Response);
 
-            var boolValue = ValueFactory.Create(standardHandling);
-            var boolReference = Variable.Create(boolValue, "");
-            var parameters = new IValue[] { new ArrayImpl(), boolReference };
-            CallScriptMethod(mId, parameters);
-
-            var arr = parameters[0].AsObject() as ArrayImpl;
-            if (arr == null)
-                throw RuntimeException.InvalidArgumentType();
-
-            files = arr.Select(x => x.AsString());
-            standardHandling = parameters[1].AsBoolean();
-
+            var parameters = new IValue[] { new ArrayImpl() };
+            await Task.Run(() => CallScriptMethod(mId, parameters));
         }
 
         /// <summary>
@@ -67,9 +71,15 @@ namespace OneScript.WebHost.Application
         /// 
         /// </summary>
         [ContextMethod("ПродолжитьОбработку")]
-        public void InvokeNext()
+        public async Task InvokeNext()
         {
-            _next.Invoke(this._context);
+            await _next(_context);
+        }
+
+        // TODO: Костыль вызванный ошибкой https://github.com/EvilBeaver/OneScript/issues/660
+        internal static int GetOwnMethodsRelectionOffset()
+        {
+            return _ownMethods.Count;
         }
     }
 }

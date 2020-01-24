@@ -90,8 +90,10 @@ namespace OneScript.WebHost
             PrepareEnvironment(services);
 
             var oscriptApp = services.GetService<ApplicationInstance>();
+            var sourceProvider = services.GetService<IFileProvider>();
+            var appRuntime = services.GetService<IApplicationRuntime>();
             oscriptApp.UseServices(services);
-            oscriptApp.OnStartup(app);
+            oscriptApp.OnStartup(app, sourceProvider, appRuntime);
             
             // анализ имеющихся компонентов представлений
             var manager = services.GetService<ApplicationPartManager>();

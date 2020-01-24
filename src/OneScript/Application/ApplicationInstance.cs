@@ -12,6 +12,7 @@ using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
+using Microsoft.Extensions.FileProviders;
 
 namespace OneScript.WebHost.Application
 {
@@ -25,7 +26,8 @@ namespace OneScript.WebHost.Application
 
 
         private IApplicationBuilder _startupBuilder;
-
+        private IFileProvider _scripts;
+        private IApplicationRuntime _webApp;
         public ApplicationInstance(LoadedModule module): base(module)
         {
             
@@ -155,11 +157,12 @@ namespace OneScript.WebHost.Application
         /// Добавляет middleware в конвейер.
         /// В метод нужно передать имя файла скрипта относительно /app, в котором лежит обработчик middleware.
         /// </summary>
-        /// <param name="handler">Имя процедуры-обработчика, в которой будет настраиваться маршрутизация.</param>
+        /// <param name="scriptName">Имя скрипта-обработчика, который будет вызываться.</param>
         [ContextMethod("ИспользоватьПосредника")]
-        public void UseMiddleware(string handler)
+        public void UseMiddleware(string scriptName)
         {
-            CallRoutesRegistrationHandler(handler);
+            var codeSrc = new FileInfoCodeSource(_scripts.GetFileInfo(scriptName));
+            _startupBuilder.UseScriptedMiddleware(codeSrc, _webApp);
         }
 
         /// <summary>
@@ -235,13 +238,15 @@ namespace OneScript.WebHost.Application
             });
         }
         
-        public void OnStartup(IApplicationBuilder aspAppBuilder)
+        public void OnStartup(IApplicationBuilder aspAppBuilder, IFileProvider sourceProvider, IApplicationRuntime webApp)
         {
             int startup = GetScriptMethod("ПриНачалеРаботыСистемы", "OnSystemStartup");
             if(startup == -1)
                 return;
 
             _startupBuilder = aspAppBuilder;
+            _scripts = sourceProvider;
+            _webApp = webApp;
 
             CallScriptMethod(startup, new IValue[] { });
         }
