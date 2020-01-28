@@ -12,6 +12,7 @@ using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
+using Microsoft.Extensions.FileProviders;
 
 namespace OneScript.WebHost.Application
 {
@@ -25,7 +26,6 @@ namespace OneScript.WebHost.Application
 
 
         private IApplicationBuilder _startupBuilder;
-
         public ApplicationInstance(LoadedModule module): base(module)
         {
             
@@ -149,6 +149,17 @@ namespace OneScript.WebHost.Application
                 _startupBuilder.UseMvcWithDefaultRoute();
             else
                 CallRoutesRegistrationHandler(handler);
+        }
+
+        /// <summary>
+        /// Добавляет middleware в конвейер.
+        /// В метод нужно передать имя файла скрипта относительно /app, в котором лежит обработчик middleware.
+        /// </summary>
+        /// <param name="scriptName">Имя скрипта-обработчика, который будет вызываться.</param>
+        [ContextMethod("ИспользоватьПосредника")]
+        public void UseMiddleware(string scriptName)
+        {
+            _startupBuilder.UseScriptedMiddleware(scriptName);
         }
 
         /// <summary>
