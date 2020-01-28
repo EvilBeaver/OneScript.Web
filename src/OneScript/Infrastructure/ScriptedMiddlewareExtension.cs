@@ -16,9 +16,9 @@ namespace OneScript.WebHost.Infrastructure
     public static class ScriptedMiddlewareExtension
     {
         public static IApplicationBuilder UseScriptedMiddleware(
-             this IApplicationBuilder app, ICodeSource src, IApplicationRuntime runtime)
+             this IApplicationBuilder app, string scriptName)
         {
-            return app.UseMiddleware<ScriptedMiddlewareActivator>(src, runtime);
+            return app.UseMiddleware<ScriptedMiddlewareActivator>(scriptName);
         }
 
     }

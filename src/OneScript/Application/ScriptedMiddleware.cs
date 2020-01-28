@@ -11,11 +11,11 @@ using ScriptEngine.Machine.Contexts;
 namespace OneScript.WebHost.Application
 {
     /// <summary>
-    /// Экземпляр посредника. Представлен модулем посредника в подпапке middleware проекта
+    /// Экземпляр посредника. Представлен произвольным скриптом в структуре приложения.
     /// </summary>
     [ContextClass("Посредник", "Middleware")]
     [NonController]
-    public class MiddlewareInstance : AutoScriptDrivenObject<MiddlewareInstance>
+    public class ScriptedMiddleware : AutoScriptDrivenObject<ScriptedMiddleware>
     {
         private readonly RequestDelegate _next;
         private HttpContext _context;
@@ -27,7 +27,7 @@ namespace OneScript.WebHost.Application
         /// </summary>
         /// <param name="next">Следующий обработчик в конвейере</param>
         /// <param name="module">Скомпилированный модуль посредника</param>
-        public MiddlewareInstance(RequestDelegate next, LoadedModule module) : base(module, true)
+        public ScriptedMiddleware(RequestDelegate next, LoadedModule module) : base(module, true)
         {
             _next = next;
             InitOwnData();

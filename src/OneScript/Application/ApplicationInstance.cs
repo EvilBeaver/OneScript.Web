@@ -26,8 +26,6 @@ namespace OneScript.WebHost.Application
 
 
         private IApplicationBuilder _startupBuilder;
-        private IFileProvider _scripts;
-        private IApplicationRuntime _webApp;
         public ApplicationInstance(LoadedModule module): base(module)
         {
             
@@ -161,8 +159,7 @@ namespace OneScript.WebHost.Application
         [ContextMethod("ИспользоватьПосредника")]
         public void UseMiddleware(string scriptName)
         {
-            var codeSrc = new FileInfoCodeSource(_scripts.GetFileInfo(scriptName));
-            _startupBuilder.UseScriptedMiddleware(codeSrc, _webApp);
+            _startupBuilder.UseScriptedMiddleware(scriptName);
         }
 
         /// <summary>
@@ -238,15 +235,13 @@ namespace OneScript.WebHost.Application
             });
         }
         
-        public void OnStartup(IApplicationBuilder aspAppBuilder, IFileProvider sourceProvider, IApplicationRuntime webApp)
+        public void OnStartup(IApplicationBuilder aspAppBuilder)
         {
             int startup = GetScriptMethod("ПриНачалеРаботыСистемы", "OnSystemStartup");
             if(startup == -1)
                 return;
 
             _startupBuilder = aspAppBuilder;
-            _scripts = sourceProvider;
-            _webApp = webApp;
 
             CallScriptMethod(startup, new IValue[] { });
         }
