@@ -50,16 +50,12 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             _policyProvider = authPolicyProvider;
             _classAttribResolver = new ClassAttributeResolver();
 
-            if (_fw.Engine.DirectiveResolver is DirectiveMultiResolver resolvers)
+            if (!_fw.Engine.DirectiveResolvers.Any(x => x is ClassAttributeResolver))
             {
-                if (!resolvers.Any(x => x is ClassAttributeResolver))
-                {
-                    resolvers.Add(_classAttribResolver);
-                }
-            }
-
+                _fw.Engine.DirectiveResolvers.Add(_classAttribResolver);
+            } 
+            
             FillDefaultMappers();
-
         }
         
         public OscriptApplicationModelProvider(ApplicationInstance appObject,

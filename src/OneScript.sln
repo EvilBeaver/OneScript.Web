@@ -13,6 +13,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScriptEngine.HostedScript",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneScript.Language", "Include\OneScript\src\OneScript.Language\OneScript.Language.csproj", "{778596E5-05C4-4775-A88B-34B3B48B56BA}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneScript.DebugServices", "Include\OneScript\src\OneScript.DebugServices\OneScript.DebugServices.csproj", "{272DC28D-54B6-4D4D-9970-D3BA324DBECF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OneScript.DebugProtocol", "Include\OneScript\src\OneScript.DebugProtocol\OneScript.DebugProtocol.csproj", "{E8530889-A741-4A5E-B606-6C25FE4B8EA4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,6 +54,18 @@ Global
 		{778596E5-05C4-4775-A88B-34B3B48B56BA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{778596E5-05C4-4775-A88B-34B3B48B56BA}.ReleaseNetStandard|Any CPU.ActiveCfg = Debug|Any CPU
 		{778596E5-05C4-4775-A88B-34B3B48B56BA}.ReleaseNetStandard|Any CPU.Build.0 = Debug|Any CPU
+		{272DC28D-54B6-4D4D-9970-D3BA324DBECF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{272DC28D-54B6-4D4D-9970-D3BA324DBECF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{272DC28D-54B6-4D4D-9970-D3BA324DBECF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{272DC28D-54B6-4D4D-9970-D3BA324DBECF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{272DC28D-54B6-4D4D-9970-D3BA324DBECF}.ReleaseNetStandard|Any CPU.ActiveCfg = Debug|Any CPU
+		{272DC28D-54B6-4D4D-9970-D3BA324DBECF}.ReleaseNetStandard|Any CPU.Build.0 = Debug|Any CPU
+		{E8530889-A741-4A5E-B606-6C25FE4B8EA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8530889-A741-4A5E-B606-6C25FE4B8EA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E8530889-A741-4A5E-B606-6C25FE4B8EA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E8530889-A741-4A5E-B606-6C25FE4B8EA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E8530889-A741-4A5E-B606-6C25FE4B8EA4}.ReleaseNetStandard|Any CPU.ActiveCfg = Debug|Any CPU
+		{E8530889-A741-4A5E-B606-6C25FE4B8EA4}.ReleaseNetStandard|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

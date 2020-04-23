@@ -174,8 +174,6 @@ namespace OneScriptWeb.Tests
             services.AddOneScript();
 
             var serviceProvider = services.BuildServiceProvider();
-            var engine = serviceProvider.GetService<IApplicationRuntime>().Engine;
-            engine.DirectiveResolver = new DirectiveMultiResolver();
             var modelProvider = serviceProvider.GetService<IApplicationModelProvider>();
 
             var types = new TypeInfo[0];
