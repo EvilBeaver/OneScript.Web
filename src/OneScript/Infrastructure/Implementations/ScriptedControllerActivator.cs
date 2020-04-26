@@ -40,13 +40,21 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             var instance = new ScriptedController(context, module);
             var machine = MachineInstance.Current;
             engine.Environment.LoadMemory(machine);
+            if (engine.DebugEnabled())
+            {
+                engine.DebugController.AttachToThread();
+            }
+
             engine.InitializeSDO(instance);
             return instance;
         }
 
         public void Release(ControllerContext context, object controller)
         {
-            //throw new NotImplementedException();
+            if (_runtime.DebugEnabled())
+            {
+                _runtime.Engine.DebugController.DetachFromThread();
+            }
         }
     }
 }

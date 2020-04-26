@@ -2,6 +2,7 @@
 using System.Text;
 #endif
 
+using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -9,9 +10,13 @@ using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using OneScript.WebHost.Application;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Options;
+using OneScript.DebugServices;
 using OneScript.WebHost.Authorization;
 using OneScript.WebHost.Infrastructure.Implementations;
+using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure
 {
@@ -33,6 +38,22 @@ namespace OneScript.WebHost.Infrastructure
 #if NETCOREAPP
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 #endif
+        }
+
+        public static void AddOneScriptDebug(this IServiceCollection services, IConfiguration config)
+        {
+            var debugPort = config.GetValue<int>("debug.port");
+            if (debugPort != default)
+            {
+                var opts = new OscriptDebugOptions();
+                opts.DebugPort = debugPort;
+                opts.WaitOnStart = config.GetValue<int>("debug.wait") > 0;
+
+                services.AddTransient(sp => Options.Create(opts));
+                
+                var debugInfrastructure = new BinaryTcpDebugServer(debugPort);
+                services.AddSingleton(sp => debugInfrastructure.CreateDebugController());
+            }
         }
 
         private static void InitializeAuthorization(IServiceCollection services)
@@ -57,5 +78,12 @@ namespace OneScript.WebHost.Infrastructure
                 return appFactory.CreateApp();
             });
         }
+    }
+
+    public class OscriptDebugOptions
+    {
+        public int DebugPort { get; set; }
+        
+        public bool WaitOnStart { get; set; }
     }
 }

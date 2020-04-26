@@ -54,6 +54,7 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Include\OneScript\src\OneScript.DebugServices\OneScript.DebugServices.csproj" />
     <ProjectReference Include="..\Include\OneScript\src\ScriptEngine.HostedScript\ScriptEngine.HostedScript.csproj" />
     <ProjectReference Include="..\Include\OneScript\src\ScriptEngine\ScriptEngine.csproj" />
   </ItemGroup>

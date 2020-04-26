@@ -23,6 +23,7 @@ using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using OneScript.WebHost.Database;
 using OneScript.WebHost.BackgroundJobs;
+using ScriptEngine.Machine;
 
 namespace OneScript.WebHost
 {
@@ -71,8 +72,9 @@ namespace OneScript.WebHost
             
             services.AddMvc()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
-
+            
             services.AddOneScript();
+            services.AddOneScriptDebug(Configuration);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -89,16 +91,46 @@ namespace OneScript.WebHost
 
             PrepareEnvironment(services);
 
-            var oscriptApp = services.GetService<ApplicationInstance>();
-            var sourceProvider = services.GetService<IFileProvider>();
-            var appRuntime = services.GetService<IApplicationRuntime>();
-            oscriptApp.UseServices(services);
-            oscriptApp.OnStartup(app);
-            
+            StartOneScriptApp(app, services);
+
             // анализ имеющихся компонентов представлений
             var manager = services.GetService<ApplicationPartManager>();
             var provider = manager.FeatureProviders.OfType<ScriptedViewComponentFeatureProvider>().FirstOrDefault();
             provider?.Configure(services);
+        }
+
+        private static void StartOneScriptApp(IApplicationBuilder app, IServiceProvider services)
+        {
+            var appRuntime = services.GetService<IApplicationRuntime>();
+            try
+            {
+                var oscriptApp = services.GetService<ApplicationInstance>();
+                appRuntime.Engine.DebugController = services.GetService<IDebugController>();
+                oscriptApp.UseServices(services);
+
+                if (appRuntime.DebugEnabled())
+                {
+                    appRuntime.Engine.DebugController.Init();
+                    var debugOpts = services.GetService<IOptions<OscriptDebugOptions>>().Value;
+                    if (debugOpts.WaitOnStart)
+                    {
+                        appRuntime.Engine.DebugController.AttachToThread();
+                        appRuntime.Engine.DebugController.Wait();
+                    }
+                }
+
+                oscriptApp.OnStartup(app);
+                
+            }
+            catch (Exception e)
+            {
+                if (appRuntime.DebugEnabled())
+                {
+                    appRuntime.Engine.DebugController.DetachFromThread();
+                }
+                Console.WriteLine(e);
+                throw;
+            }
         }
 
         private void PrepareEnvironment(IServiceProvider services)
