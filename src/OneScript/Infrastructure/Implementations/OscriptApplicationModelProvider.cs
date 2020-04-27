@@ -166,11 +166,13 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             LoadedModule module;
             try
             {
+                _fw.DebugCurrentThread();
                 _classAttribResolver.BeforeCompilation();
                 module = LoadControllerCode(codeSrc);
             }
             finally
             {
+                _fw.StopDebugCurrentThread();
                 _classAttribResolver.AfterCompilation();
             }
 
