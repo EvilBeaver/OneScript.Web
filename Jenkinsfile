@@ -39,9 +39,9 @@ pipeline {
 				dir('src'){
 					bat '''
 					@echo off
-					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f net461 -o ../../artifact/net461/win7-x64 -r win7-x64
-					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f net461 -o ../../artifact/net461/debian-x64 -r debian-x64
-					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f netcoreapp2.2 -o ../../artifact/core22/debian-x64 -r debian-x64
+					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f net461 -o ../artifact/net461/win7-x64 -r win7-x64
+					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f net461 -o ../artifact/net461/debian-x64 -r debian-x64
+					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f netcoreapp2.2 -o ../artifact/core22/debian-x64 -r debian-x64
 					'''
 				}
 				
