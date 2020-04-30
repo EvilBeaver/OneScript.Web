@@ -1,10 +1,10 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:2.2 AS build-env
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-env
 WORKDIR /app
 
 # Copy everything else and build
 
 COPY . ./
-RUN dotnet restore OneScript/OneScriptWeb.csproj -f netcoreapp2.2
+RUN dotnet restore OneScript/OneScriptWeb.csproj
 RUN dotnet publish OneScript/OneScriptWeb.csproj -c Release -o /app/out -f netcoreapp2.2 -r debian-x64
 
 # RUNTIME
