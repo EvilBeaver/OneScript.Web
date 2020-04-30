@@ -73,8 +73,8 @@ pipeline {
                          userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
 
 				withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'dockerpassword', usernameVariable: 'dockeruser')]) {
-					sh 'docker build -t evilbeaver/oscript-web:0.5.0 --file Dockerfile src'
-					sh 'docker login -p $dockerpassword -u $dockeruser && docker push evilbeaver/oscript-web:0.5.0'
+					sh 'docker build -t evilbeaver/oscript-web:0.6.0 --file Dockerfile src'
+					sh 'docker login -p $dockerpassword -u $dockeruser && docker push evilbeaver/oscript-web:0.6.0'
 				}
 			}			
 		}
