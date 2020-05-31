@@ -110,26 +110,32 @@ namespace OneScript.WebHost
 
                 if (appRuntime.DebugEnabled())
                 {
+                    var logger = services.GetService<ILogger<Startup>>();
+                    logger.LogInformation("Debug is enabled");
                     appRuntime.Engine.DebugController.Init();
                     var debugOpts = services.GetService<IOptions<OscriptDebugOptions>>().Value;
                     if (debugOpts.WaitOnStart)
                     {
                         appRuntime.Engine.DebugController.AttachToThread();
+                        logger.LogInformation("Waiting for debug client");
                         appRuntime.Engine.DebugController.Wait();
                     }
                 }
 
                 oscriptApp.OnStartup(app);
-                
+
             }
             catch (Exception e)
+            {
+                Console.WriteLine(e);
+                throw;
+            }
+            finally
             {
                 if (appRuntime.DebugEnabled())
                 {
                     appRuntime.Engine.DebugController.DetachFromThread();
                 }
-                Console.WriteLine(e);
-                throw;
             }
         }
 
