@@ -27,11 +27,19 @@ namespace OneScript.WebHost.Authorization
                 return;
 
             runtime.Environment.LoadMemory(MachineInstance.Current);
-
             var codeSource = new FileInfoCodeSource(authFile);
             
-            var registrator = AuthorizationModule.CreateInstance(codeSource, runtime, filesystem);
-            registrator.OnRegistration(_handlers);
+            runtime.DebugCurrentThread();
+
+            try
+            {
+                var registrator = AuthorizationModule.CreateInstance(codeSource, runtime, filesystem);
+                registrator.OnRegistration(_handlers);
+            }
+            finally
+            {
+                runtime.StopDebugCurrentThread();
+            }
         }
 
         public Task<IEnumerable<IAuthorizationHandler>> GetHandlersAsync(AuthorizationHandlerContext context)

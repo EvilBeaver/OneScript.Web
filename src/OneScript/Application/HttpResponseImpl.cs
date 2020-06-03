@@ -64,6 +64,13 @@ namespace OneScript.WebHost.Application
 
         }
 
+        /// <summary>
+        /// Показывает, была ли начата отправка ответа клиенту.
+        /// Если да, то модификация ответа (установка тела или заголовков) приведёт к исключению.
+        /// </summary>
+        [ContextProperty("ОтправкаНачата", "HasStarted")]
+        public bool HasStarted => _realObject.HasStarted;
+
         // для внутреннего пользования
         public HttpResponse RealObject => _realObject;
 

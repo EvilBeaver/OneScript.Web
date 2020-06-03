@@ -10,6 +10,7 @@ using OneScript.WebHost.Application;
 using ScriptEngine;
 using ScriptEngine.HostedScript;
 using ScriptEngine.HostedScript.Library;
+using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure
 {
@@ -43,28 +44,25 @@ namespace OneScript.WebHost.Infrastructure
 
         private void InitializeDirectiveResolver(ScriptingEngine engine, RuntimeEnvironment env, string libRoot, string[] additionals)
         {
-            var ignoreDirectiveResolver = new DirectiveIgnorer();
-
-            ignoreDirectiveResolver.Add("Region", "Область");
-            ignoreDirectiveResolver.Add("EndRegion", "КонецОбласти");
-
-            var resolversCollection = new DirectiveMultiResolver();
-            resolversCollection.Add(ignoreDirectiveResolver);
-
             var libResolver = new LibraryResolver(engine, env);
             libResolver.LibraryRoot = libRoot;
             if (additionals != null)
                 libResolver.SearchDirectories.AddRange(additionals);
-
-            resolversCollection.Add(libResolver);
-            engine.DirectiveResolver = resolversCollection;
+            
+            engine.DirectiveResolvers.Add(libResolver);
         }
 
         public ApplicationInstance CreateApp()
         {
             var codeSrc = new FileInfoCodeSource(_scripts.GetFileInfo("main.os"));
             _webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc, _webEng));
+
+            var templateFactory = new DefaultTemplatesFactory();
+            
+            var storage = new TemplateStorage(templateFactory);
+            _webEng.Environment.InjectObject(storage);
             _webEng.Engine.UpdateContexts();
+            GlobalsManager.RegisterInstance(storage);
             
             return ApplicationInstance.Create(codeSrc, _webEng);
         }

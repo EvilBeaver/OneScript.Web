@@ -33,7 +33,7 @@ namespace OneScriptWeb.Tests
             var cc = new ControllerContext();
             var ad = new ControllerActionDescriptor();
             ad.Properties["type"] = context.Result.Controllers[0].Properties["type"];
-            ad.Properties["module"] = context.Result.Controllers[0].Properties["module"];
+            ad.Properties["CompilationInfo"] = context.Result.Controllers[0].Properties["CompilationInfo"];
             cc.ActionDescriptor = ad;
             cc.HttpContext = new DefaultHttpContext();
             cc.HttpContext.Session = null;
@@ -60,7 +60,7 @@ namespace OneScriptWeb.Tests
             var cc = new ControllerContext();
             var ad = new ControllerActionDescriptor();
             ad.Properties["type"] = context.Result.Controllers[0].Properties["type"];
-            ad.Properties["module"] = context.Result.Controllers[0].Properties["module"];
+            ad.Properties["CompilationInfo"] = context.Result.Controllers[0].Properties["CompilationInfo"];
             cc.ActionDescriptor = ad;
             cc.HttpContext = new DefaultHttpContext();
             cc.HttpContext.Session = null;

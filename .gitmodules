@@ -1,0 +1,4 @@
+[submodule "src/Include/OneScript"]
+	path = src/Include/OneScript
+	url = https://github.com/EvilBeaver/OneScript.git
+	branch = develop

@@ -7,6 +7,9 @@ using ScriptEngine.Machine;
 
 using Hangfire;
 using Hangfire.Storage;
+using Microsoft.Extensions.DependencyInjection;
+using OneScript.WebHost.Database;
+using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.HostedScript.Library;
 
@@ -17,10 +20,12 @@ namespace OneScript.WebHost.BackgroundJobs
     public class ScheduledJobsManagerContext : AutoContext<ScheduledJobsManagerContext>
     {
         private static RuntimeEnvironment _globalEnv;
+        private static DbContextProvider _dbBridge;
 
-        public ScheduledJobsManagerContext(RuntimeEnvironment env)
+        public ScheduledJobsManagerContext(RuntimeEnvironment env, DbContextProvider dbBridge)
         {
             _globalEnv = env;
+            _dbBridge = dbBridge;
         }
         
         [ContextMethod("ВыполнитьОтложенноеЗадание")]
@@ -90,10 +95,30 @@ namespace OneScript.WebHost.BackgroundJobs
         public static void PerformAction(string module, string method)
         {
             _globalEnv.LoadMemory(MachineInstance.Current);
-            
-            var scriptObject = (IRuntimeContextInstance) _globalEnv.GetGlobalProperty(module);
-            var methodId = scriptObject.FindMethod(method);
-            scriptObject.CallAsProcedure(methodId, new IValue[0]);
+
+            ApplicationDbContext dbContext = null;
+            try
+            {
+                dbContext = _dbBridge?.CreateContext();
+                
+                // TODO Сделать нормальный наконец способ доступа к ИБ
+                if (DatabaseExtensions.Infobase != null)
+                {
+                    DatabaseExtensions.Infobase.DbContext = dbContext;
+                }
+                
+                var scriptObject = (IRuntimeContextInstance) _globalEnv.GetGlobalProperty(module);
+                var methodId = scriptObject.FindMethod(method);
+                scriptObject.CallAsProcedure(methodId, new IValue[0]);
+            }
+            finally
+            {
+                dbContext?.Dispose();
+                if (DatabaseExtensions.Infobase != null)
+                {
+                    DatabaseExtensions.Infobase.DbContext = null;
+                }
+            }
         }
     }
 }

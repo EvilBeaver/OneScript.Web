@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -81,7 +82,14 @@ namespace OneScriptWeb.Tests
             services.AddDbContext<ApplicationDbContext>();
 
             var provider = services.BuildServiceProvider();
-            var ibUsers = new InfobaseUsersManagerContext(provider);
+            var accMock = new Mock<IHttpContextAccessor>();
+            accMock.SetupGet(x => x.HttpContext).Returns(() =>
+            {
+                var hc = new Mock<HttpContext>();
+                hc.SetupGet(x => x.RequestServices).Returns(provider);
+                return hc.Object;
+            });
+            var ibUsers = new InfobaseUsersManagerContext(accMock.Object);
 
             var user = ibUsers.CreateUser();
             user.Name = "Hello";

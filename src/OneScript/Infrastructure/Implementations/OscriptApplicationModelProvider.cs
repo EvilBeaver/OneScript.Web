@@ -1,19 +1,20 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Authorization;
+using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders.Physical;
-using Microsoft.Extensions.FileSystemGlobbing;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using OneScript.WebHost.Application;
 using ScriptEngine.Environment;
 using ScriptEngine.HostedScript;
@@ -26,12 +27,16 @@ namespace OneScript.WebHost.Infrastructure.Implementations
     public class OscriptApplicationModelProvider : IApplicationModelProvider
     {
         private const string MODULE_FILENAME = "module.os";
+        private const string CONTROLLERS_FOLDER = "controllers";
+        
         private readonly IApplicationRuntime _fw;
         private readonly IFileProvider _scriptsProvider;
         private readonly int _controllersMethodOffset;
         private readonly ApplicationInstance _app;
         private readonly IAuthorizationPolicyProvider _policyProvider;
         private readonly ClassAttributeResolver _classAttribResolver;
+        private readonly AnnotationAttributeMapper _annotationMapper = new AnnotationAttributeMapper();
+        private ILogger _logger;
 
         public OscriptApplicationModelProvider(ApplicationInstance appObject,
             IApplicationRuntime framework,
@@ -45,14 +50,21 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             _policyProvider = authPolicyProvider;
             _classAttribResolver = new ClassAttributeResolver();
 
-            if (_fw.Engine.DirectiveResolver is DirectiveMultiResolver resolvers)
+            if (!_fw.Engine.DirectiveResolvers.Any(x => x is ClassAttributeResolver))
             {
-                if (!resolvers.Any(x => x is ClassAttributeResolver))
-                {
-                    resolvers.Add(_classAttribResolver);
-                }
-            }
-
+                _fw.Engine.DirectiveResolvers.Add(_classAttribResolver);
+            } 
+            
+            FillDefaultMappers();
+        }
+        
+        public OscriptApplicationModelProvider(ApplicationInstance appObject,
+            IApplicationRuntime framework,
+            IFileProvider sourceProvider,
+            IAuthorizationPolicyProvider authPolicyProvider,
+            ILoggerFactory loggerFactory):this(appObject,framework,sourceProvider,authPolicyProvider)
+        {
+            _logger = loggerFactory.CreateLogger(GetType());
         }
 
         public void OnProvidersExecuting(ApplicationModelProviderContext context)
@@ -69,11 +81,11 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             if (standardHandling)
             {
                 // прямые контроллеры
-                var filesystemSources = _scriptsProvider.GetDirectoryContents("controllers").Where(x => !x.IsDirectory && x.PhysicalPath.EndsWith(".os"));
+                var filesystemSources = _scriptsProvider.GetDirectoryContents(CONTROLLERS_FOLDER).Where(x => !x.IsDirectory && x.PhysicalPath.EndsWith(".os"));
                 sources.AddRange(filesystemSources);
 
                 // контроллеры в папках
-                filesystemSources = _scriptsProvider.GetDirectoryContents("controllers")
+                filesystemSources = _scriptsProvider.GetDirectoryContents(CONTROLLERS_FOLDER)
                     .Where(x => x.IsDirectory);
 
                 sources.AddRange(filesystemSources);
@@ -89,7 +101,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             foreach (var virtualPath in sources)
             {
                 LoadedModule module;
-                ICodeSource codeSrc;
+                FileInfoCodeSource codeSrc;
                 string typeName;
                 if (virtualPath.IsDirectory)
                 {
@@ -109,28 +121,93 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                     typeName = System.IO.Path.GetFileNameWithoutExtension(virtualPath.Name);
                 }
 
-                try
-                {
-                    _classAttribResolver.BeforeCompilation();
-                    module = LoadControllerCode(codeSrc);
-                }
-                finally
-                {
-                    _classAttribResolver.AfterCompilation();
-                }
+                module = CompileControllerModule(codeSrc);
 
                 var reflectedType = reflector.Reflect<ScriptedController>(module, typeName);
                 var attrList = MapAnnotationsToAttributes(_classAttribResolver.Attributes);
                 var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), attrList.AsReadOnly());
                 cm.ControllerName = reflectedType.Name;
-                cm.Properties.Add("module", module);
+                var recompileInfo = new DynamicCompilationInfo()
+                {
+                    Module = module,
+                    CodeSource = codeSrc,
+                    Tag = cm
+                };
+                
+                cm.Properties.Add("CompilationInfo", recompileInfo);
                 cm.Properties.Add("type", reflectedType);
-
+                
+                ChangeToken.OnChange(()=>CreateWatchToken(codeSrc),
+                    RecompileController,
+                    recompileInfo);
+                
                 FillActions(cm, reflectedType);
                 FillFilters(cm);
 
                 context.Result.Controllers.Add(cm);
             }
+        }
+
+        private IChangeToken CreateWatchToken(FileInfoCodeSource codeSrc)
+        {
+            var cPath = codeSrc.FileInfo.PhysicalPath.Replace('\\', '/');
+            var root = Path.GetDirectoryName(_app.Module.ModuleInfo.Origin).Replace('\\','/');
+            if (!cPath.StartsWith(root))
+            {
+                _logger.LogWarning($"file {cPath} can't be watched since it's not in root folder {root}");
+                return NullChangeToken.Singleton;
+            }
+            
+            return _scriptsProvider.Watch(cPath.Substring(root.Length));
+        }
+
+        private LoadedModule CompileControllerModule(ICodeSource codeSrc)
+        {
+            LoadedModule module;
+            try
+            {
+                _fw.DebugCurrentThread();
+                _classAttribResolver.BeforeCompilation();
+                module = LoadControllerCode(codeSrc);
+            }
+            finally
+            {
+                _fw.StopDebugCurrentThread();
+                _classAttribResolver.AfterCompilation();
+            }
+
+            return module;
+        }
+
+        private void RecompileController(DynamicCompilationInfo info)
+        {
+            if (info.TimeStamp != default(DateTime))
+            {
+                if ((DateTime.Now - info.TimeStamp).Seconds < 1)
+                {
+                    _logger.LogDebug("Skipping duplicate change token");
+                    return;
+                }
+            }
+
+            var controllerModel = (ControllerModel) info.Tag;
+            _logger?.LogInformation($"Start recompiling controller {controllerModel.ControllerName}");
+
+            var module = CompileControllerModule(info.CodeSource);
+            var canRecompile = controllerModel.Attributes.OrderBy(x => x.GetType())
+                .SequenceEqual(MapAnnotationsToAttributes(_classAttribResolver.Attributes)
+                    .OrderBy(x => x.GetType()));
+            
+            if (!canRecompile)
+            {
+                _logger?.LogError($"Can't recompile controller {controllerModel.ControllerName} when list of attributes has changed");
+                return;
+            }
+
+            info.Module = module;
+            info.TimeStamp = DateTime.Now;
+            _logger?.LogInformation($"Controller {controllerModel.ControllerName} has been recompiled");
+
         }
 
         private IFileInfo FindModule(string controllerName, string moduleName)
@@ -190,24 +267,229 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 if (scriptMethodInfo == null)
                     continue;
 
-                var clrMethodInfo = MapToActionMethod(scriptMethodInfo);
-                var attrList = MapAnnotationsToAttributes(scriptMethodInfo);
-                var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
-                actionModel.ActionName = method.Name;
+                var actionModel = CreateActionModel(scriptMethodInfo);
                 actionModel.Controller = cm;
-                actionModel.Properties.Add("actionMethod", scriptMethodInfo);
-                actionModel.Selectors.Add(new SelectorModel());
                 cm.Actions.Add(actionModel);
             }
 
         }
 
-        private List<object> MapAnnotationsToAttributes(ReflectedMethodInfo scriptMethodInfo)
+        private ActionModel CreateActionModel(ReflectedMethodInfo scriptMethodInfo)
         {
-            var annotations = scriptMethodInfo.GetCustomAttributes(typeof(UserAnnotationAttribute), false)
-                .Select(x=> ((UserAnnotationAttribute)x).Annotation);
-         
-            return MapAnnotationsToAttributes(annotations);
+            var clrMethodInfo = MapToActionMethod(scriptMethodInfo);
+            var userAnnotations = scriptMethodInfo.GetCustomAttributes(typeof(UserAnnotationAttribute), false)
+                .Select(x => ((UserAnnotationAttribute) x).Annotation);
+
+            string actionName = scriptMethodInfo.Name;
+            string magicHttpMethod = null;
+            List<AnnotationDefinition> workSet = new List<AnnotationDefinition>();
+
+            var pos = actionName.LastIndexOf('_');
+            if (pos > 0 && pos < actionName.Length - 1)
+            {
+                magicHttpMethod = actionName.Substring(pos + 1);
+            }
+
+            foreach (var annotation in userAnnotations)
+            {
+                var loCase = annotation.Name.ToLowerInvariant();
+                var workAnnotation = annotation;
+                if (loCase == "httpmethod")
+                {
+                    if (magicHttpMethod != null)
+                    {
+                        if (annotation.ParamCount == 0)
+                        {
+                            // наш случай.
+                            actionName = actionName.Substring(0, pos);
+                            workAnnotation.Parameters = new[]
+                            {
+                                new AnnotationParameter()
+                                {
+                                    Name = "Method",
+                                    RuntimeValue = ValueFactory.Create(magicHttpMethod)
+                                }
+                            };
+                        }
+                    }
+                }
+                
+                workSet.Add(workAnnotation);
+
+            }
+
+            var attrList = MapAnnotationsToAttributes(workSet);
+            var annotatedActionName = attrList.OfType<ActionNameAttribute>().FirstOrDefault();
+            if (annotatedActionName?.Name != null)
+            {
+                actionName = annotatedActionName.Name;
+            }
+            
+            var actionModel = new ActionModel(clrMethodInfo, attrList.AsReadOnly());
+            actionModel.ActionName = actionName;
+            actionModel.Properties.Add("actionMethod", scriptMethodInfo);
+            foreach(var selector in CreateSelectors(actionModel.Attributes))
+                actionModel.Selectors.Add(selector);
+
+            return actionModel;
+        }
+
+        private IEnumerable<SelectorModel> CreateSelectors(IEnumerable<object> attributes)
+        {
+            var routeProviders = new List<IRouteTemplateProvider>();
+            var createSelectorForSilentRouteProviders = false;
+            foreach (var attribute in attributes)
+            {
+                if (attribute is IRouteTemplateProvider routeTemplateProvider)
+                {
+                    if (IsSilentRouteAttribute(routeTemplateProvider))
+                    {
+                        createSelectorForSilentRouteProviders = true;
+                    }
+                    else
+                    {
+                        routeProviders.Add(routeTemplateProvider);
+                    }
+                }
+            }
+
+            foreach (var routeProvider in routeProviders)
+            {
+                // If we see an attribute like
+                // [Route(...)]
+                //
+                // Then we want to group any attributes like [HttpGet] with it.
+                //
+                // Basically...
+                //
+                // [HttpGet]
+                // [HttpPost("Products")]
+                // public void Foo() { }
+                //
+                // Is two selectors. And...
+                //
+                // [HttpGet]
+                // [Route("Products")]
+                // public void Foo() { }
+                //
+                // Is one selector.
+                if (!(routeProvider is IActionHttpMethodProvider))
+                {
+                    createSelectorForSilentRouteProviders = false;
+                }
+            }
+
+            var selectorModels = new List<SelectorModel>();
+            if (routeProviders.Count == 0 && !createSelectorForSilentRouteProviders)
+            {
+                // Simple case, all attributes apply
+                selectorModels.Add(CreateSelectorModel(route: null, attributes: attributes));
+            }
+            else
+            {
+                // Each of these routeProviders are the ones that actually have routing information on them
+                // something like [HttpGet] won't show up here, but [HttpGet("Products")] will.
+                foreach (var routeProvider in routeProviders)
+                {
+                    var filteredAttributes = new List<object>();
+                    foreach (var attribute in attributes)
+                    {
+                        if (ReferenceEquals(attribute, routeProvider))
+                        {
+                            filteredAttributes.Add(attribute);
+                        }
+                        else if (InRouteProviders(routeProviders, attribute))
+                        {
+                            // Exclude other route template providers
+                            // Example:
+                            // [HttpGet("template")]
+                            // [Route("template/{id}")]
+                        }
+                        else if (
+                            routeProvider is IActionHttpMethodProvider &&
+                            attribute is IActionHttpMethodProvider)
+                        {
+                            // Example:
+                            // [HttpGet("template")]
+                            // [AcceptVerbs("GET", "POST")]
+                            //
+                            // Exclude other http method providers if this route is an
+                            // http method provider.
+                        }
+                        else
+                        {
+                            filteredAttributes.Add(attribute);
+                        }
+                    }
+
+                    selectorModels.Add(CreateSelectorModel(routeProvider, filteredAttributes));
+                }
+
+                if (createSelectorForSilentRouteProviders)
+                {
+                    var filteredAttributes = new List<object>();
+                    foreach (var attribute in attributes)
+                    {
+                        if (!InRouteProviders(routeProviders, attribute))
+                        {
+                            filteredAttributes.Add(attribute);
+                        }
+                    }
+
+                    selectorModels.Add(CreateSelectorModel(route: null, attributes: filteredAttributes));
+                }
+            }
+
+            return selectorModels;
+        }
+
+        private bool IsSilentRouteAttribute(IRouteTemplateProvider routeTemplateProvider)
+        {
+            return
+                routeTemplateProvider.Template == null &&
+                routeTemplateProvider.Order == null &&
+                routeTemplateProvider.Name == null;
+        }
+
+        private static bool InRouteProviders(List<IRouteTemplateProvider> routeProviders, object attribute)
+        {
+            foreach (var rp in routeProviders)
+            {
+                if (ReferenceEquals(rp, attribute))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static SelectorModel CreateSelectorModel(IRouteTemplateProvider route, IEnumerable<object> attributes)
+        {
+            var selectorModel = new SelectorModel();
+            if (route != null)
+            {
+                selectorModel.AttributeRouteModel = new AttributeRouteModel(route);
+            }
+
+            foreach (var constraint in attributes.OfType<IActionConstraintMetadata>())
+            {
+                selectorModel.ActionConstraints.Add(constraint);
+            }
+            
+            // Simple case, all HTTP method attributes apply
+            var httpMethods = attributes
+                .OfType<IActionHttpMethodProvider>()
+                .SelectMany(a => a.HttpMethods)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+
+            if (httpMethods.Length > 0)
+            {
+                selectorModel.ActionConstraints.Add(new HttpMethodActionConstraint(httpMethods));
+            }
+
+            return selectorModel;
         }
 
         private List<object> MapAnnotationsToAttributes(IEnumerable<AnnotationDefinition> annotations)
@@ -215,36 +497,14 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             var attrList = new List<object>();
             foreach (var annotation in annotations)
             {
-                var name = annotation.Name.ToLowerInvariant();
-                if (name == "авторизовать" || name == "authorize")
-                {
-                    attrList.Add(new AuthorizeAttribute());
-                }
-
-                if (name == "httppost")
-                {
-                    attrList.Add(new HttpPostAttribute());
-                }
-
-                if (name == "httpget")
-                {
-                    attrList.Add(new HttpGetAttribute());
-                }
+                var attribute = _annotationMapper.Get(annotation);
+                if(attribute != null)
+                    attrList.Add(attribute);
             }
 
             return attrList;
         }
-
-        private void CorrectDispId(ReflectedMethodInfo scriptMethodInfo)
-        {
-            var fieldId = typeof(ReflectedMethodInfo).GetField("_dispId",
-                BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.GetField);
-
-            var currId = (int)fieldId.GetValue(scriptMethodInfo);
-            currId += _controllersMethodOffset;
-            fieldId.SetValue(scriptMethodInfo, currId);
-        }
-
+        
         private static System.Reflection.MethodInfo MapToActionMethod(ReflectedMethodInfo reflectedMethodInfo)
         {
             System.Reflection.MethodInfo clrMethodInfo;
@@ -265,5 +525,62 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         }
 
         public int Order => -850;
+
+
+        // TODO: Для быстрого старта. По мере развития будет заменяться на параметризованные версии
+        private void MapDirect(string name, string alias, Type attrType)
+        {
+            _annotationMapper.AddMapper(name, alias, (anno) => Activator.CreateInstance(attrType));
+        }
+
+        private void FillDefaultMappers()
+        {
+            MapDirect("Authorize", "Авторизовать", typeof(AuthorizeAttribute));
+            MapDirect("HttpPost", null, typeof(HttpPostAttribute));
+            MapDirect("HttpGet", null, typeof(HttpGetAttribute));
+
+            _annotationMapper.AddMapper("HttpMethod", MapHttpMethod);
+            _annotationMapper.AddMapper("Action", "Действие", (annotation) =>
+            {
+                if (annotation.ParamCount != 1)
+                    throw new AnnotationException(annotation, "Incorrect annotation parameter count");
+
+                return new ActionNameAttribute(annotation.Parameters[0].RuntimeValue.AsString());
+            });
+
+            // TODO: refactor me
+            _annotationMapper.AddMapper("Route", "Маршрут", (annotation) =>
+            {
+                if (annotation.ParamCount != 1)
+                    throw new AnnotationException(annotation, "Incorrect annotation parameter count");
+
+                return new RouteAttribute(annotation.Parameters[0].RuntimeValue.AsString());
+            });
+        }
+
+        private static object MapHttpMethod(AnnotationDefinition anno)
+        {
+            if (anno.ParamCount < 1)
+                throw new AnnotationException(anno, "Missing parameter <Method>");
+
+            var methodNames = anno.Parameters[0].RuntimeValue.AsString();
+            if (anno.ParamCount == 2)
+            {
+                return new CustomHttpMethodAttribute(methodNames.Split(
+                        new[] { ',' },
+                        StringSplitOptions.RemoveEmptyEntries),
+                    anno.Parameters[1].RuntimeValue.AsString());
+            }
+
+            if (anno.ParamCount == 1)
+            {
+                return new CustomHttpMethodAttribute(methodNames.Split(
+                    new[] { ',' },
+                    StringSplitOptions.RemoveEmptyEntries));
+            }
+
+            throw new AnnotationException(anno, "Too many parameters");
+
+        }
     }
 }

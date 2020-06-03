@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.Configuration;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 
 namespace OneScript.WebHost.Database
@@ -32,6 +34,7 @@ namespace OneScript.WebHost.Database
         {
             services.AddTransient<DbContextOptions<ApplicationDbContext>>(ConfigureDbOptions);
             services.AddDbContext<ApplicationDbContext>();
+            services.AddTransient<DbContextProvider>();
         }
 
         private static DbContextOptions<ApplicationDbContext> ConfigureDbOptions(IServiceProvider serviceProvider)
@@ -50,6 +53,9 @@ namespace OneScript.WebHost.Database
                 case SupportedDatabase.SQLite:
                     builder.UseSqlite(options.ConnectionString);
                     break;
+                case SupportedDatabase.MySQL:
+                    builder.UseMySql(options.ConnectionString);
+                    break;
                 default:
                     throw new InvalidOperationException("Unknown database type in configuration");
             }
@@ -67,7 +73,7 @@ namespace OneScript.WebHost.Database
                 var dbctx = services.GetService<ApplicationDbContext>();
                 dbctx.Database.EnsureCreated();
 
-                var userManager = new InfobaseUsersManagerContext(services);
+                var userManager = new InfobaseUsersManagerContext(services.GetRequiredService<IHttpContextAccessor>());
                 environment.InjectGlobalProperty(userManager, "ПользователиИнформационнойБазы", true);
                 environment.InjectGlobalProperty(userManager, "InfoBaseUsers", true);
 
@@ -91,7 +97,8 @@ namespace OneScript.WebHost.Database
         Unknown,
         MSSQLServer,
         Postgres,
-        SQLite
+        SQLite,
+        MySQL
     }
 
 }
