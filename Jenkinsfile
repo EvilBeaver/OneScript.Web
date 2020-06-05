@@ -1,6 +1,9 @@
 pipeline {
 
 	agent none
+	 environment {
+        ReleaseNumber = '0.7.0'
+    }
 	stages {
 		stage('Build everything')
 		{
@@ -73,8 +76,8 @@ pipeline {
                          userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
 
 				withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'dockerpassword', usernameVariable: 'dockeruser')]) {
-					sh 'docker build -t evilbeaver/oscript-web:0.6.0 --file Dockerfile src'
-					sh 'docker login -p $dockerpassword -u $dockeruser && docker push evilbeaver/oscript-web:0.6.0'
+					sh "docker build -t evilbeaver/oscript-web:${ReleaseNumber} --file Dockerfile src"
+					sh "docker login -p $dockerpassword -u $dockeruser && docker push evilbeaver/oscript-web:${ReleaseNumber}"
 				}
 			}			
 		}
