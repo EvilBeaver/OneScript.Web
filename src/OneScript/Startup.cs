@@ -77,6 +77,7 @@ namespace OneScript.WebHost
                     )
                 );
             
+            services.AddRazorPages(); //TODO - мы должны поддерживать 2 режима Razor и CSHTML
             services.AddOneScript();
             services.AddOneScriptDebug(Configuration);
         }
@@ -101,6 +102,15 @@ namespace OneScript.WebHost
             var manager = services.GetService<ApplicationPartManager>();
             var provider = manager.FeatureProviders.OfType<ScriptedViewComponentFeatureProvider>().FirstOrDefault();
             provider?.Configure(services);
+
+            /*
+                app.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapRazorPages(); Либо MVC либо Endpoints
+                    endpoints.MapHub<ChatHub>("/chathub"); - причем серверные оповещения не будут работать без ЭндПоинтов
+                });
+            */
+            
         }
 
         private static void StartOneScriptApp(IApplicationBuilder app, IServiceProvider services)
