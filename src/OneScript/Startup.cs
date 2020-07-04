@@ -70,8 +70,12 @@ namespace OneScript.WebHost
             //TODO подумать как вывести данную конструкцию в конфигурацю доступную для разработчика 1С
             services.AddAntiforgery(options => options.Cookie.Name = "OScriptWeb.Antiforgery");
             
-            services.AddMvc()
-                .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
+            services.AddMvc(option => option.EnableEndpointRouting = false)
+                .ConfigureApplicationPartManager(
+                    pm => pm.FeatureProviders.Add(
+                        new ScriptedViewComponentFeatureProvider()
+                    )
+                );
             
             services.AddOneScript();
             services.AddOneScriptDebug(Configuration);
