@@ -40,6 +40,10 @@ namespace OneScript.WebHost.BackgroundJobs
                 var jobsSettings = config.GetSection("BackgroundJobs");
                 var options = new OscriptBackgroundJobsOptions();
                 
+                hfGlobalConfig.UseLogProvider(
+                    new Hangfire.Logging.LogProviders.ColouredConsoleLogProvider()
+                );
+
                 jobsSettings.Bind(options);
                 
                 switch (options.StorageType)

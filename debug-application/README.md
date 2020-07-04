@@ -22,3 +22,8 @@
 * `ms-dotnettools.csharp` - поддержка C#, ASP.NET, Razor и отладчика C#
 * `evilbeaver.oscript-debug` - поддержка отладки OScript
 * `1c-syntax.language-1c-bsl` - поддержка языка 1С и OScript
+
+## Структура каталогов
+
+* `./` - `content-root` - то есть корень контента приложения
+* `wwwroot` - статический файлы - вообще конечно, удобней впереди ставить `nginx`, но мы будем ставить `Caddy` - https://caddyserver.com/ - в том числе и для https ;-)
