@@ -2,7 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.AspNetCore.Hosting.Internal;
+//using Microsoft.AspNetCore.Hosting.Internal; ASP.NET Breaking Changes
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;

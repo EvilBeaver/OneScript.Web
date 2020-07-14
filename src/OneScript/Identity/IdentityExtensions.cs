@@ -40,7 +40,7 @@ namespace OneScript.WebHost.Identity
                     options.AccessDeniedPath = cookieOpts["AccessDeniedPath"] ?? options.AccessDeniedPath;
                     options.ExpireTimeSpan = cookieOpts["ExpireTimeSpan"] == null? options.ExpireTimeSpan : TimeSpan.Parse(cookieOpts["ExpireTimeSpan"]);
                     options.ReturnUrlParameter = cookieOpts["ReturnUrlParameter"] ?? options.ReturnUrlParameter;
-                    options.CookieName = cookieOpts["CookieName"] ?? "OscriptWeb.Identity.Application";
+                    options.Cookie.Name = cookieOpts["CookieName"] ?? "OscriptWeb.Identity.Application";
 
                     cookieOpts.Bind("Cookie", options.Cookie);
                 });

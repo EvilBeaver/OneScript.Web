@@ -70,9 +70,14 @@ namespace OneScript.WebHost
             //TODO подумать как вывести данную конструкцию в конфигурацю доступную для разработчика 1С
             services.AddAntiforgery(options => options.Cookie.Name = "OScriptWeb.Antiforgery");
             
-            services.AddMvc()
-                .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
+            services.AddMvc(option => option.EnableEndpointRouting = false)
+                .ConfigureApplicationPartManager(
+                    pm => pm.FeatureProviders.Add(
+                        new ScriptedViewComponentFeatureProvider()
+                    )
+                );
             
+            services.AddRazorPages(); //TODO - мы должны поддерживать 2 режима Razor и CSHTML
             services.AddOneScript();
             services.AddOneScriptDebug(Configuration);
         }
@@ -97,6 +102,15 @@ namespace OneScript.WebHost
             var manager = services.GetService<ApplicationPartManager>();
             var provider = manager.FeatureProviders.OfType<ScriptedViewComponentFeatureProvider>().FirstOrDefault();
             provider?.Configure(services);
+
+            /*
+                app.UseEndpoints(endpoints =>
+                {
+                    endpoints.MapRazorPages(); Либо MVC либо Endpoints
+                    endpoints.MapHub<ChatHub>("/chathub"); - причем серверные оповещения не будут работать без ЭндПоинтов
+                });
+            */
+            
         }
 
         private static void StartOneScriptApp(IApplicationBuilder app, IServiceProvider services)

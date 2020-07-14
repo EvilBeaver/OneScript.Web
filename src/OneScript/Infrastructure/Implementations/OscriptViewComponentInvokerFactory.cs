@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
-using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;
+//using Microsoft.AspNetCore.Mvc.ViewFeatures.Internal;  ASP.NET Breaking Changes
 using Microsoft.Extensions.Logging;
 
 namespace OneScript.WebHost.Infrastructure.Implementations

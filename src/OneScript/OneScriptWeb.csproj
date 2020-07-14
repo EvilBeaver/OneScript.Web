@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.2</TargetFrameworks>
+    <TargetFrameworks>net461;netcoreapp2.2;netcoreapp3.1</TargetFrameworks>
     <AssemblyName>OneScript.WebHost</AssemblyName>
     <RootNamespace>OneScript.WebHost</RootNamespace>
     <StartupObject>OneScript.WebHost.Program</StartupObject>
@@ -63,5 +63,10 @@
     <Content Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <!-- extends watching group to include *.os files -->
+    <Watch Include="**\*.os" Exclude="oscript_modules\**\*" />
+    <Watch Include="..\..\debug-application\**\*.os" Exclude="oscript_modules\**\*" />
   </ItemGroup>
 </Project>
