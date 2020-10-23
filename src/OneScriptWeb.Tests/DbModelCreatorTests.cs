@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using OneScript.WebHost.Database;
@@ -69,13 +70,17 @@ namespace OneScriptWeb.Tests
         {
             var opts = new DbContextOptionsBuilder<ApplicationDbContext>();
             var services = new ServiceCollection();
-            services.AddTransient<DbContextOptions<ApplicationDbContext>>((svc) => opts.UseInMemoryDatabase("usersManagerTest").Options);
+            services.AddTransient(_ => opts.UseInMemoryDatabase("usersManagerTest").Options);
+            services.AddTransient(_ => Mock.Of<ILogger<UserManager<ApplicationUser>>>());
+            services.AddTransient(_ => Mock.Of<ILogger<DataProtectorTokenProvider<ApplicationUser>>>());
 
             var cfgBuilder = new ConfigurationBuilder();
-            Dictionary<string, string> keys = new Dictionary<string, string>();
-            keys["Security:Password:RequireDigit"] = "false";
-            keys["Security:Password:RequireUppercase"] = "false";
-            keys["Security:Password:RequireLowercase"] = "false";
+            var keys = new Dictionary<string, string>
+            {
+                ["Security:Password:RequireDigit"] = "false",
+                ["Security:Password:RequireUppercase"] = "false",
+                ["Security:Password:RequireLowercase"] = "false"
+            };
             cfgBuilder.AddInMemoryCollection(keys);
 
             services.AddIdentityByConfiguration(cfgBuilder.Build());

@@ -95,7 +95,7 @@ namespace OneScriptWeb.Tests
         {
             var services = new ServiceCollection();
             services.TryAddSingleton<IFileProvider, InMemoryFileProvider>();
-            services.AddSingleton(Mock.Of<IHostingEnvironment>());
+            services.AddSingleton(Mock.Of<IWebHostEnvironment>());
             services.AddSingleton(Mock.Of<ILoggerFactory>());
             services.AddTransient(typeof(IActionInvokerFactory), (s) => Mock.Of<IActionInvokerFactory>());
             services.AddTransient(typeof(IActionSelector), (s) => Mock.Of<IActionSelector>());
@@ -124,7 +124,7 @@ namespace OneScriptWeb.Tests
             return services;
         }
 
-        //[Fact]
+        [Fact(Skip = "Skipped for some reasons")]
         public void CheckThatRoutesAreRegisteredInHandler()
         {
             var services = MockMvcServices();
@@ -154,7 +154,7 @@ namespace OneScriptWeb.Tests
             Assert.IsType<RoutesCollectionContext>(routeCollection);
         }
 
-        [Fact(Skip = "Сменилось поведение Verify не признает тип FormattedLogValues в качестве It.IsAny<object>")]
+        [Fact]
         public void MethodEchoWritesLog()
         {
             var services = new ServiceCollection();
@@ -177,9 +177,9 @@ namespace OneScriptWeb.Tests
                 x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.IsAny<object>(),
+                    It.Is<It.IsAnyType>((v, t) => true),
                     null,
-                    It.IsAny<Func<object, Exception, string>>()),
+                    It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)),
                 Times.Once);
         }
 

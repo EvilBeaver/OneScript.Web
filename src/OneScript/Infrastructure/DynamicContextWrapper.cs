@@ -3,8 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Query.ExpressionTranslators.Internal;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 
