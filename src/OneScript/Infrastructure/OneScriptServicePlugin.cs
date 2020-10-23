@@ -1,8 +1,12 @@
-﻿#if NETCOREAPP
+﻿/*----------------------------------------------------------
+This Source Code Form is subject to the terms of the
+Mozilla Public License, v.2.0. If a copy of the MPL
+was not distributed with this file, You can obtain one
+at http://mozilla.org/MPL/2.0/.
+----------------------------------------------------------*/
+#if NETCOREAPP
 using System.Text;
 #endif
-
-using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -16,7 +20,6 @@ using Microsoft.Extensions.Options;
 using OneScript.DebugServices;
 using OneScript.WebHost.Authorization;
 using OneScript.WebHost.Infrastructure.Implementations;
-using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure
 {
