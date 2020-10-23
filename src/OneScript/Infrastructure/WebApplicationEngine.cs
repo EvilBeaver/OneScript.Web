@@ -28,7 +28,13 @@ namespace OneScript.WebHost.Infrastructure
         
         public ScriptingEngine Engine { get; }
         public RuntimeEnvironment Environment { get; }
+        public CompilerService GetCompilerService()
+        {
+            var compilerSvc = Engine.GetCompilerService();
+            compilerSvc.DefinePreprocessorValue("ВебСервер");
+            compilerSvc.DefinePreprocessorValue("WebServer");
 
-
+            return compilerSvc;
+        }
     }
 }

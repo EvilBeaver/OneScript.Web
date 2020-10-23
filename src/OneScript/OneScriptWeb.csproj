@@ -1,6 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFrameworks>net461;netcoreapp2.2</TargetFrameworks>
     <AssemblyName>OneScript.WebHost</AssemblyName>
     <RootNamespace>OneScript.WebHost</RootNamespace>
     <StartupObject>OneScript.WebHost.Program</StartupObject>
@@ -9,6 +8,7 @@
     <MvcRazorCompileOnPublish>false</MvcRazorCompileOnPublish>
     <PackageProjectUrl />
     <SignAssembly>false</SignAssembly>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>

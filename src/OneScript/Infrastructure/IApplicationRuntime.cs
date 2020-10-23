@@ -7,5 +7,7 @@ namespace OneScript.WebHost.Infrastructure
     {
         ScriptingEngine Engine { get; }
         RuntimeEnvironment Environment { get; }
+
+        CompilerService GetCompilerService();
     }
 }

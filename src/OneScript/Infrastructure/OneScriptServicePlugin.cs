@@ -28,7 +28,7 @@ namespace OneScript.WebHost.Infrastructure
                 ServiceDescriptor.Transient<IApplicationModelProvider, OscriptApplicationModelProvider>());
 
             services.TryAddTransient<IFileProvider>(svc =>
-                new PhysicalFileProvider(svc.GetService<IHostingEnvironment>().ContentRootPath));
+                new PhysicalFileProvider(svc.GetService<IWebHostEnvironment>().ContentRootPath));
             services.AddTransient<IControllerActivator, ScriptedControllerActivator>();
 
             InitializeScriptedLayer(services);

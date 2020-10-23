@@ -1,17 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Text.Encodings.Web;
-using System.Threading.Tasks;
 using Dazinator.AspNet.Extensions.FileProviders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewComponents;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +22,17 @@ namespace OneScriptWeb.Tests
 {
     public class ViewComponentDiscoveryTest
     {
+        private IApplicationRuntime MakeRuntime()
+        {
+            var rtMock = new Mock<IApplicationRuntime>();
+            var engine = new ScriptingEngine {Environment = new RuntimeEnvironment()};
+            rtMock.SetupGet(x => x.Engine).Returns(engine);
+            rtMock.SetupGet(x => x.Environment).Returns(engine.Environment);
+            rtMock.Setup(x => x.GetCompilerService()).Returns(() => engine.GetCompilerService());
+
+            return rtMock.Object;
+        }
+        
         [Fact]
         public void CanPopulateViewComponentFeature()
         {
@@ -42,8 +46,8 @@ namespace OneScriptWeb.Tests
                 var serviceProvider = services.BuildServiceProvider();
                 
                 var cp = new ScriptedViewComponentFeatureProvider();
-                cp.Engine = new ScriptingEngine();
-                cp.Engine.Environment = new RuntimeEnvironment();
+
+                cp.Runtime = MakeRuntime();
                 cp.ScriptsProvider = serviceProvider.GetService<IFileProvider>();
 
                 var feature = new ViewComponentFeature();
@@ -67,8 +71,7 @@ namespace OneScriptWeb.Tests
                 var serviceProvider = services.BuildServiceProvider();
 
                 var cp = new ScriptedViewComponentFeatureProvider();
-                cp.Engine = new ScriptingEngine();
-                cp.Engine.Environment = new RuntimeEnvironment();
+                cp.Runtime = MakeRuntime();
                 cp.ScriptsProvider = serviceProvider.GetService<IFileProvider>();
 
                 var feature = new ViewComponentFeature();
@@ -91,8 +94,7 @@ namespace OneScriptWeb.Tests
                 var serviceProvider = services.BuildServiceProvider();
 
                 var cp = new ScriptedViewComponentFeatureProvider();
-                cp.Engine = new ScriptingEngine();
-                cp.Engine.Environment = new RuntimeEnvironment();
+                cp.Runtime = MakeRuntime();
                 cp.ScriptsProvider = serviceProvider.GetService<IFileProvider>();
 
                 var feature = new ViewComponentFeature();
@@ -137,10 +139,7 @@ namespace OneScriptWeb.Tests
                 services.TryAddSingleton(Mock.Of<IConfiguration>());
                 services.TryAddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
                 services.TryAddSingleton(Mock.Of<IAuthorizationPolicyProvider>());
-                services.TryAddScoped<IHostingEnvironment>(x => new HostingEnvironment()
-                {
-                    ContentRootPath = "/"
-                });
+                services.TryAddScoped<IWebHostEnvironment>(x => Mock.Of<IWebHostEnvironment>());
                 
                 var webAppMoq = new Mock<IApplicationRuntime>();
                 var engine = new ScriptingEngine()
@@ -150,6 +149,8 @@ namespace OneScriptWeb.Tests
                 
                 webAppMoq.SetupGet(x => x.Engine).Returns(engine);
                 webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
+                webAppMoq.Setup(x => x.GetCompilerService()).Returns(engine.GetCompilerService());
+                
                 services.AddSingleton(webAppMoq.Object);
                 services.AddMvc()
                     .ConfigureApplicationPartManager(pm => pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));

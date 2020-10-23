@@ -17,13 +17,17 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private readonly LoadedModule _module;
         private readonly IApplicationRuntime _runtime;
 
-        public ScriptedMiddlewareActivator(RequestDelegate next, IFileProvider scripts, IApplicationRuntime runtime, string scriptName)
+        public ScriptedMiddlewareActivator(
+            RequestDelegate next, 
+            IFileProvider scripts,
+            IApplicationRuntime runtime,
+            string scriptName)
         {
             _next = next;
             _runtime = runtime;
             var codeSrc = new FileInfoCodeSource(scripts.GetFileInfo(scriptName));
-            var image = ScriptedMiddleware.CompileModule(runtime.Engine.GetCompilerService(), codeSrc);
-            _module = new LoadedModule(image);
+            var image = ScriptedMiddleware.CompileModule(_runtime.GetCompilerService(), codeSrc);
+            _module = _runtime.Engine.LoadModuleImage(image);
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -32,8 +36,17 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             var instance = new ScriptedMiddleware(_next, _module);
             var machine = MachineInstance.Current;
             engine.Environment.LoadMemory(machine);
-            engine.InitializeSDO(instance);
-            await instance.InvokeAsync(context);
+            try
+            {
+                _runtime.DebugCurrentThread();
+                engine.InitializeSDO(instance);
+                await instance.InvokeAsync(context);
+            }
+            finally
+            {
+                _runtime.StopDebugCurrentThread();
+            }
+            
         }
     }
 }

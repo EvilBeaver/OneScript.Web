@@ -20,7 +20,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
     {
         public ApplicationInstance Application { get; set;  }
         public IFileProvider ScriptsProvider { get; set; }
-        public ScriptingEngine Engine { get; set; }
+        public IApplicationRuntime Runtime { get; set; }
 
         private TypeInfo[] _discoveredTypes;
 
@@ -29,7 +29,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             // в режиме тестирования app-instance может быть null
             Application = services.GetService<ApplicationInstance>();
             ScriptsProvider = services.GetRequiredService<IFileProvider>();
-            Engine = services.GetRequiredService<IApplicationRuntime>().Engine;
+            Runtime = services.GetRequiredService<IApplicationRuntime>();
         }
 
         public void PopulateFeature(IEnumerable<ApplicationPart> parts, ViewComponentFeature feature)
@@ -69,7 +69,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             foreach (var virtualPath in sources)
             {
                 var code = new FileInfoCodeSource(virtualPath);
-                var compiler = Engine.GetCompilerService();
+                var compiler = Runtime.GetCompilerService();
                 var img = ScriptedViewComponent.CompileModule(compiler,code);
                 var invokatorExist = img.Methods.Any(x =>
                     StringComparer.OrdinalIgnoreCase.Compare(ScriptedViewComponent.InvokeMethodNameRu, x.Signature.Name) == 0
@@ -78,8 +78,8 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 if(!invokatorExist)
                     continue;
 
-                var module = Engine.LoadModuleImage(img);
-                var baseFileName = System.IO.Path.GetFileNameWithoutExtension(code.SourceDescription);
+                var module = Runtime.Engine.LoadModuleImage(img);
+                var baseFileName = Path.GetFileNameWithoutExtension(code.SourceDescription);
 
                 var builder = new ClassBuilder<ScriptedViewComponent>();
                 var type = builder.SetModule(module)
