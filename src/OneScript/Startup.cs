@@ -50,6 +50,7 @@ namespace OneScript.WebHost
             
             services.AddMemoryCache();
             services.AddSession();
+            services.AddHttpContextAccessor();
             services.AddDatabaseByConfiguration(Configuration);
             services.AddIdentityByConfiguration(Configuration);
             services.AddBackgroundJobsByConfiguration(Configuration);
