@@ -265,10 +265,5 @@ namespace OneScript.WebHost.Application
 
             return app;
         }
-
-        public void UseServices(IServiceProvider services)
-        {
-            //throw new NotImplementedException();
-        }
     }
 }

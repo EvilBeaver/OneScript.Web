@@ -107,7 +107,6 @@ namespace OneScript.WebHost
             {
                 var oscriptApp = services.GetService<ApplicationInstance>();
                 appRuntime.Engine.DebugController = services.GetService<IDebugController>();
-                oscriptApp.UseServices(services);
 
                 if (appRuntime.DebugEnabled())
                 {
