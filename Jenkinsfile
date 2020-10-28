@@ -9,7 +9,10 @@ pipeline {
 
 		stage('Build and test'){
 			agent {
-				image 'mcr.microsoft.com/dotnet/core/sdk:3.1'
+				docker {
+					image 'mcr.microsoft.com/dotnet/core/sdk:3.1'
+					label 'linux'
+				}
 			}
 			steps {
 				sh "dotnet build src/OneScript/OneScriptWeb.csproj -r linux-x64;win-x64 /p:ReleaseNumber=${ReleaseNumber} -c Release -f netcoreapp3.1"
