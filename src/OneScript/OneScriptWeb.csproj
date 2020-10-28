@@ -1,15 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
+  
   <PropertyGroup>
+    <ReleaseNumber Condition="'$(ReleaseNumber)' == ''">0.7.0</ReleaseNumber>
+    <BuildNumber Condition="'$(BUILD_NUMBER)' != ''">$(BUILD_NUMBER)</BuildNumber>
+    <BuildNumber Condition="'$(BUILD_NUMBER)' == ''">0</BuildNumber>
+    
     <AssemblyName>OneScript.WebHost</AssemblyName>
     <RootNamespace>OneScript.WebHost</RootNamespace>
     <StartupObject>OneScript.WebHost.Program</StartupObject>
-    <AssemblyVersion>0.7.0.0</AssemblyVersion>
-    <FileVersion>0.7.0.0</FileVersion>
+    <AssemblyVersion>$(ReleaseNumber).$(BuildNumber)</AssemblyVersion>
+    <FileVersion>$(ReleaseNumber).$(BuildNumber)</FileVersion>
     <MvcRazorCompileOnPublish>false</MvcRazorCompileOnPublish>
     <PackageProjectUrl />
     <SignAssembly>false</SignAssembly>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+
+    <Product>1Script Server Pages</Product>
+    <Copyright>Copyright (c) 2018 EvilBeaver</Copyright>
+    
   </PropertyGroup>
+  
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
     <RuntimeIdentifiers>win7-x64;debian-x64;fedora-x64</RuntimeIdentifiers>

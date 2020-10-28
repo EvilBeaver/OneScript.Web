@@ -8,103 +8,56 @@ pipeline {
 	stages {
 
 		stage('Build and test'){
-			options { skipDefaultCheckout() }
-			parallel {
-				stage('Build Windows'){
-					agent {label 'windows'}
-					steps {
-						bat "dotnet build OneScript.sln -r win-x64 /p:ReleaseNumber=${ReleaseNumber} -c Release"
-						
-						bat '''
-						if exist testResults erase /Q testResults
-						dotnet test src/OneScriptWeb.Tests\OneScriptWeb.Tests.csproj -c Release -f netcoreapp3.1 --logger=trx --results-directory=testResults
-						'''.stripIndent()
-						mstest testResultsFile: 'testResults/*.trx'
-					}
-				}
-
-				stage('Build Linux') {
-					agent {
-						label 'linux'
-						image 'mcr.microsoft.com/dotnet/core/sdk:3.1'
-					}
-					steps {
-						sh "dotnet build OneScript.sln -r linux-x64 /p:ReleaseNumber=${ReleaseNumber} -c Release"
-						sh '''
-						rm testResults/*
-						dotnet test src/OneScriptWeb.Tests\OneScriptWeb.Tests.csproj -c Release -f netcoreapp3.1 --logger=trx --results-directory=testResults
-						'''.stripIndent()
-						mstest testResultsFile: 'testResults/*.trx'
-					}
-				}
+			agent {
+				label 'linux'
+				image 'mcr.microsoft.com/dotnet/core/sdk:3.1'
 			}
-		}
-
-		stage('Package'){
-			options { skipDefaultCheckout() }
-			parallel {
-				stage('Make Windows artifact'){
-					agent { label 'windows' }
-					steps {
-						bat 'dotnet publish src/OneScript/OneScriptWeb.csproj -r win-x64 -f netcoreapp3.1 --no-build -o artifact/core/win-x64'
-					}
-				}
-				stage('Make Linux artifact'){
-					
-				}
-			}
-		}
-
-		stage('Package')
-		{
-			options { skipDefaultCheckout() }
-            agent { 
-                label 'windows'
-            }
 			steps {
-				checkout(
-                    [$class: 'GitSCM', branches: [[name: "${env.BRANCH_NAME}"]],
-                     doGenerateSubmoduleConfigurations: false,
-                     extensions: [
-                         [$class: 'SubmoduleOption', 
-                         disableSubmodules: false,
-                         parentCredentials: false,
-                         recursiveSubmodules: true,
-                         reference: '',
-                         trackingSubmodules: false]],
-                         submoduleCfg: [],
-                         userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
+				sh "dotnet build src/OneScript/OneScriptWeb.csproj -r linux-x64;win-x64 /p:ReleaseNumber=${ReleaseNumber} -c Release -f netcoreapp3.1"
+				sh '''
+				rm -rf testResults
+				dotnet test src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj \
+					-c Release \
+					-f netcoreapp3.1 \
+					--runtime win-x64 --logger="trx;LogFileName=win.trx" --results-directory=testResults
 
-                dir('src/OneScriptWeb.Tests'){
-					bat '''
-					@echo off
-					dotnet restore
-					dotnet xunit -nunit testresult.xml -configuration Release
-					'''
-					
-					nunit testResultsPattern: 'testresult.xml'
-				}
+				src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj \
+					-c Release \
+					-f netcoreapp3.1 \
+					--runtime linux-x64 --logger="trx;LogFileName=linux.trx" --results-directory=testResults
+				'''.stripIndent()
 
-				dir('artifact'){
-					deleteDir()
-				}
-				
-				dir('src'){
-					bat '''
-					@echo off
-					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f netcoreapp3.1 -o ../artifact/core/win7-x64 -r win7-x64
-					dotnet publish OneScript/OneScriptWeb.csproj -c Release -f netcoreapp3.1 -o ../artifact/core/debian-x64 -r debian-x64
-					'''
-				}
+				mstest testResultsFile: 'testResults/*.trx'
+
+				sh '''dotnet publish src/OneScript/OneScriptWeb.csproj \
+					--no-build \
+					-c Release
+					-f netcoreapp3.1
+					-r win-x64
+					-o artifact/core/win-x64
+
+				'''.stripIndent()
+
+				sh '''dotnet publish src/OneScript/OneScriptWeb.csproj \
+					--no-build \
+					-c Release
+					-f netcoreapp3.1
+					-r linux-x64
+					-o artifact/core/linux-x64
+
+				'''.stripIndent()
+
+				stash includes: 'artifact/**', name: 'buildResults'
 				
 				// новые версии дженкинса падают, если есть ранее зипованый артефакт
 				fileOperations([fileDeleteOperation(excludes: '', includes: '*.zip')])
 				
-				zip archive: true, dir: 'artifact/core/win7-x64', glob: '', zipFile: 'oscript.web-win7-x64.zip'
-				zip archive: true, dir: 'artifact/core/debian-x64', glob: '', zipFile: 'oscript.web-debian-x64-core.zip'
+				zip archive: true, dir: 'artifact/core/win-x64', glob: '', zipFile: 'oscript.web-win-x64.zip'
+				zip archive: true, dir: 'artifact/core/linux-x64', glob: '', zipFile: 'oscript.web-linux-x64.zip'
 			}
 		}
-		stage('Create docker image'){
+
+		stage('Create docker image') {
 			when { branch 'master' }
 			options { skipDefaultCheckout() }
             agent { 
@@ -123,6 +76,8 @@ pipeline {
                          trackingSubmodules: false]],
                          submoduleCfg: [],
                          userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
+
+				unstash 'buildResults'
 
 				withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'dockerpassword', usernameVariable: 'dockeruser')]) {
 					sh 'docker build -t evilbeaver/oscript-web:0.7.0 --file Dockerfile src'
