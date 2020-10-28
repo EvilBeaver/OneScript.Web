@@ -35,7 +35,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         
         private readonly IApplicationRuntime _fw;
         private readonly IFileProvider _scriptsProvider;
-        private readonly int _controllersMethodOffset;
         private readonly ApplicationInstance _app;
         private readonly IAuthorizationPolicyProvider _policyProvider;
         private readonly ClassAttributeResolver _classAttribResolver;
@@ -50,7 +49,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             _fw = framework;
             _app = appObject;
             _scriptsProvider = sourceProvider;
-            _controllersMethodOffset = ScriptedController.GetOwnMethodsRelectionOffset();
             _policyProvider = authPolicyProvider;
             _classAttribResolver = new ClassAttributeResolver();
 

@@ -388,11 +388,5 @@ namespace OneScript.WebHost.Application
         {
             return new ViewActionResult() { ViewData = ViewData };
         }
-
-        // TODO: Костыль вызванный ошибкой https://github.com/EvilBeaver/OneScript/issues/660
-        internal static int GetOwnMethodsRelectionOffset()
-        {
-            return _ownMethods.Count;
-        }
     }
 }
