@@ -1,8 +1,61 @@
 pipeline {
 
 	agent none
+	environment {
+        ReleaseNumber = '0.7.0'
+    }
+
 	stages {
-		stage('Build everything')
+
+		stage('Build and test'){
+			options { skipDefaultCheckout() }
+			parallel {
+				stage('Build Windows'){
+					agent {label 'windows'}
+					steps {
+						bat "dotnet build OneScript.sln -r win-x64 /p:ReleaseNumber=${ReleaseNumber} -c Release"
+						
+						bat '''
+						if exist testResults erase /Q testResults
+						dotnet test src/OneScriptWeb.Tests\OneScriptWeb.Tests.csproj -c Release -f netcoreapp3.1 --logger=trx --results-directory=testResults
+						'''.stripIndent()
+						mstest testResultsFile: 'testResults/*.trx'
+					}
+				}
+
+				stage('Build Linux') {
+					agent {
+						label 'linux'
+						image 'mcr.microsoft.com/dotnet/core/sdk:3.1'
+					}
+					steps {
+						sh "dotnet build OneScript.sln -r linux-x64 /p:ReleaseNumber=${ReleaseNumber} -c Release"
+						sh '''
+						rm testResults/*
+						dotnet test src/OneScriptWeb.Tests\OneScriptWeb.Tests.csproj -c Release -f netcoreapp3.1 --logger=trx --results-directory=testResults
+						'''.stripIndent()
+						mstest testResultsFile: 'testResults/*.trx'
+					}
+				}
+			}
+		}
+
+		stage('Package'){
+			options { skipDefaultCheckout() }
+			parallel {
+				stage('Make Windows artifact'){
+					agent { label 'windows' }
+					steps {
+						bat 'dotnet publish src/OneScript/OneScriptWeb.csproj -r win-x64 -f netcoreapp3.1 --no-build -o artifact/core/win-x64'
+					}
+				}
+				stage('Make Linux artifact'){
+					
+				}
+			}
+		}
+
+		stage('Package')
 		{
 			options { skipDefaultCheckout() }
             agent { 
