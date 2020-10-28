@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.DependencyInjection;
 using OneScript.WebHost.Infrastructure;
+using ScriptEngine;
+using ScriptEngine.Environment;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.HostedScript.Library.Binary;
 using ScriptEngine.Machine;
@@ -19,9 +21,9 @@ using ScriptEngine.Machine.Contexts;
 namespace OneScript.WebHost.Application
 {
     /// <summary>
-    /// Р“Р»Р°РІРЅС‹Р№ РєР»Р°СЃСЃ, РѕС‚РІРµС‡Р°СЋС‰РёР№ Р·Р° РѕР±СЂР°Р±РѕС‚РєСѓ РІС…РѕРґСЏС‰РµРіРѕ Р·Р°РїСЂРѕСЃР° Рё РіРµРЅРµСЂР°С†РёСЋ РѕС‚РІРµС‚Р°.
+    /// Главный класс, отвечающий за обработку входящего запроса и генерацию ответа.
     /// </summary>
-    [ContextClass("РљРѕРЅС‚СЂРѕР»Р»РµСЂ")]
+    [ContextClass("Контроллер")]
     [NonController]
     public class ScriptedController : AutoScriptDrivenObject<ScriptedController>
     {
@@ -55,7 +57,7 @@ namespace OneScript.WebHost.Application
                 RouteValues = ValueFactory.Create();
 
             var typeClr = (Type)context.ActionDescriptor.Properties["type"];
-            var type = TypeManager.RegisterType("РљРѕРЅС‚СЂРѕР»Р»РµСЂ."+typeClr.Name, typeof(ScriptedController));
+            var type = TypeManager.RegisterType("Контроллер."+typeClr.Name, typeof(ScriptedController));
             DefineType(type);
             InitOwnData();
         }
@@ -101,29 +103,29 @@ namespace OneScript.WebHost.Application
         }
 
         /// <summary>
-        /// Р’С…РѕРґСЏС‰РёР№ Р·Р°РїСЂРѕСЃ HTTP
+        /// Входящий запрос HTTP
         /// </summary>
-        [ContextProperty("Р—Р°РїСЂРѕСЃHttp")]
+        [ContextProperty("ЗапросHttp")]
         public HttpRequestImpl HttpRequest { get; }
 
         /// <summary>
-        /// РСЃС…РѕРґСЏС‰РёР№ РѕС‚РІРµС‚ HTTP
+        /// Исходящий ответ HTTP
         /// </summary>
-        [ContextProperty("РћС‚РІРµС‚Http")]
+        [ContextProperty("ОтветHttp")]
         public HttpResponseImpl HttpResponse { get; }
 
         /// <summary>
-        /// Р”РµР№СЃС‚РІСѓСЋС‰РёРµ Р·РЅР°С‡РµРЅРёСЏ РјР°СЂС€СЂСѓС‚Р° РґР»СЏ С‚РµРєСѓС‰РµРіРѕ РІС‹Р·РѕРІР°.
-        /// РўРёРї: РЎРѕРѕС‚РІРµС‚СЃС‚РІРёРµ РёР»Рё РќРµРѕРїСЂРµРґРµР»РµРЅРѕ.
-        /// РљР»СЋС‡Р°РјРё СЃРѕРѕС‚РІРµС‚СЃС‚РІРёСЏ СЏРІР»СЏСЋС‚СЃСЏ РїРµСЂРµРјРµРЅРЅС‹Рµ РјР°СЂС€СЂСѓС‚Р°.
+        /// Действующие значения маршрута для текущего вызова.
+        /// Тип: Соответствие или Неопределено.
+        /// Ключами соответствия являются переменные маршрута.
         /// </summary>
-        [ContextProperty("Р—РЅР°С‡РµРЅРёСЏРњР°СЂС€СЂСѓС‚Р°")]
+        [ContextProperty("ЗначенияМаршрута")]
         public IValue RouteValues { get; }
 
         /// <summary>
-        /// Р”Р°РЅРЅС‹Рµ http-СЃРµСЃСЃРёРё. РњРµС…Р°РЅРёР·Рј СЃРµСЃСЃРёР№ РёСЃРїРѕР»СЊР·СѓРµС‚ Cookies РґР»СЏ РїСЂРёРІСЏР·РєРё СЃРµСЃСЃРёРё Рё InMemory С…СЂР°РЅРёР»РёС‰Рµ РґР»СЏ РґР°РЅРЅС‹С… СЃРµСЃСЃРёРё.
+        /// Данные http-сессии. Механизм сессий использует Cookies для привязки сессии и InMemory хранилище для данных сессии.
         /// </summary>
-        [ContextProperty("РЎРµСЃСЃРёСЏ")]
+        [ContextProperty("Сессия")]
         public SessionImpl Session
         {
             get
@@ -135,27 +137,27 @@ namespace OneScript.WebHost.Application
         }
 
         /// <summary>
-        /// РЎРїРµС†РёР°Р»РёР·РёСЂРѕРІР°РЅРЅС‹Р№ РѕР±СЉРµРєС‚, РїСЂРµРґРЅР°Р·РЅР°С‡РµРЅРЅС‹Р№ РґР»СЏ РїРµСЂРµРґР°С‡Рё РґР°РЅРЅС‹С… РІ РіРµРЅРµСЂРёСЂСѓРµРјРѕРµ РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ.
-        /// Р­Р»РµРјРµРЅС‚С‹ РєРѕР»Р»РµРєС†РёРё РґРѕСЃС‚СѓРїРЅС‹ РІ РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРё С‡РµСЂРµР· СЃРІРѕР№СЃС‚РІР° ViewBag Рё ViewData.
+        /// Специализированный объект, предназначенный для передачи данных в генерируемое Представление.
+        /// Элементы коллекции доступны в Представлении через свойства ViewBag и ViewData.
         /// </summary>
-        [ContextProperty("Р”Р°РЅРЅС‹РµРџСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ")]
+        [ContextProperty("ДанныеПредставления")]
         public ViewDataDictionaryWrapper ViewData
         {
             get => _osViewData ?? (_osViewData = new ViewDataDictionaryWrapper());
             set => _osViewData = value ?? throw new ArgumentException();
         }
 
-        [ContextProperty("РЎРѕСЃС‚РѕСЏРЅРёРµРњРѕРґРµР»Рё", "ModelState")]
+        [ContextProperty("СостояниеМодели", "ModelState")]
         public ModelStateDictionaryWrapper ModelState =>
             _modelState ?? (_modelState = new ModelStateDictionaryWrapper(_ctx.ModelState));
         
         /// <summary>
-        /// Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Р№ РјРµС‚РѕРґ РіРµРЅРµСЂР°С†РёРё РѕС‚РІРµС‚Р° РІ РІРёРґРµ РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ.
+        /// Вспомогательный метод генерации ответа в виде представления.
         /// </summary>
-        /// <param name="nameOrModel">РРјСЏ РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ РёР»Рё РѕР±СЉРµРєС‚ РњРѕРґРµР»Рё (РµСЃР»Рё РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ)</param>
-        /// <param name="model">РћР±СЉРµРєС‚ РјРѕРґРµР»Рё (РїСЂРѕРёР·РІРѕР»СЊРЅС‹Р№)</param>
-        /// <returns>Р РµР·СѓР»СЊС‚Р°С‚Р”РµР№СЃС‚РІРёСЏРџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ.</returns>
-        [ContextMethod("РџСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ")]
+        /// <param name="nameOrModel">Имя представления или объект Модели (если используется представление по умолчанию)</param>
+        /// <param name="model">Объект модели (произвольный)</param>
+        /// <returns>РезультатДействияПредставление.</returns>
+        [ContextMethod("Представление")]
         public ViewActionResult View(IValue nameOrModel = null, IValue model = null)
         {
             if (nameOrModel == null && model == null)
@@ -182,12 +184,12 @@ namespace OneScript.WebHost.Application
         }
 
         /// <summary>
-        /// Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Р№ РјРµС‚РѕРґ РіРµРЅРµСЂР°С†РёРё РѕС‚РІРµС‚Р° РІ РІРёРґРµ С‚РµРєСЃС‚РѕРІРѕРіРѕ СЃРѕРґРµСЂР¶РёРјРѕРіРѕ
+        /// Вспомогательный метод генерации ответа в виде текстового содержимого
         /// </summary>
-        /// <param name="content">РЎРѕРґРµСЂР¶РёРјРѕРµ РѕС‚РІРµС‚Р°</param>
-        /// <param name="contentType">РљРѕРґРёСЂРѕРІРєР° С‚РµРєСЃС‚Р° РѕС‚РІРµС‚Р°</param>
-        /// <returns>Р РµР·СѓР»СЊС‚Р°С‚Р”РµР№СЃС‚РІРёСЏРЎРѕРґРµСЂР¶РёРјРѕРµ</returns>
-        [ContextMethod("РЎРѕРґРµСЂР¶РёРјРѕРµ")]
+        /// <param name="content">Содержимое ответа</param>
+        /// <param name="contentType">Кодировка текста ответа</param>
+        /// <returns>РезультатДействияСодержимое</returns>
+        [ContextMethod("Содержимое")]
         public ContentActionResult Content(string content, string contentType = null)
         {
             var ctResult = new ContentActionResult()
@@ -200,13 +202,13 @@ namespace OneScript.WebHost.Application
         }
 
         /// <summary>
-        /// Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Р№ РјРµС‚РѕРґ РіРµРЅРµСЂР°С†РёРё РѕС‚РІРµС‚Р° РІ РІРёРґРµ СЃРєР°С‡РёРІР°РµРјРѕРіРѕ С„Р°Р№Р»Р°.
+        /// Вспомогательный метод генерации ответа в виде скачиваемого файла.
         /// </summary>
-        /// <param name="data">Р”Р°РЅРЅС‹Рµ С„Р°Р№Р»Р° (РїСѓС‚СЊ РёР»Рё Р”РІРѕРёС‡РЅС‹РµР”Р°РЅРЅС‹Рµ)</param>
-        /// <param name="contentType">РЎРѕРґРµСЂР¶РёРјРѕРµ Р·Р°РіРѕР»РѕРІРєР° Content-type</param>
-        /// <param name="downloadFileName">РРјСЏ СЃРєР°С‡РёРІР°РµРјРѕРіРѕ С„Р°Р№Р»Р°</param>
-        /// <returns>Р РµР·СѓР»СЊС‚Р°С‚Р”РµР№СЃС‚РІРёСЏР¤Р°Р№Р»</returns>
-        [ContextMethod("Р¤Р°Р№Р»")]
+        /// <param name="data">Данные файла (путь или ДвоичныеДанные)</param>
+        /// <param name="contentType">Содержимое заголовка Content-type</param>
+        /// <param name="downloadFileName">Имя скачиваемого файла</param>
+        /// <returns>РезультатДействияФайл</returns>
+        [ContextMethod("Файл")]
         public FileActionResult File(IValue data, string contentType = null, string downloadFileName = null)
         {
             FileActionResult fileResult;
@@ -230,37 +232,37 @@ namespace OneScript.WebHost.Application
         }
 
         /// <summary>
-        /// Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Р№ РјРµС‚РѕРґ, РіРµРЅРµСЂРёСЂСѓСЋС‰РёР№ РєРѕРґ СЃРѕСЃС‚РѕСЏРЅРёСЏ HTTP
+        /// Вспомогательный метод, генерирующий код состояния HTTP
         /// </summary>
-        /// <param name="code">РљРѕРґ СЃРѕСЃС‚РѕСЏРЅРёСЏ</param>
-        /// <returns>Р РµР·СѓР»СЊС‚Р°С‚Р”РµР№СЃС‚РІРёСЏРљРѕРґРЎРѕСЃС‚РѕСЏРЅРёСЏ</returns>
-        [ContextMethod("РљРѕРґРЎРѕСЃС‚РѕСЏРЅРёСЏ")]
+        /// <param name="code">Код состояния</param>
+        /// <returns>РезультатДействияКодСостояния</returns>
+        [ContextMethod("КодСостояния")]
         public StatusCodeActionResult StatusCode(int code)
         {
             return StatusCodeActionResult.Constructor(code);
         }
 
         /// <summary>
-        /// Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Р№ РјРµС‚РѕРґ, РіРµРЅРµСЂРёСЂСѓСЋС‰РёР№ РѕС‚РІРµС‚ РІ РІРёРґРµ http-СЂРµРґРёСЂРµРєС‚Р°
+        /// Вспомогательный метод, генерирующий ответ в виде http-редиректа
         /// </summary>
-        /// <param name="url">РђРґСЂРµСЃ РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ</param>
-        /// <param name="permanent">РџСЂРёР·РЅР°Рє РїРѕСЃС‚РѕСЏРЅРЅРѕРіРѕ (permanent) РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ.</param>
-        /// <returns>Р РµР·СѓР»СЊС‚Р°С‚Р”РµР№СЃС‚РІРёСЏРџРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёРµ</returns>
-        [ContextMethod("РџРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёРµ")]
+        /// <param name="url">Адрес перенаправления</param>
+        /// <param name="permanent">Признак постоянного (permanent) перенаправления.</param>
+        /// <returns>РезультатДействияПеренаправление</returns>
+        [ContextMethod("Перенаправление")]
         public RedirectActionResult Redirect(string url, bool permanent = false)
         {
             return RedirectActionResult.Create(url, permanent);
         }
 
         /// <summary>
-        /// Р’СЃРїРѕРјРѕРіР°С‚РµР»СЊРЅС‹Р№ РјРµС‚РѕРґ, РіРµРЅРµСЂРёСЂСѓСЋС‰РёР№ РѕС‚РІРµС‚ РІ РІРёРґРµ http-СЂРµРґРёСЂРµРєС‚Р°
+        /// Вспомогательный метод, генерирующий ответ в виде http-редиректа
         /// </summary>
-        /// <param name="action">РРјСЏ РґРµР№СЃС‚РІРёСЏ РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ</param>
-        /// <param name="controller">РљРѕРЅС‚СЂРѕР»Р»РµСЂ РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ</param>
-        /// <param name="fields">Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїРѕР»СЏ</param>
-        /// <param name="permanent">РџСЂРёР·РЅР°Рє РїРѕСЃС‚РѕСЏРЅРЅРѕРіРѕ (permanent) РїРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёСЏ.</param>
-        /// <returns>Р РµР·СѓР»СЊС‚Р°С‚Р”РµР№СЃС‚РІРёСЏРџРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёРµ</returns>
-        [ContextMethod("РџРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёРµРќР°Р”РµР№СЃС‚РІРёРµ")]
+        /// <param name="action">Имя действия перенаправления</param>
+        /// <param name="controller">Контроллер перенаправления</param>
+        /// <param name="fields">Дополнительные поля</param>
+        /// <param name="permanent">Признак постоянного (permanent) перенаправления.</param>
+        /// <returns>РезультатДействияПеренаправление</returns>
+        [ContextMethod("ПеренаправлениеНаДействие")]
         public RedirectActionResult RedirectToAction(string action, string controller = null, StructureImpl fields = null, bool permanent = false)
         {
             if(fields == null)
@@ -271,19 +273,19 @@ namespace OneScript.WebHost.Application
 
             var url = ActionUrl(action, fields);
             if(url == null)
-                throw new RuntimeException("РќРµ РѕР±РЅР°СЂСѓР¶РµРЅ Р·Р°РґР°РЅРЅС‹Р№ РјР°СЂС€СЂСѓС‚.");
+                throw new RuntimeException("Не обнаружен заданный маршрут.");
 
             return RedirectActionResult.Create(url, permanent);
         }
 
         /// <summary>
-        /// Р“РµРЅРµСЂРёСЂСѓРµС‚ URL РґР»СЏ РјР°СЂС€СЂСѓС‚Р°, Р·Р°РґР°РЅРЅРѕРіРѕ РІ РїСЂРёР»РѕР¶РµРЅРёРё.
-        /// РџР°СЂР°РјРµС‚СЂ routeName РїРѕР·РІРѕР»СЏРµС‚ Р¶РµСЃС‚РєРѕ РїСЂРёРІСЏР·Р°С‚СЊ РіРµРЅРµСЂР°С†РёСЋ Р°РґСЂРµСЃР° Рє РєРѕРЅРєСЂРµС‚РЅРѕРјСѓ РјР°СЂС€СЂСѓС‚Сѓ
+        /// Генерирует URL для маршрута, заданного в приложении.
+        /// Параметр routeName позволяет жестко привязать генерацию адреса к конкретному маршруту
         /// </summary>
-        /// <param name="routeName">РЎС‚СЂРѕРєР°. РРјСЏ РјР°СЂС€СЂСѓС‚Р°</param>
-        /// <param name="fields">РЎС‚СЂСѓРєС‚СѓСЂР°. РџРѕР»СЏ РјР°СЂС€СЂСѓС‚Р° РІ РІРёРґРµ СЃС‚СЂСѓРєС‚СѓСЂС‹.</param>
-        /// <returns>Р РµР·СѓР»СЊС‚Р°С‚Р”РµР№СЃС‚РІРёСЏРџРµСЂРµРЅР°РїСЂР°РІР»РµРЅРёРµ</returns>
-        [ContextMethod("РђРґСЂРµСЃРњР°СЂС€СЂСѓС‚Р°")]
+        /// <param name="routeName">Строка. Имя маршрута</param>
+        /// <param name="fields">Структура. Поля маршрута в виде структуры.</param>
+        /// <returns>РезультатДействияПеренаправление</returns>
+        [ContextMethod("АдресМаршрута")]
         public string RouteUrl(string routeName = null, StructureImpl fields = null)
         {
             string result;
@@ -309,12 +311,12 @@ namespace OneScript.WebHost.Application
         }
 
         /// <summary>
-        /// Р“РµРЅРµСЂРёСЂСѓРµС‚ Url РґР»СЏ РґРµР№СЃС‚РІРёСЏ РІ РєРѕРЅС‚СЂРѕР»Р»РµСЂРµ
+        /// Генерирует Url для действия в контроллере
         /// </summary>
-        /// <param name="action">РРјСЏ РґРµР№СЃС‚РІРёСЏ</param>
-        /// <param name="fieldsOrController">РРјСЏ РєРѕРЅС‚СЂРѕР»Р»РµСЂР° СЃС‚СЂРѕРєРѕР№ РёР»Рё СЃС‚СЂСѓРєС‚СѓСЂР°/СЃРѕРѕС‚РІРµС‚СЃС‚РІРёРµ РїРѕР»РµР№ РјР°СЂС€СЂСѓС‚Р°.</param>
+        /// <param name="action">Имя действия</param>
+        /// <param name="fieldsOrController">Имя контроллера строкой или структура/соответствие полей маршрута.</param>
         /// <returns></returns>
-        [ContextMethod("РђРґСЂРµСЃР”РµР№СЃС‚РІРёСЏ", "ActionUrl")]
+        [ContextMethod("АдресДействия", "ActionUrl")]
         public string ActionUrl(string action, IValue fieldsOrController = null)
         {
             string result;
@@ -387,7 +389,7 @@ namespace OneScript.WebHost.Application
             return new ViewActionResult() { ViewData = ViewData };
         }
 
-        // TODO: РљРѕСЃС‚С‹Р»СЊ РІС‹Р·РІР°РЅРЅС‹Р№ РѕС€РёР±РєРѕР№ https://github.com/EvilBeaver/OneScript/issues/660
+        // TODO: Костыль вызванный ошибкой https://github.com/EvilBeaver/OneScript/issues/660
         internal static int GetOwnMethodsRelectionOffset()
         {
             return _ownMethods.Count;
