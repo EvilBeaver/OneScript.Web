@@ -8,14 +8,32 @@ pipeline {
 	stages {
 
 		stage('Build and test'){
+			options { skipDefaultCheckout() }
 			agent {
 				docker {
 					image 'mcr.microsoft.com/dotnet/core/sdk:3.1'
 					label 'linux'
 				}
 			}
+			environment {
+        		DOTNET_CLI_HOME = "/tmp/DOTNET_CLI_HOME"
+    		}
 			steps {
-				sh "dotnet build src/OneScript/OneScriptWeb.csproj -r linux-x64;win-x64 /p:ReleaseNumber=${ReleaseNumber} -c Release -f netcoreapp3.1"
+				
+				checkout(
+                    [$class: 'GitSCM', branches: [[name: "${env.BRANCH_NAME}"]],
+                     doGenerateSubmoduleConfigurations: false,
+                     extensions: [
+                         [$class: 'SubmoduleOption', 
+                         disableSubmodules: false,
+                         parentCredentials: false,
+                         recursiveSubmodules: true,
+                         reference: '',
+                         trackingSubmodules: false]],
+                         submoduleCfg: [],
+                         userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
+				
+				sh "dotnet build src/OneScript/OneScriptWeb.csproj -r \"linux-x64;win-x64\" /p:ReleaseNumber=${ReleaseNumber} -c Release -f netcoreapp3.1"
 				sh '''
 				rm -rf testResults
 				dotnet test src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj \
