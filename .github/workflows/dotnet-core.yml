@@ -31,7 +31,7 @@ jobs:
     - name: Build
       run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r linux-x64 -f netcoreapp3.1
     - name: Test
-      run: dotnet --no-restore --verbosity normal
+      run: dotnet test src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj --no-build --runtime=win-x64 -f netcoreapp3.1
   build-windows:
     runs-on: windows-latest
     defaults:
@@ -47,6 +47,6 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Build
-      run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r linux-x64 -f netcoreapp3.1
+      run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r win-x64 -f netcoreapp3.1
     - name: Test
-      run: dotnet test --no-restore --verbosity normal
+      run: dotnet test src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj --no-build --runtime=win-x64 -f netcoreapp3.1
