@@ -1,0 +1,53 @@
+name: .NET Core
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+    branches: 
+      - develop
+      - GA-*
+env:
+  MAIN_PROJECT: OneScript/OneScriptWeb.csproj
+  SOLUTION: OneScript.sln
+jobs:
+  build-linux:
+    defaults:
+      run: 
+        working-directory: src
+        
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+    - name: Install dependencies
+      run: dotnet restore ${{env.SOLUTION}}
+    - name: Build
+      run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r linux-x64 -f netcoreapp3.1 --no-restore
+    - name: Test
+      run: dotnet --no-restore --verbosity normal
+  build-windows:
+    runs-on: windows-latest
+    defaults:
+      run: 
+        working-directory: src
+        
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 3.1.301
+        
+    - name: Install dependencies
+      run: dotnet restore ${{env.SOLUTION}}
+    - name: Build
+      run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r linux-x64 -f netcoreapp3.1 --no-restore
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
