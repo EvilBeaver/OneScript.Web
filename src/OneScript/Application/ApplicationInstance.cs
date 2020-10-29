@@ -1,18 +1,20 @@
-﻿using ScriptEngine.Environment;
+﻿/*----------------------------------------------------------
+This Source Code Form is subject to the terms of the
+Mozilla Public License, v.2.0. If a copy of the MPL
+was not distributed with this file, You can obtain one
+at http://mozilla.org/MPL/2.0/.
+----------------------------------------------------------*/
+using ScriptEngine.Environment;
 using ScriptEngine.Machine.Contexts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Hangfire;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Routing;
 using OneScript.WebHost.BackgroundJobs;
 using OneScript.WebHost.Infrastructure;
-using ScriptEngine;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
-using Microsoft.Extensions.FileProviders;
 
 namespace OneScript.WebHost.Application
 {
@@ -262,11 +264,6 @@ namespace OneScript.WebHost.Application
             webApp.Engine.InitializeSDO(app);
 
             return app;
-        }
-
-        public void UseServices(IServiceProvider services)
-        {
-            //throw new NotImplementedException();
         }
     }
 }

@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
+﻿/*----------------------------------------------------------
+This Source Code Form is subject to the terms of the
+Mozilla Public License, v.2.0. If a copy of the MPL
+was not distributed with this file, You can obtain one
+at http://mozilla.org/MPL/2.0/.
+----------------------------------------------------------*/
+using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.Extensions.Configuration;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using OneScript.WebHost.Database;
 
 namespace OneScript.WebHost.Identity
@@ -40,14 +39,11 @@ namespace OneScript.WebHost.Identity
                     options.AccessDeniedPath = cookieOpts["AccessDeniedPath"] ?? options.AccessDeniedPath;
                     options.ExpireTimeSpan = cookieOpts["ExpireTimeSpan"] == null? options.ExpireTimeSpan : TimeSpan.Parse(cookieOpts["ExpireTimeSpan"]);
                     options.ReturnUrlParameter = cookieOpts["ReturnUrlParameter"] ?? options.ReturnUrlParameter;
-                    options.CookieName = cookieOpts["CookieName"] ?? "OscriptWeb.Identity.Application";
+                    options.Cookie.Name = cookieOpts["CookieName"] ?? "OscriptWeb.Identity.Application";
 
                     cookieOpts.Bind("Cookie", options.Cookie);
                 });
             }
-
-            services.TryAddScoped<IHttpContextAccessor, HttpContextAccessor>();
-
         }
 
         private static void ProcessSecurityOptions(IdentityOptions options, IConfigurationSection security)

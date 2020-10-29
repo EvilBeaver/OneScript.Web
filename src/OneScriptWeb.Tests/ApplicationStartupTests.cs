@@ -1,4 +1,10 @@
-﻿using System;
+﻿/*----------------------------------------------------------
+This Source Code Form is subject to the terms of the
+Mozilla Public License, v.2.0. If a copy of the MPL
+was not distributed with this file, You can obtain one
+at http://mozilla.org/MPL/2.0/.
+----------------------------------------------------------*/
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -8,12 +14,10 @@ using Dazinator.AspNet.Extensions.FileProviders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
-using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,7 +47,7 @@ namespace OneScriptWeb.Tests
             cfgBuilder.AddInMemoryCollection(memData);
             services.TryAddSingleton<IConfiguration>(cfgBuilder.Build());
             services.TryAddSingleton<IApplicationRuntime,WebApplicationEngine>();
-            services.AddSingleton<IHostingEnvironment>(new HostingEnvironment());
+            services.AddSingleton<IWebHostEnvironment>(Mock.Of<IWebHostEnvironment>());
             services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
             services.AddMvcCore();
             services.AddOneScript();
@@ -97,7 +101,7 @@ namespace OneScriptWeb.Tests
         {
             var services = new ServiceCollection();
             services.TryAddSingleton<IFileProvider, InMemoryFileProvider>();
-            services.AddSingleton(Mock.Of<IHostingEnvironment>());
+            services.AddSingleton(Mock.Of<IWebHostEnvironment>());
             services.AddSingleton(Mock.Of<ILoggerFactory>());
             services.AddTransient(typeof(IActionInvokerFactory), (s) => Mock.Of<IActionInvokerFactory>());
             services.AddTransient(typeof(IActionSelector), (s) => Mock.Of<IActionSelector>());
@@ -126,7 +130,7 @@ namespace OneScriptWeb.Tests
             return services;
         }
 
-        //[Fact]
+        [Fact(Skip = "Skipped for some reasons")]
         public void CheckThatRoutesAreRegisteredInHandler()
         {
             var services = MockMvcServices();
@@ -174,14 +178,14 @@ namespace OneScriptWeb.Tests
             var provider = services.BuildServiceProvider();
             var starter  = provider.GetService<IApplicationFactory>();
 
-            var app = starter.CreateApp();
+            starter.CreateApp();
             loggerMock.Verify(x => 
                 x.Log(
                     LogLevel.Information,
                     It.IsAny<EventId>(),
-                    It.IsAny<object>(),
+                    It.Is<It.IsAnyType>((v, t) => true),
                     null,
-                    It.IsAny<Func<object, Exception, string>>()),
+                    It.Is<Func<It.IsAnyType, Exception, string>>((v, t) => true)),
                 Times.Once);
         }
 

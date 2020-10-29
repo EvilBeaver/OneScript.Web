@@ -1,20 +1,20 @@
-﻿using System;
-using System.IO;
+﻿/*----------------------------------------------------------
+This Source Code Form is subject to the terms of the
+Mozilla Public License, v.2.0. If a copy of the MPL
+was not distributed with this file, You can obtain one
+at http://mozilla.org/MPL/2.0/.
+----------------------------------------------------------*/
+using System;
 using System.IO.Compression;
 using System.Linq;
-using System.Net.Mime;
-using System.Reflection;
-using Hangfire;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
 using Microsoft.AspNetCore.Mvc.Razor;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.ResponseCompression;
-using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using OneScript.WebHost.Application;
@@ -49,6 +49,7 @@ namespace OneScript.WebHost
             
             services.AddMemoryCache();
             services.AddSession();
+            services.AddHttpContextAccessor();
             services.AddDatabaseByConfiguration(Configuration);
             services.AddIdentityByConfiguration(Configuration);
             services.AddBackgroundJobsByConfiguration(Configuration);
@@ -78,7 +79,7 @@ namespace OneScript.WebHost
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IServiceProvider services)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IServiceProvider services)
         {
             if (env.IsDevelopment())
             {
@@ -106,7 +107,6 @@ namespace OneScript.WebHost
             {
                 var oscriptApp = services.GetService<ApplicationInstance>();
                 appRuntime.Engine.DebugController = services.GetService<IDebugController>();
-                oscriptApp.UseServices(services);
 
                 if (appRuntime.DebugEnabled())
                 {

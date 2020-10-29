@@ -1,15 +1,20 @@
-﻿using System;
+﻿/*----------------------------------------------------------
+This Source Code Form is subject to the terms of the
+Mozilla Public License, v.2.0. If a copy of the MPL
+was not distributed with this file, You can obtain one
+at http://mozilla.org/MPL/2.0/.
+----------------------------------------------------------*/
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
+using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ActionConstraints;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.AspNetCore.Mvc.Authorization;
-using Microsoft.AspNetCore.Mvc.Internal;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.FileProviders.Physical;
@@ -17,7 +22,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Primitives;
 using OneScript.WebHost.Application;
 using ScriptEngine.Environment;
-using ScriptEngine.HostedScript;
 using ScriptEngine.Machine.Contexts;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Reflection;
@@ -31,7 +35,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         
         private readonly IApplicationRuntime _fw;
         private readonly IFileProvider _scriptsProvider;
-        private readonly int _controllersMethodOffset;
         private readonly ApplicationInstance _app;
         private readonly IAuthorizationPolicyProvider _policyProvider;
         private readonly ClassAttributeResolver _classAttribResolver;
@@ -46,7 +49,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             _fw = framework;
             _app = appObject;
             _scriptsProvider = sourceProvider;
-            _controllersMethodOffset = ScriptedController.GetOwnMethodsRelectionOffset();
             _policyProvider = authPolicyProvider;
             _classAttribResolver = new ClassAttributeResolver();
 
@@ -254,7 +256,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         private LoadedModule LoadControllerCode(ICodeSource src)
         {
-            var compiler = _fw.Engine.GetCompilerService();
+            var compiler = _fw.GetCompilerService();
             var byteCode = ScriptedController.CompileModule(compiler, src);
             return _fw.Engine.LoadModuleImage(byteCode);
         }
@@ -535,11 +537,11 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         private void FillDefaultMappers()
         {
-            MapDirect("Authorize", "Авторизовать", typeof(AuthorizeAttribute));
             MapDirect("HttpPost", null, typeof(HttpPostAttribute));
             MapDirect("HttpGet", null, typeof(HttpGetAttribute));
 
             _annotationMapper.AddMapper("HttpMethod", MapHttpMethod);
+            _annotationMapper.AddMapper("Authorize", "Авторизовать", MapAuthorizationAttribute);
             _annotationMapper.AddMapper("Action", "Действие", (annotation) =>
             {
                 if (annotation.ParamCount != 1)
@@ -581,6 +583,34 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
             throw new AnnotationException(anno, "Too many parameters");
 
+        }
+
+        private static object MapAuthorizationAttribute(AnnotationDefinition anno)
+        {
+            var instance = new AuthorizeAttribute();
+            if (anno.ParamCount == 0)
+                return instance;
+            
+            foreach (var parameter in anno.Parameters)
+            {
+                if (BiLingualEquals(parameter.Name, "roles", "роли"))
+                {
+                    instance.Roles = parameter.RuntimeValue.AsString();
+                }
+                else if (BiLingualEquals(parameter.Name, "policy", "политика"))
+                {
+                    instance.Policy = parameter.RuntimeValue.AsString();
+                }
+            }
+
+            return instance;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool BiLingualEquals(string src, string en, string ru)
+        {
+            return src.Equals(en, StringComparison.OrdinalIgnoreCase) ||
+                   src.Equals(ru, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

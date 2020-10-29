@@ -1,11 +1,16 @@
-﻿using System;
+﻿/*----------------------------------------------------------
+This Source Code Form is subject to the terms of the
+Mozilla Public License, v.2.0. If a copy of the MPL
+was not distributed with this file, You can obtain one
+at http://mozilla.org/MPL/2.0/.
+----------------------------------------------------------*/
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Internal;
 using Xunit;
 using Moq;
 using OneScript.WebHost.Application;
@@ -55,8 +60,7 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void ContentTypeIsReflectedInHeadersAfterAssignment()
         {
-            var context = new DefaultHttpContext();
-            var response = new DefaultHttpResponse(context);
+            var response = MockRequestClass();
 
             var scriptRequest = new HttpResponseImpl(response);
             scriptRequest.ContentType = "text/plain";
@@ -68,8 +72,7 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void ContentTypeIsReflectedInHeadersAfterSetHeaders()
         {
-            var context = new DefaultHttpContext();
-            var response = new DefaultHttpResponse(context);
+            var response = MockRequestClass();
 
             var headers = new MapImpl();
             headers.SetIndexedValue(ValueFactory.Create("Content-Type"), ValueFactory.Create("text/plain"));
@@ -131,6 +134,18 @@ namespace OneScriptWeb.Tests
             var request = new HttpRequestImpl(requestMock.Object);
 
             Assert.Equal("test", request.Cookies.GetIndexedValue(ValueFactory.Create("test")).AsString());
+        }
+
+        private HttpResponse MockRequestClass()
+        {
+            var mock = new Mock<HttpResponse>();
+
+            var dict = new HeaderDictionary();
+            mock.SetupGet(x => x.Headers).Returns(dict);
+            mock.SetupGet(x => x.ContentType).Returns(() => dict["Content-Type"].ToString());
+            mock.SetupSet(x => x.ContentType).Callback(x => dict["Content-Type"] = x);
+            
+            return mock.Object;
         }
     }
 }

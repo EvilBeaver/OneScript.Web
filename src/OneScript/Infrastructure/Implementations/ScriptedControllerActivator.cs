@@ -1,13 +1,13 @@
-﻿using Microsoft.AspNetCore.Mvc.Controllers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿/*----------------------------------------------------------
+This Source Code Form is subject to the terms of the
+Mozilla Public License, v.2.0. If a copy of the MPL
+was not distributed with this file, You can obtain one
+at http://mozilla.org/MPL/2.0/.
+----------------------------------------------------------*/
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Database;
-using ScriptEngine;
-using ScriptEngine.Environment;
 using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure.Implementations

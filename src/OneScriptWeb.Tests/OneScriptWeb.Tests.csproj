@@ -1,33 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-
     <IsPackable>false</IsPackable>
-
-    <TargetFrameworks>net461;netcoreapp2.2</TargetFrameworks>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-    
-  <PropertyGroup>
-    <ReleaseNumber Condition="'$(ReleaseNumber)' == ''">1</ReleaseNumber>
-    <BuildNumber Condition="'$(BUILD_NUMBER)' != ''">$(BUILD_NUMBER)</BuildNumber>
-    <BuildNumber Condition="'$(BUILD_NUMBER)' == ''">0</BuildNumber>
-    <PatchNumber Condition="'$(PatchNumber)' == ''">0</PatchNumber>
-  </PropertyGroup>
-
-  <PropertyGroup>
-      <Version>1.$(ReleaseNumber).$(PatchNumber).$(BuildNumber)</Version>
-      <FileVersion>$(Version)</FileVersion>
-      <Product>1Script Server Pages</Product>
-      <Copyright>Copyright (c) 2018 EvilBeaver</Copyright>
-  </PropertyGroup>
-
+  
   <ItemGroup>
-    <PackageReference Include="Dazinator.AspNet.Extensions.FileProviders" Version="1.4.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="2.0.3" />
+    <PackageReference Include="Dazinator.AspNet.Extensions.FileProviders" Version="1.5.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="3.1.9" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
-    <PackageReference Include="Moq" Version="4.8.2" />
-    <PackageReference Include="xunit" Version="2.3.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+    <PackageReference Include="Moq" Version="4.14.7" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
   </ItemGroup>
 
