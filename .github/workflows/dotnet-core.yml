@@ -28,10 +28,8 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.301
-    - name: Install dependencies
-      run: dotnet restore ${{env.SOLUTION}}
     - name: Build
-      run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r linux-x64 -f netcoreapp3.1 --no-restore
+      run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r linux-x64 -f netcoreapp3.1
     - name: Test
       run: dotnet --no-restore --verbosity normal
   build-windows:
@@ -48,10 +46,7 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 3.1.301
-        
-    - name: Install dependencies
-      run: dotnet restore ${{env.SOLUTION}}
     - name: Build
-      run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r linux-x64 -f netcoreapp3.1 --no-restore
+      run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r linux-x64 -f netcoreapp3.1
     - name: Test
       run: dotnet test --no-restore --verbosity normal
