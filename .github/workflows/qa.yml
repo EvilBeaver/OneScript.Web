@@ -44,7 +44,7 @@ jobs:
     - run: dotnet tool install --global dotnet-sonarscanner --version 4.10.0
 
     # Старт SonarScanner
-    - run: dotnet sonarscanner begin /k:"1script-web" /d:sonar.login= ${{ env.TOKEN }} /d:sonar.host.url=https://sonar.openbsl.ru/
+    - run: dotnet sonarscanner begin /k:"1script-web" /d:sonar.login=${{ env.TOKEN }} /d:sonar.host.url=https://sonar.openbsl.ru/ /d:sonar.exclusions=Include
       env:
         TOKEN: ${{ secrets.SONAR_TOKEN }}
 
@@ -53,7 +53,7 @@ jobs:
       run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r ${{matrix.RID}} -f ${{ matrix.target }}
 
     # Завершение SonarScanner
-    - run: dotnet sonarscanner end /d:sonar.login= ${{ env.TOKEN }}
+    - run: dotnet sonarscanner end /d:sonar.login=${{ env.TOKEN }}
       env:
           TOKEN: ${{ secrets.SONAR_TOKEN }}
 
