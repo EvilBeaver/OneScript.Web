@@ -50,22 +50,18 @@ jobs:
         java-version: 11
 
     # Старт SonarScanner
-    - run: dotnet sonarscanner begin /k:"otymko_OneScript.Web" /o:"otymko" /d:sonar.login=${{ env.TOKEN }} /d:sonar.host.url=https://sonarcloud.io
+    - run: dotnet sonarscanner begin /k:"otymko_OneScript.Web" /o:"otymko" /d:sonar.login=${{ env.SONAR_TOKEN }} /d:sonar.host.url=${{ env.SONAR_HOST }}
       env:
-        TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST: ${{ secrets.SONAR_HOST }}
 
     # Сборка
     - name: Build
       run: |
         dotnet build ${{env.MAIN_PROJECT}} -c Release -r ${{matrix.RID}} -f ${{ matrix.target }}
-        dotnet test OneScriptWeb.Tests/OneScriptWeb.Tests.csproj -c Debug --runtime=win-x64 -f netcoreapp3.1 --logger="trx;LogFileName=win-x64.trx" --results-directory=testResults /p:CollectCoverage=true /p:CoverletOutputFormat=opencover
 
     # Завершение SonarScanner
-    - run: dotnet sonarscanner end /d:sonar.login=${{ env.TOKEN }}
+    - run: dotnet sonarscanner end /d:sonar.login=${{ env.SONAR_TOKEN }}
       env:
-          TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
-
-    # Тесты
-    #- name: Test
-    #  run: dotnet test ${{env.TEST_PROJECT}} -c Release --runtime=${{matrix.RID}} -f ${{ matrix.target }} --logger="trx;LogFileName=${{matrix.RID}}.trx" --results-directory=testResults
