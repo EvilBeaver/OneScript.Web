@@ -50,13 +50,15 @@ jobs:
         java-version: 11
 
     # Старт SonarScanner
-    - run: dotnet sonarscanner begin /k:"1script-web" /d:sonar.login=${{ env.TOKEN }} /d:sonar.host.url=https://sonar.openbsl.ru/ /d:sonar.exclusions=Include
+    - run: dotnet sonarscanner begin k:"otymko_OneScript.Web" /o:"otymko" /d:sonar.login=${{ env.TOKEN }} /d:sonar.host.url=https://sonarcloud.io
       env:
         TOKEN: ${{ secrets.SONAR_TOKEN }}
 
     # Сборка
     - name: Build
-      run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r ${{matrix.RID}} -f ${{ matrix.target }}
+      run: |
+        dotnet build ${{env.MAIN_PROJECT}} -c Release -r ${{matrix.RID}} -f ${{ matrix.target }}
+        dotnet test OneScriptWeb.Tests/OneScriptWeb.Tests.csproj -c Debug --runtime=win-x64 -f netcoreapp3.1 --logger="trx;LogFileName=win-x64.trx" --results-directory=testResults
 
     # Завершение SonarScanner
     - run: dotnet sonarscanner end /d:sonar.login=${{ env.TOKEN }}
