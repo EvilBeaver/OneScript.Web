@@ -19,6 +19,10 @@
     <Copyright>Copyright (c) 2018 EvilBeaver</Copyright>
     <Configurations>Debug;Release</Configurations>
     <Platforms>AnyCPU</Platforms>
+
+
+    <!-- SonarQube needs this -->
+    <ProjectGuid>{E2CEBBAF-6DF7-41E9-815D-9AD4CF90C844}</ProjectGuid>
     
   </PropertyGroup>
   
