@@ -17,6 +17,8 @@
 
     <Product>1Script Server Pages</Product>
     <Copyright>Copyright (c) 2018 EvilBeaver</Copyright>
+    <Configurations>Debug;Release</Configurations>
+    <Platforms>AnyCPU</Platforms>
     
   </PropertyGroup>
   
