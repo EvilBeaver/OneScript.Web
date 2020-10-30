@@ -1,11 +1,14 @@
-name: Build .NET Core
+name: Continuous Code Quality
 
 on:
   push:
     branches:
       - master
       - develop
+      # для отладки, нужно после убрать
       - GA-*
+  pull_request:
+    types: [opened, synchronize, reopened]
 
 env:
   MAIN_PROJECT: OneScript/OneScriptWeb.csproj
