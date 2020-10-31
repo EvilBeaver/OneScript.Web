@@ -1,55 +1,59 @@
-name: .NET Core
+name: Build .NET Core
 
 on:
   push:
     branches:
       - master
       - develop
-  pull_request:
-    branches: 
-      - develop
       - GA-*
+
 env:
   MAIN_PROJECT: OneScript/OneScriptWeb.csproj
   TEST_PROJECT: OneScriptWeb.Tests/OneScriptWeb.Tests.csproj
   SOLUTION: OneScript.sln
-jobs:
-  build-linux:
+
+jobs: 
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+        dotnet-version: [3.1.301]
+        include:
+          - os: windows-latest
+            RID: win-x64
+            target: netcoreapp3.1
+          - os: ubuntu-latest
+            RID: linux-x64
+            target: netcoreapp3.1
     defaults:
       run: 
         working-directory: src
-        
-    runs-on: ubuntu-latest
-    env:
-      RID: linux-x64
     steps:
+
+    # актуализация с сабмодулями
     - uses: actions/checkout@v2
       with: 
         submodules: true
+    
+    # установка дотнет
     - name: Setup .NET Core
       uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: 3.1.301
+        dotnet-version: ${{ matrix.dotnet-version }}
+
+    # Сборка
     - name: Build
-      run: dotnet build ${{env.SOLUTION}} -c Release -r ${{env.RID}} -f netcoreapp3.1;
+      run: dotnet build ${{env.MAIN_PROJECT}} -c Release -r ${{matrix.RID}} -f ${{ matrix.target }} -o ../artifact/${{matrix.target}}/${{matrix.RID}}
+
+    # Тесты
     - name: Test
-      run: dotnet test ${{env.TEST_PROJECT}} --no-build -c Release --runtime=${{env.RID}} -f netcoreapp3.1 --logger="trx;LogFileName=${{env.RID}}.trx" --results-directory=testResults
-  build-windows:
-    runs-on: windows-latest
-    defaults:
-      run: 
-        working-directory: src
-    env:
-      RID: win-x64    
-    steps:
-    - uses: actions/checkout@v2
-      with: 
-        submodules: true
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
+      run: dotnet test ${{env.TEST_PROJECT}} -c Release --runtime=${{matrix.RID}} -f ${{ matrix.target }} --logger="trx;LogFileName=${{matrix.RID}}.trx" --results-directory=testResults
+
+    # Заливка в артефакты
+    - name: Artifact
+      uses: actions/upload-artifact@v2
       with:
-        dotnet-version: 3.1.301
-    - name: Build
-      run: dotnet build ${{env.SOLUTION}} -c Release -r ${{env.RID}} -f netcoreapp3.1
-    - name: Test
-      run: dotnet test ${{env.TEST_PROJECT}} --no-build -c Release --runtime=${{env.RID}} -f netcoreapp3.1 --logger="trx;LogFileName=${{env.RID}}.trx" --results-directory=testResults
+        name: oscript.web-${{matrix.RID}}.zip
+        path: ./artifact/${{matrix.target}}/${{matrix.RID}}
