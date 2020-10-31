@@ -147,10 +147,15 @@ namespace OneScript.WebHost.Application
         [ContextMethod("ИспользоватьМаршруты")]
         public void UseMvcRoutes(string handler = null)
         {
-            if (handler == null)
-                _startupBuilder.UseMvcWithDefaultRoute();
+            _startupBuilder.UseRouting();
+            if (handler == default)
+            {
+                _startupBuilder.UseEndpoints(x => x.MapDefaultControllerRoute());
+            }
             else
+            {
                 CallRoutesRegistrationHandler(handler);
+            }
         }
 
         /// <summary>
@@ -221,14 +226,13 @@ namespace OneScript.WebHost.Application
             var handlerIndex = GetScriptMethod(handler);
 
             var routesCol = new RoutesCollectionContext();
-
             CallScriptMethod(handlerIndex, new IValue[]{routesCol});
 
-            _startupBuilder.UseMvc(routes =>
+            _startupBuilder.UseEndpoints(routes =>
             {
                 foreach (var route in routesCol)
                 {
-                    routes.MapRoute(route.Name, route.Template, route.Defaults?.Select(x=>
+                    routes.MapControllerRoute(route.Name, route.Template, route.Defaults?.Select(x=>
                     {
                         var kv = new KeyValuePair<string,object>(x.Key.AsString(),ContextValuesMarshaller.ConvertToCLRObject(x.Value));
                         return kv;
@@ -260,7 +264,7 @@ namespace OneScript.WebHost.Application
             var bc = compiler.Compile(src);
             var app = new ApplicationInstance(new LoadedModule(bc));
             var machine = MachineInstance.Current;
-            webApp.Environment.LoadMemory(machine);
+            machine.PrepareThread(webApp.Environment);
             webApp.Engine.InitializeSDO(app);
 
             return app;
