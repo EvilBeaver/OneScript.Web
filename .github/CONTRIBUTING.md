@@ -15,6 +15,7 @@
 для разработки используйте следующие IDE
 
 * Visual Studio 2017 и выше
+* Visual Studio Code c расширениями C#, 1C-Syntax, OScript.Debug
 * Rider 2017.8 и выше
 
 для приемочного тестирования используйте

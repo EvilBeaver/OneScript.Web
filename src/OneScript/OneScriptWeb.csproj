@@ -75,4 +75,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <!-- extends watching group to include *.os files -->
+    <Watch Include="**\*.os" Exclude="oscript_modules\**\*" />
+    <Watch Include="..\..\debug-application\**\*.os" Exclude="oscript_modules\**\*" />
+  </ItemGroup>
 </Project>
