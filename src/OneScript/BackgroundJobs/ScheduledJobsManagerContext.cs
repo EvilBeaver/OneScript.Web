@@ -98,7 +98,7 @@ namespace OneScript.WebHost.BackgroundJobs
         
         public static void PerformAction(string module, string method)
         {
-            _globalEnv.LoadMemory(MachineInstance.Current);
+            MachineInstance.Current.PrepareThread(_globalEnv);
 
             ApplicationDbContext dbContext = null;
             try

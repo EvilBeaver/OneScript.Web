@@ -1,10 +1,10 @@
 pipeline {
 
 	agent none
+  
 	environment {
         ReleaseNumber = '0.7.0'
     }
-
 	stages {
 
 		stage('Build and test'){
@@ -100,8 +100,8 @@ pipeline {
 				unstash 'buildResults'
 
 				withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'dockerpassword', usernameVariable: 'dockeruser')]) {
-					sh 'docker build -t evilbeaver/oscript-web:0.7.0 --file Dockerfile src'
-					sh 'docker login -p $dockerpassword -u $dockeruser && docker push evilbeaver/oscript-web:0.7.0'
+				sh "docker build -t evilbeaver/oscript-web:${ReleaseNumber} --file Dockerfile src"
+				sh "docker login -p $dockerpassword -u $dockeruser && docker push evilbeaver/oscript-web:${ReleaseNumber}"
 				}
 			}			
 		}

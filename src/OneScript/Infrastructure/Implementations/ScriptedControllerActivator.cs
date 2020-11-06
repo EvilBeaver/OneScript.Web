@@ -39,8 +39,8 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             var module = info.Module;
             var instance = new ScriptedController(context, module);
             var machine = MachineInstance.Current;
-            engine.Environment.LoadMemory(machine);
-            
+            machine.PrepareThread(engine.Environment);
+
             _runtime.DebugCurrentThread();
             engine.InitializeSDO(instance);
             return instance;

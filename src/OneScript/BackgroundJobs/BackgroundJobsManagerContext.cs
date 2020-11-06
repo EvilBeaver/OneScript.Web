@@ -6,6 +6,7 @@ at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
 using System;
 using Hangfire;
+using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
@@ -51,8 +52,7 @@ namespace OneScript.WebHost.BackgroundJobs
         // должен быть public, т.к. hangfire не умеет вызывать private
         public static void PerformAction(string module, string method)
         {
-            var machine = MachineInstance.Current;
-            _globalEnv.LoadMemory(machine);
+            MachineInstance.Current.PrepareThread(_globalEnv);
 
             var scriptObject = (IRuntimeContextInstance)_globalEnv.GetGlobalProperty(module);
             var methodId = scriptObject.FindMethod(method);

@@ -37,7 +37,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             var engine = _runtime.Engine;
             var instance = new ScriptedMiddleware(_next, _module);
             var machine = MachineInstance.Current;
-            engine.Environment.LoadMemory(machine);
+            machine.PrepareThread(engine.Environment);
             try
             {
                 _runtime.DebugCurrentThread();

@@ -71,9 +71,9 @@ namespace OneScript.WebHost
             //TODO подумать как вывести данную конструкцию в конфигурацю доступную для разработчика 1С
             services.AddAntiforgery(options => options.Cookie.Name = "OScriptWeb.Antiforgery");
             
-            services.AddMvc()
+            services.AddControllersWithViews(mvcopts => mvcopts.EnableEndpointRouting = false)
+                .AddRazorRuntimeCompilation()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
-            
             services.AddOneScript();
             services.AddOneScriptDebug(Configuration);
         }
@@ -106,8 +106,10 @@ namespace OneScript.WebHost
             try
             {
                 var oscriptApp = services.GetService<ApplicationInstance>();
+                
+                MachineInstance.Current.PrepareThread(appRuntime.Environment);
+                
                 appRuntime.Engine.DebugController = services.GetService<IDebugController>();
-
                 if (appRuntime.DebugEnabled())
                 {
                     var logger = services.GetService<ILogger<Startup>>();
