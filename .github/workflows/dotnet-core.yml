@@ -61,7 +61,6 @@ jobs:
       with:
         name: oscript.web-${{matrix.RID}}.zip
         path: ./artifact/${{matrix.target}}/${{matrix.RID}}
-
     # Заливка в артефакты приложения с Runtime
     - name: Artifact with Runtime
       uses: actions/upload-artifact@v2
