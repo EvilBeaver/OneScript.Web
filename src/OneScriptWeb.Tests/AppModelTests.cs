@@ -1,9 +1,14 @@
-﻿using System.Linq;
+﻿/*----------------------------------------------------------
+This Source Code Form is subject to the terms of the
+Mozilla Public License, v.2.0. If a copy of the MPL
+was not distributed with this file, You can obtain one
+at http://mozilla.org/MPL/2.0/.
+----------------------------------------------------------*/
+using System.Linq;
 using System.Reflection;
 using Dazinator.AspNet.Extensions.FileProviders;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Hosting.Internal;
 using Microsoft.AspNetCore.Mvc.ApplicationModels;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -15,9 +20,6 @@ using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine;
-using ScriptEngine.HostedScript;
-using ScriptEngine.Machine;
-using ScriptEngine.Machine.Reflection;
 using Xunit;
 
 namespace OneScriptWeb.Tests
@@ -155,6 +157,7 @@ namespace OneScriptWeb.Tests
             
             webAppMoq.SetupGet(x => x.Engine).Returns(engine);
             webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
+            webAppMoq.Setup(x => x.GetCompilerService()).Returns(() => engine.GetCompilerService());
             return webAppMoq.Object;
         }
 
@@ -165,11 +168,8 @@ namespace OneScriptWeb.Tests
             services.TryAddSingleton(Mock.Of<IConfiguration>());
             services.TryAddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
             services.TryAddSingleton(Mock.Of<IAuthorizationPolicyProvider>());
-            services.TryAddScoped<IHostingEnvironment>(x=>new HostingEnvironment()
-            {
-                ContentRootPath = "/"
-            });
-            
+            services.TryAddScoped<IWebHostEnvironment>(x => Mock.Of<IWebHostEnvironment>());
+
             services.AddSingleton(CreateWebEngineMock());
             services.AddOneScript();
 
