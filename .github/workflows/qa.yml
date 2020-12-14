@@ -53,7 +53,7 @@ jobs:
         java-version: 11
 
     # Старт SonarScanner
-    - run: dotnet sonarscanner begin /k:"otymko_OneScript.Web" /o:"otymko" /d:sonar.login=${{ env.SONAR_TOKEN }} /d:sonar.host.url=${{ env.SONAR_HOST }}
+    - run: dotnet sonarscanner begin /k:"1script-web" /d:sonar.login=${{ env.SONAR_TOKEN }} /d:sonar.host.url=${{ env.SONAR_HOST }}
       env:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         SONAR_HOST: ${{ secrets.SONAR_HOST }}
