@@ -1,0 +1,70 @@
+name: Continuous Code Quality
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+      # для отладки, нужно после убрать
+      - GA-*
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  MAIN_PROJECT: OneScript/OneScriptWeb.csproj
+  TEST_PROJECT: OneScriptWeb.Tests/OneScriptWeb.Tests.csproj
+  SOLUTION: OneScript.sln
+
+jobs: 
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest]
+        dotnet-version: [3.1.301]
+        include:
+          - os: windows-latest
+            RID: win-x64
+            target: netcoreapp3.1
+    defaults:
+      run: 
+        working-directory: src
+    steps:
+
+    # актуализация с сабмодулями
+    - uses: actions/checkout@v2
+      with: 
+        submodules: true
+    
+    # установка дотнет
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: ${{ matrix.dotnet-version }}
+
+    # Установка SonarScanner
+    - run: dotnet tool install --global dotnet-sonarscanner --version 4.10.0
+
+    # Java для dotnet
+    - name: Setup java
+      uses: actions/setup-java@v1
+      with:
+        java-version: 11
+
+    # Старт SonarScanner
+    - run: dotnet sonarscanner begin /k:"1script-web" /d:sonar.login=${{ env.SONAR_TOKEN }} /d:sonar.host.url=${{ env.SONAR_HOST }}
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST: ${{ secrets.SONAR_HOST }}
+
+    # Сборка
+    - name: Build
+      run: |
+        dotnet build ${{env.MAIN_PROJECT}} -c Release -r ${{matrix.RID}} -f ${{ matrix.target }}
+
+    # Завершение SonarScanner
+    - run: dotnet sonarscanner end /d:sonar.login=${{ env.SONAR_TOKEN }}
+      env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN}}
