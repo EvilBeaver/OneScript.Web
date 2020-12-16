@@ -34,7 +34,7 @@ pipeline {
 							--runtime win-x64 --logger="trx;LogFileName=win.trx" --results-directory=testResults
 						'''.stripIndent()
 
-						mstest testResultsFile: '*.trx'
+						mstest testResultsFile: 'testResults/*.trx'
 					}
 				}
 
@@ -71,7 +71,7 @@ pipeline {
 							--runtime linux-x64 --logger="trx;LogFileName=linux.trx" --results-directory=testResults
 						'''.stripIndent()
 
-						mstest testResultsFile: '*.trx'
+						mstest testResultsFile: 'testResults/*.trx'
 					}
 				}
 			}
