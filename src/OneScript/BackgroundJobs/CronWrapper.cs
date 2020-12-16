@@ -21,7 +21,7 @@ namespace OneScript.WebHost.BackgroundJobs
             cronString = Cron.Daily();
         }
         
-        [ContextMethod("КаждыйДеньВИнтервале")]
+        [ContextMethod("КаждыйДеньВИнтервале", IsDeprecated = true)]
         public void DayInterval(int interval)
         {
             cronString = Cron.DayInterval(interval);
@@ -33,7 +33,7 @@ namespace OneScript.WebHost.BackgroundJobs
             cronString = Cron.Hourly();
         }
         
-        [ContextMethod("КаждыйЧасВИнтервале")]
+        [ContextMethod("КаждыйЧасВИнтервале", IsDeprecated = true)]
         public void HourInterval(int interval)
         {
             cronString = Cron.HourInterval(interval);
@@ -45,7 +45,7 @@ namespace OneScript.WebHost.BackgroundJobs
             cronString = Cron.Minutely();
         }
         
-        [ContextMethod("КаждуюМинутуВИнтервале")]
+        [ContextMethod("КаждуюМинутуВИнтервале", IsDeprecated = true)]
         public void MinuteInterval(int interval)
         {
             cronString = Cron.MinuteInterval(interval);
