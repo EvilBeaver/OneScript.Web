@@ -3,7 +3,7 @@ pipeline {
 	agent none
   
 	environment {
-        ReleaseNumber = '0.8.0'
+        ReleaseNumber = '0.8.1'
     }
 	stages {
 
@@ -42,6 +42,9 @@ pipeline {
 					-f netcoreapp3.1 \
 					--runtime win-x64 --logger="trx;LogFileName=win.trx" --results-directory=testResults
 
+				'''.stripIndent()
+
+				sh '''
 				src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj \
 					-c Release \
 					-f netcoreapp3.1 \
