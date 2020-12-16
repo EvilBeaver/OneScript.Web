@@ -90,7 +90,7 @@ namespace OneScript.WebHost.BackgroundJobs
         public void RunContinuationsTask(string TaskIDFrom, string module, string method)
         {
             
-            BackgroundJob.ContinueWith(
+            BackgroundJob.ContinueJobWith(
                 TaskIDFrom,
                 ()=>PerformAction(module, method));
 

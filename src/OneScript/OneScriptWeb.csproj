@@ -41,11 +41,11 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Hangfire.AspNetCore" Version="1.6.20" />
-    <PackageReference Include="HangFire.Core" Version="1.6.20" />
-    <PackageReference Include="Hangfire.MemoryStorage" Version="1.5.2" />
-    <PackageReference Include="Hangfire.PostgreSql" Version="1.4.8.2" />
-    <PackageReference Include="HangFire.SqlServer" Version="1.6.20" />
+    <PackageReference Include="Hangfire.AspNetCore" Version="1.7.18" />
+    <PackageReference Include="HangFire.Core" Version="1.7.18" />
+    <PackageReference Include="Hangfire.MemoryStorage" Version="1.7.0" />
+    <PackageReference Include="Hangfire.PostgreSql" Version="1.8.1" />
+    <PackageReference Include="HangFire.SqlServer" Version="1.7.18" />
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.4.1" />
     <PackageReference Include="Microsoft.AspNetCore.Hosting.WindowsServices" Version="3.1.9" />
     
