@@ -45,7 +45,7 @@ pipeline {
 				'''.stripIndent()
 
 				sh '''
-				src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj \
+				dotnet test src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj \
 					-c Release \
 					-f netcoreapp3.1 \
 					--runtime linux-x64 --logger="trx;LogFileName=linux.trx" --results-directory=testResults
