@@ -33,8 +33,6 @@ pipeline {
                          submoduleCfg: [],
                          userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
 				
-				sh "dotnet build src/OneScript/OneScriptWeb.csproj -r linux-x64 /p:ReleaseNumber=${ReleaseNumber} -c Release -f netcoreapp3.1"
-				sh "dotnet build src/OneScript/OneScriptWeb.csproj -r win-x64 /p:ReleaseNumber=${ReleaseNumber} -c Release -f netcoreapp3.1"
 				sh '''
 				rm -rf testResults
 				dotnet test src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj \
@@ -54,19 +52,19 @@ pipeline {
 				mstest testResultsFile: 'testResults/*.trx'
 
 				sh '''dotnet publish src/OneScript/OneScriptWeb.csproj \
-					--no-build \
-					-c Release
-					-f netcoreapp3.1
-					-r win-x64
+					/p:ReleaseNumber=${ReleaseNumber}
+					-c Release \
+					-f netcoreapp3.1 \
+					-r win-x64 \
 					-o artifact/core/win-x64
 
 				'''.stripIndent()
 
 				sh '''dotnet publish src/OneScript/OneScriptWeb.csproj \
-					--no-build \
-					-c Release
-					-f netcoreapp3.1
-					-r linux-x64
+					/p:ReleaseNumber=${ReleaseNumber}
+					-c Release \
+					-f netcoreapp3.1 \
+					-r linux-x64 \
 					-o artifact/core/linux-x64
 
 				'''.stripIndent()
