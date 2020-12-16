@@ -7,7 +7,78 @@ pipeline {
     }
 	stages {
 
-		stage('Build and test'){
+		stage("Test platforms"){
+			options { skipDefaultCheckout() }
+			parallel{
+				stage('Test Windows'){
+					agent{ label "windows"}
+					
+					steps{
+						checkout(
+							[$class: 'GitSCM', branches: [[name: "${env.BRANCH_NAME}"]],
+							doGenerateSubmoduleConfigurations: false,
+							extensions: [
+								[$class: 'SubmoduleOption', 
+								disableSubmodules: false,
+								parentCredentials: false,
+								recursiveSubmodules: true,
+								reference: '',
+								trackingSubmodules: false]],
+								submoduleCfg: [],
+								userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
+						
+						bat '''
+						dotnet test src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj ^
+							-c Release ^
+							-f netcoreapp3.1 ^
+							--runtime win-x64 --logger="trx;LogFileName=win.trx" --results-directory=testResults
+						'''.stripIndent()
+
+						mstest testResultsFile: '*.trx'
+					}
+				}
+
+				stage('Test Linux') {
+
+					agent {
+						docker {
+							image 'mcr.microsoft.com/dotnet/core/sdk:3.1'
+							label 'linux'
+						}
+					}
+					environment {
+						DOTNET_CLI_HOME = "/tmp/DOTNET_CLI_HOME"
+					}
+
+					steps{
+						checkout(
+							[$class: 'GitSCM', branches: [[name: "${env.BRANCH_NAME}"]],
+							doGenerateSubmoduleConfigurations: false,
+							extensions: [
+								[$class: 'SubmoduleOption', 
+								disableSubmodules: false,
+								parentCredentials: false,
+								recursiveSubmodules: true,
+								reference: '',
+								trackingSubmodules: false]],
+								submoduleCfg: [],
+								userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
+
+						sh '''
+						dotnet test src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj \
+							-c Release \
+							-f netcoreapp3.1 \
+							--runtime linux-x64 --logger="trx;LogFileName=linux.trx" --results-directory=testResults
+						'''.stripIndent()
+
+						mstest testResultsFile: '*.trx'
+					}
+				}
+			}
+		}
+		
+
+		stage('Publish'){
 			options { skipDefaultCheckout() }
 			agent {
 				docker {
@@ -16,8 +87,8 @@ pipeline {
 				}
 			}
 			environment {
-        		DOTNET_CLI_HOME = "/tmp/DOTNET_CLI_HOME"
-    		}
+				DOTNET_CLI_HOME = "/tmp/DOTNET_CLI_HOME"
+			}
 			steps {
 				
 				checkout(
@@ -33,26 +104,8 @@ pipeline {
                          submoduleCfg: [],
                          userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
 				
-				sh '''
-				rm -rf testResults
-				dotnet test src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj \
-					-c Release \
-					-f netcoreapp3.1 \
-					--runtime win-x64 --logger="trx;LogFileName=win.trx" --results-directory=testResults
-
-				'''.stripIndent()
-
-				sh '''
-				dotnet test src/OneScriptWeb.Tests/OneScriptWeb.Tests.csproj \
-					-c Release \
-					-f netcoreapp3.1 \
-					--runtime linux-x64 --logger="trx;LogFileName=linux.trx" --results-directory=testResults
-				'''.stripIndent()
-
-				mstest testResultsFile: 'testResults/*.trx'
-
 				sh '''dotnet publish src/OneScript/OneScriptWeb.csproj \
-					/p:ReleaseNumber=${ReleaseNumber}
+					/p:ReleaseNumber=${ReleaseNumber} \
 					-c Release \
 					-f netcoreapp3.1 \
 					-r win-x64 \
@@ -61,7 +114,7 @@ pipeline {
 				'''.stripIndent()
 
 				sh '''dotnet publish src/OneScript/OneScriptWeb.csproj \
-					/p:ReleaseNumber=${ReleaseNumber}
+					/p:ReleaseNumber=${ReleaseNumber} \
 					-c Release \
 					-f netcoreapp3.1 \
 					-r linux-x64 \
