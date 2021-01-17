@@ -10,11 +10,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.DependencyInjection;
+using OneScript.StandardLibrary.Binary;
+using OneScript.StandardLibrary.Collections;
 using OneScript.WebHost.Infrastructure;
-using ScriptEngine;
-using ScriptEngine.Environment;
-using ScriptEngine.HostedScript.Library;
-using ScriptEngine.HostedScript.Library.Binary;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 

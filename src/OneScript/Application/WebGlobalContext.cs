@@ -26,10 +26,6 @@ namespace OneScript.WebHost.Application
         // а пока, спрячем его здесь и выставим только некоторые вещи
         private readonly RCIRedirector _osGlobal;
 
-        public WebGlobalContext(IHostApplication host, ICodeSource entryScript) : this(host,entryScript,null)
-        {   
-        }
-
         public WebGlobalContext(IHostApplication host, ICodeSource entryScript, IApplicationRuntime webEng)
         {
             var sys = new SystemGlobalContext();
@@ -127,6 +123,11 @@ namespace OneScript.WebHost.Application
         public MethodInfo GetMethodInfo(int methodNumber)
         {
             return _osGlobal.GetMethodInfo(methodNumber);
+        }
+
+        public VariableInfo GetPropertyInfo(int propertyNumber)
+        {
+            return _osGlobal.GetPropertyInfo(propertyNumber);
         }
 
         public void CallAsProcedure(int methodNumber, IValue[] arguments)
@@ -296,6 +297,11 @@ namespace OneScript.WebHost.Application
         public MethodInfo GetMethodInfo(int methodNumber)
         {
             return _inst.GetMethodInfo(_methRedirects[methodNumber]);
+        }
+
+        public VariableInfo GetPropertyInfo(int propertyNumber)
+        {
+            return _inst.GetPropertyInfo(propertyNumber);
         }
 
         public void CallAsProcedure(int methodNumber, IValue[] arguments)

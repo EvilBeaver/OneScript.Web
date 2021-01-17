@@ -6,6 +6,7 @@ at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
 using System;
 using Microsoft.AspNetCore.Identity;
+using OneScript.StandardLibrary.Collections;
 using OneScript.WebHost.Identity;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;

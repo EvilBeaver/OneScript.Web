@@ -8,8 +8,9 @@ at http://mozilla.org/MPL/2.0/.
 using System.IO;
 using System.Text;
 using Microsoft.AspNetCore.Http;
-using ScriptEngine.HostedScript.Library;
-using ScriptEngine.HostedScript.Library.Binary;
+using OneScript.StandardLibrary.Binary;
+using OneScript.StandardLibrary.Collections;
+using OneScript.StandardLibrary.Text;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 

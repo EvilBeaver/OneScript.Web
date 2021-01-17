@@ -12,6 +12,7 @@ using ScriptEngine.Machine;
 
 using Hangfire;
 using Hangfire.Storage;
+using OneScript.StandardLibrary.Collections;
 using OneScript.WebHost.Database;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;

@@ -22,6 +22,8 @@ using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine;
+using ScriptEngine.Hosting;
+using ScriptEngine.Machine;
 using Xunit;
 
 namespace OneScriptWeb.Tests
@@ -123,14 +125,23 @@ namespace OneScriptWeb.Tests
         private static IApplicationRuntime CreateWebEngineMock()
         {
             var webAppMoq = new Mock<IApplicationRuntime>();
-            var engine = new ScriptingEngine()
-            {
-                Environment = new RuntimeEnvironment()
-            };
+
+            var engine = MakeTestEngine();
 
             webAppMoq.SetupGet(x => x.Engine).Returns(engine);
             webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
             return webAppMoq.Object;
+        }
+
+        private static ScriptingEngine MakeTestEngine()
+        {
+            var builder = new DefaultEngineBuilder();
+            builder.WithEnvironment(new RuntimeEnvironment())
+                .WithTypes(new DefaultTypeManager())
+                .WithGlobals(new GlobalInstancesManager());
+
+            var engine = builder.Build();
+            return engine;
         }
 
         [Fact]
@@ -148,10 +159,7 @@ namespace OneScriptWeb.Tests
                 services.TryAddScoped<IWebHostEnvironment>(x => Mock.Of<IWebHostEnvironment>());
                 
                 var webAppMoq = new Mock<IApplicationRuntime>();
-                var engine = new ScriptingEngine()
-                {
-                    Environment = new RuntimeEnvironment()
-                };
+                var engine = MakeTestEngine();
                 
                 webAppMoq.SetupGet(x => x.Engine).Returns(engine);
                 webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);

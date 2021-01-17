@@ -31,6 +31,8 @@ using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using OneScript.WebHost.Infrastructure.Implementations;
+using ScriptEngine.Compiler;
+using ScriptEngine.Machine;
 
 namespace OneScriptWeb.Tests
 {
@@ -39,18 +41,9 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void CheckThatApplicationInstanceIsCreatedOnMain()
         {
-            var services = new ServiceCollection();
-            services.TryAddSingleton<IFileProvider, InMemoryFileProvider>();
+            var services = MockMvcServices();
 
-            var cfgBuilder = new ConfigurationBuilder();
-            var memData = new Dictionary<string, string>(){ {"OneScript:lib.system", "bla"}};
-            cfgBuilder.AddInMemoryCollection(memData);
-            services.TryAddSingleton<IConfiguration>(cfgBuilder.Build());
-            services.TryAddSingleton<IApplicationRuntime,WebApplicationEngine>();
-            services.AddSingleton<IWebHostEnvironment>(Mock.Of<IWebHostEnvironment>());
             services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
-            services.AddMvcCore();
-            services.AddOneScript();
 
             var provider = services.BuildServiceProvider();
             var fakeFS = (InMemoryFileProvider)provider.GetService<IFileProvider>();
@@ -78,7 +71,6 @@ namespace OneScriptWeb.Tests
         {
             var services = MockMvcServices();
             services.AddSingleton(Mock.Of<IConfiguration>());
-            services.AddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
             
             var provider = services.BuildServiceProvider();
             var fakeFS = (InMemoryFileProvider)provider.GetService<IFileProvider>();
@@ -101,12 +93,16 @@ namespace OneScriptWeb.Tests
         {
             var services = new ServiceCollection();
             services.TryAddSingleton<IFileProvider, InMemoryFileProvider>();
-            services.AddSingleton(Mock.Of<IWebHostEnvironment>());
+
+            var hostMock = new Mock<IWebHostEnvironment>();
+            hostMock.SetupGet(x => x.ContentRootPath)
+                .Returns("/");
+            services.AddSingleton(hostMock.Object);
             services.AddSingleton(Mock.Of<ILoggerFactory>());
             services.AddTransient(typeof(IActionInvokerFactory), (s) => Mock.Of<IActionInvokerFactory>());
             services.AddTransient(typeof(IActionSelector), (s) => Mock.Of<IActionSelector>());
             services.AddTransient(typeof(DiagnosticSource), (s) => Mock.Of<DiagnosticSource>());
-
+            
             services.TryAddSingleton<IOptions<ApiBehaviorOptions>>(x=>
             {
                 var options = new ApiBehaviorOptions();
@@ -163,10 +159,8 @@ namespace OneScriptWeb.Tests
         [Fact]
         public void MethodEchoWritesLog()
         {
-            var services = new ServiceCollection();
-            services.AddSingleton<IFileProvider, InMemoryFileProvider>();
-            services.AddSingleton<IApplicationRuntime, WebApplicationEngine>();
-            services.AddSingleton<IConfiguration>(Mock.Of<Func<IServiceProvider, IConfiguration>>());
+            var services = MockMvcServices();
+            
             var fakeFS = new InMemoryFileProvider();
             fakeFS.AddFile("main.os", "Сообщить(\"Я строка лога\")");
             services.AddSingleton<IFileProvider>(fakeFS);

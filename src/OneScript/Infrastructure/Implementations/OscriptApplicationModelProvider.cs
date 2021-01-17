@@ -37,7 +37,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private readonly IFileProvider _scriptsProvider;
         private readonly ApplicationInstance _app;
         private readonly IAuthorizationPolicyProvider _policyProvider;
-        private readonly ClassAttributeResolver _classAttribResolver;
         private readonly AnnotationAttributeMapper _annotationMapper = new AnnotationAttributeMapper();
         private ILogger _logger;
 
@@ -50,12 +49,6 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             _app = appObject;
             _scriptsProvider = sourceProvider;
             _policyProvider = authPolicyProvider;
-            _classAttribResolver = new ClassAttributeResolver();
-
-            if (!_fw.Engine.DirectiveResolvers.Any(x => x is ClassAttributeResolver))
-            {
-                _fw.Engine.DirectiveResolvers.Add(_classAttribResolver);
-            } 
             
             FillDefaultMappers();
         }
@@ -126,7 +119,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 module = CompileControllerModule(codeSrc);
 
                 var reflectedType = reflector.Reflect<ScriptedController>(module, typeName);
-                var attrList = MapAnnotationsToAttributes(_classAttribResolver.Attributes);
+                var attrList = MapAnnotationsToAttributes(module.Annotations);
                 var cm = new ControllerModel(typeof(ScriptedController).GetTypeInfo(), attrList.AsReadOnly());
                 cm.ControllerName = reflectedType.Name;
                 var recompileInfo = new DynamicCompilationInfo()
@@ -166,17 +159,8 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private LoadedModule CompileControllerModule(ICodeSource codeSrc)
         {
             LoadedModule module;
-            try
-            {
-                _fw.DebugCurrentThread();
-                _classAttribResolver.BeforeCompilation();
-                module = LoadControllerCode(codeSrc);
-            }
-            finally
-            {
-                _fw.StopDebugCurrentThread();
-                _classAttribResolver.AfterCompilation();
-            }
+            
+            module = LoadControllerCode(codeSrc);
 
             return module;
         }
@@ -197,7 +181,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
             var module = CompileControllerModule(info.CodeSource);
             var canRecompile = controllerModel.Attributes.OrderBy(x => x.GetType())
-                .SequenceEqual(MapAnnotationsToAttributes(_classAttribResolver.Attributes)
+                .SequenceEqual(MapAnnotationsToAttributes(module.Annotations)
                     .OrderBy(x => x.GetType()));
             
             if (!canRecompile)

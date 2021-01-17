@@ -5,12 +5,12 @@ was not distributed with this file, You can obtain one
 at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
 
-using ScriptEngine.HostedScript.Library.Binary;
-using ScriptEngine.HostedScript.Library.ValueTable;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 using System;
 using System.Data.Common;
+using OneScript.StandardLibrary.Binary;
+using OneScript.StandardLibrary.Collections.ValueTable;
 
 namespace OneScript.WebHost.Database
 {

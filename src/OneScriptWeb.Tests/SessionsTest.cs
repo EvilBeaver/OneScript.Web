@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Moq;
 using OneScript.WebHost.Infrastructure;
+using ScriptEngine;
 using ScriptEngine.Machine;
 using Xunit;
 
@@ -25,7 +26,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                var wa = new WebApplicationEngine();
+                var wa = new WebApplicationEngine(Mock.Of<ScriptingEngine>());
 
                 var checks = new Dictionary<string, byte[]>();
                 var session = CreateSessionMock(checks);
@@ -57,7 +58,7 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                var wa = new WebApplicationEngine();
+                var wa = new WebApplicationEngine(Mock.Of<ScriptingEngine>());
 
                 var checks = new Dictionary<string, byte[]>();
                 var session = CreateSessionMock(checks);

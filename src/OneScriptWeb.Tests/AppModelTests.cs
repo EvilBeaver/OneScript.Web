@@ -20,6 +20,8 @@ using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine;
+using ScriptEngine.Compiler;
+using ScriptEngine.Machine;
 using Xunit;
 
 namespace OneScriptWeb.Tests
@@ -147,19 +149,24 @@ namespace OneScriptWeb.Tests
             Assert.Equal("POST", ((CustomHttpMethodAttribute)attribs[0]).HttpMethods.First());
         }
 
-        private static IApplicationRuntime CreateWebEngineMock()
-        {
-            var webAppMoq = new Mock<IApplicationRuntime>();
-            var engine = new ScriptingEngine()
-            {
-                Environment = new RuntimeEnvironment()
-            };
-            
-            webAppMoq.SetupGet(x => x.Engine).Returns(engine);
-            webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
-            webAppMoq.Setup(x => x.GetCompilerService()).Returns(() => engine.GetCompilerService());
-            return webAppMoq.Object;
-        }
+        // private static IApplicationRuntime CreateWebEngineMock()
+        // {
+        //     // var webAppMoq = new Mock<IApplicationRuntime>();
+        //     // var engine = new ScriptingEngine(
+        //     //     new DefaultTypeManager(),
+        //     //     new GlobalInstancesManager(),
+        //     //     new RuntimeEnvironment(),
+        //     //     new AstBasedCompilerFactory(new CompilerOptions()
+        //     //     {
+        //     //         
+        //     //     }));
+        //     //
+        //     //
+        //     webAppMoq.SetupGet(x => x.Engine).Returns(engine);
+        //     webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
+        //     webAppMoq.Setup(x => x.GetCompilerService()).Returns(() => engine.GetCompilerService());
+        //     return webAppMoq.Object;
+        // }
 
         private static ApplicationModel CreateApplicationModel(IFileProvider scriptsProvider)
         {
@@ -168,9 +175,15 @@ namespace OneScriptWeb.Tests
             services.TryAddSingleton(Mock.Of<IConfiguration>());
             services.TryAddSingleton(Mock.Of<ILogger<ApplicationInstance>>());
             services.TryAddSingleton(Mock.Of<IAuthorizationPolicyProvider>());
-            services.TryAddScoped<IWebHostEnvironment>(x => Mock.Of<IWebHostEnvironment>());
 
-            services.AddSingleton(CreateWebEngineMock());
+            services.AddTransient<IWebHostEnvironment>(x =>
+            {
+                var hostMock = new Mock<IWebHostEnvironment>();
+                hostMock.SetupGet(x => x.ContentRootPath)
+                    .Returns("/");
+                return hostMock.Object;
+            });
+
             services.AddOneScript();
 
             var serviceProvider = services.BuildServiceProvider();

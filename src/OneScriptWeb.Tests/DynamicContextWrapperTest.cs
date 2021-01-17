@@ -15,6 +15,7 @@ using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using Xunit;
 using System.Dynamic;
+using OneScript.StandardLibrary.Collections;
 using ScriptEngine;
 using ScriptEngine.Machine.Contexts;
 

@@ -11,6 +11,7 @@ using System.Reflection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
+using OneScript.StandardLibrary;
 using OneScript.WebHost.Application;
 using ScriptEngine;
 using ScriptEngine.HostedScript;
@@ -25,43 +26,26 @@ namespace OneScript.WebHost.Infrastructure
         private readonly IApplicationRuntime _webEng;
         private readonly ILogger<ApplicationInstance> _logger;
 
-        public AppStarter(IFileProvider scripts, IApplicationRuntime webEng, IConfiguration config, ILogger<ApplicationInstance> appLog)
+        public AppStarter(IFileProvider scripts, IApplicationRuntime webEng, ILogger<ApplicationInstance> appLog)
         {
             _scripts = scripts;
             _webEng = webEng;
             _logger = appLog;
-
-            var configSection = config?.GetSection("OneScript");
-            var libRoot = configSection?["lib.system"];
-            if (libRoot != null)
-            {
-                var binFolder = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-                var additionals = configSection.GetSection("lib.additional")?
-                    .AsEnumerable()
-                    .Where(x=>x.Value != null)
-                    .Select(x=>x.Value.Replace("$appBinary", binFolder))
-                    .ToArray();
-
-                libRoot = libRoot.Replace("$appBinary", binFolder);
-                InitializeDirectiveResolver(_webEng.Engine, _webEng.Environment, libRoot, additionals);
-            }
-        }
-
-        private void InitializeDirectiveResolver(ScriptingEngine engine, RuntimeEnvironment env, string libRoot, string[] additionals)
-        {
-            var libResolver = new LibraryResolver(engine, env);
-            libResolver.LibraryRoot = libRoot;
-            if (additionals != null)
-                libResolver.SearchDirectories.AddRange(additionals);
-            
-            engine.DirectiveResolvers.Add(libResolver);
         }
 
         public ApplicationInstance CreateApp()
         {
             var codeSrc = new FileInfoCodeSource(_scripts.GetFileInfo("main.os"));
-            _webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc, _webEng));
+            //_webEng.Environment.InjectObject(new WebGlobalContext(this, codeSrc, _webEng));
 
+            _webEng.Environment.InjectObject(new SystemGlobalContext
+            {
+                CodeSource = codeSrc,
+                ApplicationHost = this
+            });
+            
+            _webEng.Environment.InjectObject(new DynamicLoadingFunctions(_webEng.Engine));
+            
             var templateFactory = new DefaultTemplatesFactory();
             
             var storage = new TemplateStorage(templateFactory);

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
+using OneScript.StandardLibrary.Collections;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine.Environment;
 using ScriptEngine.HostedScript.Library;

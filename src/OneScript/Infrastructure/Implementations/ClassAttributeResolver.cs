@@ -4,20 +4,24 @@ Mozilla Public License, v.2.0. If a copy of the MPL
 was not distributed with this file, You can obtain one
 at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using OneScript.Language.LexicalAnalysis;
+using OneScript.Language.SyntaxAnalysis;
 using ScriptEngine.Compiler;
 using ScriptEngine.Environment;
 using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure.Implementations
 {
-    internal class ClassAttributeResolver :IDirectiveResolver
+    internal class ClassAttributeResolver : ModuleAnnotationDirectiveHandler
     {
         private readonly string[] _knownAnnotations;
         private List<AnnotationDefinition> _annotations;
 
-        public ClassAttributeResolver()
+        public ClassAttributeResolver(IAstBuilder nodeBuilder, IErrorSink errorSink): base(nodeBuilder, errorSink)
         {
             _knownAnnotations = new[]
             {
@@ -26,44 +30,28 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             };
         }
 
-        public bool Resolve(string directive, string value, bool codeEntered)
-        {
-            if (!_knownAnnotations.Any(directive.StartsWith))
-                return false;
-
-            if (codeEntered)
-                throw new CompilerException("Директивы аннотаций должны предшествовать строкам кода");
-
-            var annotation = new AnnotationDefinition();
-            annotation.Name = directive;
-
-            if (value != null)
-            {
-                annotation.Parameters = ParseAnnotationParameters(value);
-            }
-
-            _annotations.Add(annotation);
-
-            return true;
-        }
-
-        private AnnotationParameter[] ParseAnnotationParameters(string value)
-        {
-            //TODO: сделать разбор параметров
-            return new AnnotationParameter[0];
-        }
-
         public ICodeSource Source { get; set; }
 
-        public IEnumerable<AnnotationDefinition> Attributes => _annotations;
+        protected override bool DirectiveSupported(string directive) => 
+            _knownAnnotations.Any(x => directive.StartsWith(x, StringComparison.InvariantCultureIgnoreCase));
 
-        public void BeforeCompilation()
+        protected override void ParseAnnotationInternal(ref Lexem lastExtractedLexem, ILexer lexer)
         {
-            _annotations = new List<AnnotationDefinition>();
-        }
+            var annotation = NodeBuilder.CreateNode(NodeKind.Annotation, lastExtractedLexem);
+            NodeBuilder.AddChild(NodeBuilder.CurrentNode, annotation);
+            
+            lastExtractedLexem = lexer.NextLexemOnSameLine();
+            if (lastExtractedLexem.Type != LexemType.EndOfText)
+            {
+                ErrorSink.AddError(new ParseError()
+                {
+                    Description = "Неверное объявление атрибута класса",
+                    ErrorId = nameof(ClassAttributeResolver),
+                    Position = lexer.GetErrorPosition()
+                });
+            }
 
-        public void AfterCompilation()
-        {
+            lastExtractedLexem = lexer.NextLexem();
         }
     }
 }
