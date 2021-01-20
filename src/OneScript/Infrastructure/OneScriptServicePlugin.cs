@@ -83,7 +83,7 @@ namespace OneScript.WebHost.Infrastructure
 
         private static void InitializeScriptedLayer(IServiceCollection services)
         {
-            services.AddTransient<IDependencyResolver, FileSystemDependencyResolver>(MakeDependencyResolver);
+            services.AddSingleton<IDependencyResolver, FileSystemDependencyResolver>(MakeDependencyResolver);
             
             services.AddTransient<IAstBuilder, DefaultAstBuilder>();
             services.AddTransient<IEngineBuilder, DiEngineBuilder>();
@@ -129,7 +129,11 @@ namespace OneScript.WebHost.Infrastructure
                     builder.WithDebugger(debugger);
                 }
 
-                return builder.Build();
+                var dependencies = sp.GetService<IDependencyResolver>();
+                var engine = builder.Build();
+                dependencies.Initialize(engine);
+
+                return engine;
             });
         }
 
