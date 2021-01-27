@@ -1,4 +1,4 @@
-﻿/*----------------------------------------------------------
+/*----------------------------------------------------------
 This Source Code Form is subject to the terms of the
 Mozilla Public License, v.2.0. If a copy of the MPL
 was not distributed with this file, You can obtain one
@@ -128,11 +128,8 @@ namespace OneScript.WebHost.Infrastructure
                 {
                     builder.WithDebugger(debugger);
                 }
-
-                var dependencies = sp.GetService<IDependencyResolver>();
+                
                 var engine = builder.Build();
-                dependencies.Initialize(engine);
-
                 return engine;
             });
         }
