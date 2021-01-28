@@ -25,11 +25,14 @@ namespace OneScript.WebHost.BackgroundJobs
     public class ScheduledJobsManagerContext : AutoContext<ScheduledJobsManagerContext>
     {
         private static RuntimeEnvironment _globalEnv;
+        private static ScriptingEngine _engine;
+        
         private static DbContextProvider _dbBridge;
 
-        public ScheduledJobsManagerContext(RuntimeEnvironment env, DbContextProvider dbBridge)
+        public ScheduledJobsManagerContext(IApplicationRuntime app, DbContextProvider dbBridge)
         {
-            _globalEnv = env;
+            _globalEnv = app.Environment;
+            _engine = app.Engine;
             _dbBridge = dbBridge;
         }
         
@@ -99,7 +102,7 @@ namespace OneScript.WebHost.BackgroundJobs
         
         public static void PerformAction(string module, string method)
         {
-            MachineInstance.Current.PrepareThread(_globalEnv);
+            _engine.PrepareThread();
 
             ApplicationDbContext dbContext = null;
             try

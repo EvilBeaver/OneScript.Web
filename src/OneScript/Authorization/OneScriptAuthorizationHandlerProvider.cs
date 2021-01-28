@@ -31,7 +31,7 @@ namespace OneScript.WebHost.Authorization
             if(!authFile.Exists || authFile.IsDirectory)
                 return;
 
-            MachineInstance.Current.PrepareThread(runtime.Environment);
+            runtime.Engine.PrepareThread();
             var codeSource = new FileInfoCodeSource(authFile);
             
             runtime.DebugCurrentThread();

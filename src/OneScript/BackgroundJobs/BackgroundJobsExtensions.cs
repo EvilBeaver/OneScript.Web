@@ -72,17 +72,18 @@ namespace OneScript.WebHost.BackgroundJobs
             });
         }
 
-        public static void PrepareBgJobsEnvironment(IServiceProvider services, RuntimeEnvironment environment)
+        public static void PrepareBgJobsEnvironment(IServiceProvider services, IApplicationRuntime runtime)
         {
+            var environment = runtime.Environment;
             var hfOptions = services.GetService<IOptions<OscriptBackgroundJobsOptions>>().Value;
             if (hfOptions != null)
             {
-                var jobsManager = new ScheduledJobsManagerContext(environment, services.GetService<DbContextProvider>());
+                var jobsManager = new ScheduledJobsManagerContext(runtime, services.GetService<DbContextProvider>());
                 
                 environment.InjectGlobalProperty(jobsManager, "РегламентныеЗадания", true);
                 environment.InjectGlobalProperty(jobsManager, "ScheduledJobs", true);
 
-                var bgJobsManager = new BackgroundJobsManagerContext(environment);
+                var bgJobsManager = new BackgroundJobsManagerContext(runtime);
                 environment.InjectGlobalProperty(bgJobsManager, "ФоновыеЗадания", true);
                 environment.InjectGlobalProperty(bgJobsManager, "BackgroundJobs", true);
             }

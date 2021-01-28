@@ -38,8 +38,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
             var info = (DynamicCompilationInfo) context.ActionDescriptor.Properties["CompilationInfo"];
             var module = info.Module;
             var instance = new ScriptedController(context, module);
-            var machine = MachineInstance.Current;
-            machine.PrepareThread(engine.Environment);
+            engine.PrepareThread();
 
             _runtime.DebugCurrentThread();
             engine.InitializeSDO(instance);

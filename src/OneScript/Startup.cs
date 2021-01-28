@@ -107,7 +107,7 @@ namespace OneScript.WebHost
             {
                 var oscriptApp = services.GetService<ApplicationInstance>();
                 
-                MachineInstance.Current.PrepareThread(appRuntime.Environment);
+                appRuntime.Engine.PrepareThread();
                 
                 appRuntime.Engine.DebugController = services.GetService<IDebugController>();
                 if (appRuntime.DebugEnabled())
@@ -143,9 +143,9 @@ namespace OneScript.WebHost
 
         private void PrepareEnvironment(IServiceProvider services)
         {
-            var environment = services.GetRequiredService<IApplicationRuntime>().Environment;
-            DatabaseExtensions.PrepareDbEnvironment(services, environment);
-            BackgroundJobsExtensions.PrepareBgJobsEnvironment(services, environment);
+            var runtime = services.GetRequiredService<IApplicationRuntime>();
+            DatabaseExtensions.PrepareDbEnvironment(services, runtime.Environment);
+            BackgroundJobsExtensions.PrepareBgJobsEnvironment(services, runtime);
         }
         
     }

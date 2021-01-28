@@ -37,7 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="oscript_modules\package-loader.os">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>

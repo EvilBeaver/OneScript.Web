@@ -92,7 +92,7 @@ namespace OneScript.WebHost.Infrastructure.Implementations
         private void FillContext(IEnumerable<IFileInfo> sources, ApplicationModelProviderContext context)
         {
             var reflector = new TypeReflectionEngine();
-            MachineInstance.Current.PrepareThread(_fw.Environment);
+            _fw.Engine.PrepareThread();
             foreach (var virtualPath in sources)
             {
                 LoadedModule module;

@@ -17,5 +17,11 @@ namespace OneScript.WebHost.Infrastructure
             if (!machine.IsRunning)
                 env.LoadMemory(machine);
         }
+        
+        public static void PrepareThread(this ScriptingEngine engine)
+        {
+            if(!MachineInstance.Current.IsRunning)
+                engine.UpdateContexts();
+        }
     }
 }

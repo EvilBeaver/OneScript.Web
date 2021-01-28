@@ -17,10 +17,12 @@ namespace OneScript.WebHost.BackgroundJobs
     public class BackgroundJobsManagerContext : AutoContext<BackgroundJobsManagerContext>
     {
         private static RuntimeEnvironment _globalEnv;
+        private static ScriptingEngine _engine;
 
-        public BackgroundJobsManagerContext(RuntimeEnvironment env)
+        public BackgroundJobsManagerContext(IApplicationRuntime runtime)
         {
-            _globalEnv = env;
+            _globalEnv = runtime.Environment;
+            _engine = runtime.Engine;
         }
 
         /// <summary>
@@ -52,7 +54,7 @@ namespace OneScript.WebHost.BackgroundJobs
         // должен быть public, т.к. hangfire не умеет вызывать private
         public static void PerformAction(string module, string method)
         {
-            MachineInstance.Current.PrepareThread(_globalEnv);
+            _engine.PrepareThread();
 
             var scriptObject = (IRuntimeContextInstance)_globalEnv.GetGlobalProperty(module);
             var methodId = scriptObject.FindMethod(method);

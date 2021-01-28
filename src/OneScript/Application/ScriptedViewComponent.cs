@@ -34,7 +34,7 @@ namespace OneScript.WebHost.Application
 
         public ScriptedViewComponent(LoadedModule module, string dynamicTypeName) : base(module, true)
         {
-            var td = TypeManager.RegisterType(dynamicTypeName, typeof(ScriptedViewComponent));           
+            var td = TypeManager.RegisterType(dynamicTypeName, default, typeof(ScriptedViewComponent));           
             DefineType(td);
             InitOwnData();
 
