@@ -33,7 +33,7 @@ namespace OneScriptWeb.Tests
         private IApplicationRuntime MakeRuntime()
         {
             var rtMock = new Mock<IApplicationRuntime>();
-            var engine = new ScriptingEngine {Environment = new RuntimeEnvironment()};
+            var engine = DefaultEngineBuilder.Create().SetDefaultOptions().Build();
             rtMock.SetupGet(x => x.Engine).Returns(engine);
             rtMock.SetupGet(x => x.Environment).Returns(engine.Environment);
             rtMock.Setup(x => x.GetCompilerService()).Returns(() => engine.GetCompilerService());
@@ -135,12 +135,11 @@ namespace OneScriptWeb.Tests
 
         private static ScriptingEngine MakeTestEngine()
         {
-            var builder = new DefaultEngineBuilder();
-            builder.WithEnvironment(new RuntimeEnvironment())
-                .WithTypes(new DefaultTypeManager())
-                .WithGlobals(new GlobalInstancesManager());
-
-            var engine = builder.Build();
+            var engine = DefaultEngineBuilder
+                .Create()
+                .SetDefaultOptions()
+                .Build();
+            
             return engine;
         }
 

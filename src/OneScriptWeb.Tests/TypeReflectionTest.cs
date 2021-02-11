@@ -10,6 +10,7 @@ using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine;
 using ScriptEngine.Environment;
+using ScriptEngine.Hosting;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 using Xunit;
@@ -20,7 +21,9 @@ namespace OneScriptWeb.Tests
     {
         private LoadedModule CreateModule(string source)
         {
-            var engine = new ScriptingEngine();
+            var engine = DefaultEngineBuilder.Create()
+                .SetDefaultOptions()
+                .Build();
             engine.Environment = new RuntimeEnvironment();
             var compiler = engine.GetCompilerService();
             var byteCode = compiler.Compile(engine.Loader.FromString(source));

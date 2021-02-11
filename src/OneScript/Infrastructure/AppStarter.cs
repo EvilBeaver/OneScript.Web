@@ -51,7 +51,7 @@ namespace OneScript.WebHost.Infrastructure
             var storage = new TemplateStorage(templateFactory);
             _webEng.Environment.InjectObject(storage);
             _webEng.Engine.UpdateContexts();
-            GlobalsManager.RegisterInstance(storage);
+            _webEng.Engine.GlobalsManager.RegisterInstance(storage);
             
             return ApplicationInstance.Create(codeSrc, _webEng);
         }

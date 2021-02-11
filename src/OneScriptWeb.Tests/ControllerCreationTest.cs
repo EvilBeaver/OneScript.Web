@@ -18,6 +18,7 @@ using OneScript.WebHost.Infrastructure;
 using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine;
 using ScriptEngine.Environment;
+using ScriptEngine.Hosting;
 using Xunit;
 
 namespace OneScriptWeb.Tests
@@ -30,7 +31,10 @@ namespace OneScriptWeb.Tests
             var fakefs = new InMemoryFileProvider();
             fakefs.AddFile("controllers/test.os","");
             fakefs.AddFile("main.os","");
-            var appEngine = new WebApplicationEngine(new ScriptingEngine());
+            
+            var engine = DefaultEngineBuilder.Create().SetDefaultOptions().Build(); 
+            
+            var appEngine = new WebApplicationEngine(engine);
             var app = ApplicationInstance.Create(new FileInfoCodeSource(fakefs.GetFileInfo("main.os")), appEngine);
             var provider = new OscriptApplicationModelProvider(app, appEngine, fakefs, Mock.Of<IAuthorizationPolicyProvider>());
 
@@ -57,7 +61,8 @@ namespace OneScriptWeb.Tests
             var fakefs = new InMemoryFileProvider();
             fakefs.AddFile("controllers/test.os", "Процедура Б() А = ЭтотОбъект; КонецПроцедуры");
             fakefs.AddFile("main.os", "");
-            var appEngine = new WebApplicationEngine(new ScriptingEngine());
+            var engine = DefaultEngineBuilder.Create().SetDefaultOptions().Build();
+            var appEngine = new WebApplicationEngine(engine);
             var app = ApplicationInstance.Create(new FileInfoCodeSource(fakefs.GetFileInfo("main.os")), appEngine);
             var provider = new OscriptApplicationModelProvider(app, appEngine, fakefs, Mock.Of<IAuthorizationPolicyProvider>());
 

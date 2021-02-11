@@ -4,6 +4,8 @@ Mozilla Public License, v.2.0. If a copy of the MPL
 was not distributed with this file, You can obtain one
 at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
+
+using System;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using OneScript.WebHost.Application;
@@ -35,9 +37,12 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 DatabaseExtensions.Infobase.DbContext = _dbContext;
             }
 
+            var typeClr = (Type)context.ActionDescriptor.Properties["type"];
+            var type = engine.TypeManager.RegisterType("Контроллер."+typeClr.Name, "Controller."+typeClr.Name, typeof(ScriptedController));
+            
             var info = (DynamicCompilationInfo) context.ActionDescriptor.Properties["CompilationInfo"];
             var module = info.Module;
-            var instance = new ScriptedController(context, module);
+            var instance = new ScriptedController(context, module, type);
             engine.PrepareThread();
 
             _runtime.DebugCurrentThread();

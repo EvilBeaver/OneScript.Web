@@ -32,6 +32,7 @@ using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine.Compiler;
+using ScriptEngine.Hosting;
 using ScriptEngine.Machine;
 
 namespace OneScriptWeb.Tests
@@ -57,10 +58,7 @@ namespace OneScriptWeb.Tests
         private static IApplicationRuntime CreateWebEngineMock()
         {
             var webAppMoq = new Mock<IApplicationRuntime>();
-            var engine = new ScriptingEngine()
-            {
-                Environment = new RuntimeEnvironment()
-            };
+            var engine = DefaultEngineBuilder.Create().SetDefaultOptions().Build();
             webAppMoq.SetupGet(x => x.Engine).Returns(engine);
             webAppMoq.SetupGet(x => x.Environment).Returns(engine.Environment);
             return webAppMoq.Object;

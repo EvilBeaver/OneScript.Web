@@ -26,8 +26,6 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                var wa = new WebApplicationEngine(Mock.Of<ScriptingEngine>());
-
                 var checks = new Dictionary<string, byte[]>();
                 var session = CreateSessionMock(checks);
 
@@ -58,8 +56,6 @@ namespace OneScriptWeb.Tests
         {
             lock (TestOrderingLock.Lock)
             {
-                var wa = new WebApplicationEngine(Mock.Of<ScriptingEngine>());
-
                 var checks = new Dictionary<string, byte[]>();
                 var session = CreateSessionMock(checks);
 

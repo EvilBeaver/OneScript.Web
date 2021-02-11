@@ -22,6 +22,7 @@ using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using OneScript.DebugServices;
 using OneScript.Language.SyntaxAnalysis;
+using OneScript.StandardLibrary;
 using OneScript.WebHost.Authorization;
 using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine;
@@ -83,54 +84,47 @@ namespace OneScript.WebHost.Infrastructure
 
         private static void InitializeScriptedLayer(IServiceCollection services)
         {
-            services.AddSingleton<IDependencyResolver, FileSystemDependencyResolver>(MakeDependencyResolver);
-            
-            services.AddTransient<IAstBuilder, DefaultAstBuilder>();
-            services.AddTransient<IEngineBuilder, DiEngineBuilder>();
-            services.AddSingleton<ITypeManager, DefaultTypeManager>();
-            
-            // пока не избавились от глобального статического инстанса
-            services.AddSingleton<IGlobalsManager>(sp =>
-            {
-                var instance = new GlobalInstancesManager();
-                GlobalsManager.Instance = instance; // вынужденно чистим глобальный инстанс
-                return instance;
-            });
-            services.TryAddSingleton<IApplicationRuntime, WebApplicationEngine>();
-            services.AddTransient<IApplicationFactory, AppStarter>();
-
-            services.AddTransient(sp =>
-            {
-                var opts = new CompilerOptions()
+            var builder = new DiEngineBuilder();
+                
+            builder
+                .WithServices(new AspIoCImplementation(services))
+                .SetDefaultOptions()
+                .SetupConfiguration(providers =>
                 {
-                    NodeBuilder = sp.GetRequiredService<IAstBuilder>()
-                };
+                    providers.UseSystemConfigFile()
+                        .UseEntrypointConfigFile(Path.Combine(Directory.GetCurrentDirectory(), "main.os"));
+                })
+                .SetupEnvironment(m =>
+                {
+                    m.AddStandardLibrary()
+                        .AddAssembly(typeof(OneScriptServicePlugin).Assembly);
+                });
 
-                opts.UseConditionalCompilation()
-                    .UseRegions()
-                    .UseImports(sp.GetRequiredService<IDependencyResolver>())
-                    .UseDirectiveHandler(o => new ClassAttributeResolver(o.NodeBuilder, o.ErrorSink));
+            builder.Services.UseImports();
+            builder.Services.AddDirectiveHandler<ClassAttributeResolver>();
 
-                return opts;
-            });
-            
-            services.AddSingleton((sp) => 
+            services.AddSingleton<ICompilerServiceFactory, WebCompilerFactory>();
+            services.AddSingleton<IDependencyResolver, FileSystemDependencyResolver>(MakeDependencyResolver);
+            services.AddSingleton<IEngineBuilder>(sp =>
             {
-                var appFactory = (IApplicationFactory)sp.GetService(typeof(IApplicationFactory));
-                return appFactory.CreateApp();
-            });
-
-            services.AddSingleton(sp =>
-            {
-                var builder = sp.GetRequiredService<IEngineBuilder>();
+                builder.Provider = sp;
                 var debugger = sp.GetService<IDebugController>();
                 if (debugger != default)
                 {
                     builder.WithDebugger(debugger);
                 }
-                
-                var engine = builder.Build();
-                return engine;
+
+                return builder;
+            });
+            
+            services.AddSingleton<IApplicationRuntime, WebApplicationEngine>(sp => 
+                new WebApplicationEngine(sp.GetRequiredService<IEngineBuilder>().Build()));
+            
+            services.AddTransient<IApplicationFactory, AppStarter>();
+            services.AddSingleton<ApplicationInstance>(sp => 
+            {
+                var appFactory = (IApplicationFactory)sp.GetService(typeof(IApplicationFactory));
+                return appFactory.CreateApp();
             });
         }
 

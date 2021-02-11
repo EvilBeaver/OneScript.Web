@@ -5,6 +5,7 @@
 // at http://mozilla.org/MPL/2.0/.
 // ----------------------------------------------------------*/
 
+using System;
 using System.IO;
 using System.Linq;
 using Microsoft.AspNetCore.Hosting;
@@ -21,24 +22,15 @@ namespace OneScript.WebHost.Infrastructure
 {
     public class DiEngineBuilder : DefaultEngineBuilder
     {
-        public DiEngineBuilder(
-            IGlobalsManager globals,
-            ITypeManager typeManager,
-            CompilerOptions options,
-            IWebHostEnvironment env)
+        public IServiceProvider Provider { get; set; }
+
+        public DiEngineBuilder()
         {
-            GlobalInstances = globals;
-            TypeManager = typeManager;
-            CompilerOptions = options;
+        }
 
-            this.WithEnvironment(new RuntimeEnvironment())
-                .UseEnvironmentVariableConfig("OSCRIPT_CONFIG")
-                .UseEntrypointConfigFile(Path.Combine(env.ContentRootPath, "main.os"))
-                .UseSystemConfigFile();
-
-            this.AddAssembly(typeof(ArrayImpl).Assembly)
-                .AddAssembly(typeof(SystemGlobalContext).Assembly)
-                .AddAssembly(typeof(DiEngineBuilder).Assembly);
+        protected override IServiceContainer GetContainer()
+        {
+            return new AspIoCImplementation(Provider);
         }
     }
 }

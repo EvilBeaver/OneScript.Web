@@ -15,6 +15,7 @@ using OneScript.WebHost.Infrastructure;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
+using ScriptEngine.Types;
 
 namespace OneScript.WebHost.Application
 {
@@ -32,10 +33,9 @@ namespace OneScript.WebHost.Application
         private ViewComponentContext _ctx;
         private ViewDataDictionaryWrapper _osViewData;
 
-        public ScriptedViewComponent(LoadedModule module, string dynamicTypeName) : base(module, true)
+        public ScriptedViewComponent(LoadedModule module, TypeDescriptor type) : base(module, true)
         {
-            var td = TypeManager.RegisterType(dynamicTypeName, default, typeof(ScriptedViewComponent));           
-            DefineType(td);
+            DefineType(type);
             InitOwnData();
 
 

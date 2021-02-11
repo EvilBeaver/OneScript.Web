@@ -85,11 +85,13 @@ namespace OneScript.WebHost.Infrastructure.Implementations
                 var baseFileName = Path.GetFileNameWithoutExtension(code.SourceDescription);
 
                 var builder = new ClassBuilder<ScriptedViewComponent>();
+                var typeName = baseFileName + "ViewComponent";
+                var td = Runtime.Engine.TypeManager.RegisterType(typeName, default, typeof(ScriptedViewComponent));
                 var type = builder.SetModule(module)
-                    .SetTypeName(baseFileName + "ViewComponent")
+                    .SetTypeName(typeName)
                     .ExportMethods()
                     .ExportProperties()
-                    .ExportConstructor((parameters) => new ScriptedViewComponent(builder.Module, builder.TypeName))
+                    .ExportConstructor((parameters) => new ScriptedViewComponent(builder.Module, td))
                     .ExportClassMethod("Invoke") 
                     .Build();
 

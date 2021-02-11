@@ -72,9 +72,9 @@ namespace OneScript.WebHost.Infrastructure
             }
             else if (type.IsEnum)
             {
-                var wrapperType = typeof(CLREnumValueWrapper<>).MakeGenericType(new Type[] { type });
+                var wrapperType = typeof(ClrEnumValueWrapper<>).MakeGenericType(new Type[] { type });
                 var constructor = wrapperType.GetConstructor(new Type[] { typeof(EnumerationContext), type, typeof(DataType) });
-                var osValue = (EnumerationValue)constructor.Invoke(new object[] { null, objParam, DataType.Enumeration });
+                var osValue = (EnumerationValue)constructor.Invoke(new object[] { null, objParam, DataType.GenericValue });
                 return osValue;
             }
             else if (typeof(IRuntimeContextInstance).IsAssignableFrom(type))

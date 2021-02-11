@@ -15,6 +15,7 @@ using OneScript.StandardLibrary.Collections;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
+using ScriptEngine.Types;
 
 namespace OneScript.WebHost.Application
 {
@@ -33,7 +34,7 @@ namespace OneScript.WebHost.Application
         private ViewDataDictionaryWrapper _osViewData;
         private ModelStateDictionaryWrapper _modelState;
         
-        public ScriptedController(ControllerContext context, LoadedModule module) : base(module, true)
+        public ScriptedController(ControllerContext context, LoadedModule module, TypeDescriptor type) : base(module, true)
         {
             _ctx = context;
             HttpRequest = new HttpRequestImpl(_ctx.HttpContext.Request);
@@ -54,8 +55,6 @@ namespace OneScript.WebHost.Application
             else
                 RouteValues = ValueFactory.Create();
 
-            var typeClr = (Type)context.ActionDescriptor.Properties["type"];
-            var type = TypeManager.RegisterType("Контроллер."+typeClr.Name, "Controller."+typeClr.Name, typeof(ScriptedController));
             DefineType(type);
             InitOwnData();
         }
