@@ -38,6 +38,12 @@ namespace OneScript.WebHost.Infrastructure
     {
         public static void AddOneScript(this IServiceCollection services)
         {
+            var cfgBuilder = new ConfigurationBuilder();
+            AddOneScript(services, cfgBuilder.Build());
+        }
+        
+        public static void AddOneScript(this IServiceCollection services, IConfiguration configuration)
+        {
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IApplicationModelProvider, OscriptApplicationModelProvider>());
 
@@ -45,7 +51,7 @@ namespace OneScript.WebHost.Infrastructure
                 new PhysicalFileProvider(svc.GetService<IWebHostEnvironment>().ContentRootPath));
             services.AddTransient<IControllerActivator, ScriptedControllerActivator>();
 
-            InitializeScriptedLayer(services);
+            InitializeScriptedLayer(services, configuration);
             InitializeViewComponents(services);
             InitializeAuthorization(services);
 
@@ -82,7 +88,7 @@ namespace OneScript.WebHost.Infrastructure
             services.AddSingleton<IViewComponentActivator, OscriptViewComponentActivator>();
         }
 
-        private static void InitializeScriptedLayer(IServiceCollection services)
+        private static void InitializeScriptedLayer(IServiceCollection services, IConfiguration configuration)
         {
             var builder = new DiEngineBuilder();
                 
@@ -91,8 +97,7 @@ namespace OneScript.WebHost.Infrastructure
                 .SetDefaultOptions()
                 .SetupConfiguration(providers =>
                 {
-                    providers.UseSystemConfigFile()
-                        .UseEntrypointConfigFile(Path.Combine(Directory.GetCurrentDirectory(), "main.os"));
+                    providers.Add(AppJsonConfigurationProvider.FromConfigurationOptions(configuration));
                 })
                 .SetupEnvironment(m =>
                 {
@@ -100,11 +105,10 @@ namespace OneScript.WebHost.Infrastructure
                         .AddAssembly(typeof(OneScriptServicePlugin).Assembly);
                 });
 
-            builder.Services.UseImports();
+            builder.Services.UseImports(MakeDependencyResolver);
             builder.Services.AddDirectiveHandler<ClassAttributeResolver>();
 
             services.AddSingleton<ICompilerServiceFactory, WebCompilerFactory>();
-            services.AddSingleton<IDependencyResolver, FileSystemDependencyResolver>(MakeDependencyResolver);
             services.AddSingleton<IEngineBuilder>(sp =>
             {
                 builder.Provider = sp;
@@ -128,22 +132,21 @@ namespace OneScript.WebHost.Infrastructure
             });
         }
 
-        private static FileSystemDependencyResolver MakeDependencyResolver(IServiceProvider sp)
+        private static FileSystemDependencyResolver MakeDependencyResolver(IServiceContainer sp)
         {
-            var config = sp.GetService<IConfiguration>();
+            var config = sp.Resolve<KeyValueConfig>();
             var resolver = new FileSystemDependencyResolver();
 
             if (config != default)
             {
-                var configSection = config?.GetSection("OneScript");
-                var libRoot = configSection?["lib.system"];
+                var osOptions = new OneScriptLibraryOptions(config);
+                var libRoot = osOptions.SystemLibraryDir;
                 if (libRoot != null)
                 {
                     var binFolder = Path.GetDirectoryName(typeof(DiEngineBuilder).Assembly.Location);
-                    var additionals = configSection.GetSection("lib.additional")?
-                        .AsEnumerable()
-                        .Where(x => x.Value != null)
-                        .Select(x => x.Value.Replace("$appBinary", binFolder))
+                    var additionals = osOptions.AdditionalLibraries?
+                        .Where(x => x != null)
+                        .Select(x => x.Replace("$appBinary", binFolder))
                         .ToArray();
 
                     libRoot = libRoot.Replace("$appBinary", binFolder);

@@ -74,7 +74,7 @@ namespace OneScript.WebHost
             services.AddControllersWithViews(mvcopts => mvcopts.EnableEndpointRouting = false)
                 .AddRazorRuntimeCompilation()
                 .ConfigureApplicationPartManager(pm=>pm.FeatureProviders.Add(new ScriptedViewComponentFeatureProvider()));
-            services.AddOneScript();
+            services.AddOneScript(Configuration);
             services.AddOneScriptDebug(Configuration);
         }
 
