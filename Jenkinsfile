@@ -3,7 +3,7 @@ pipeline {
 	agent none
   
 	environment {
-        ReleaseNumber = '0.8.1'
+        ReleaseNumber = '0.8.2'
     }
 	stages {
 
@@ -21,7 +21,7 @@ pipeline {
 								[$class: 'SubmoduleOption', 
 								disableSubmodules: false,
 								parentCredentials: false,
-								recursiveSubmodules: true,
+								recursiveSubmodules: false,
 								reference: '',
 								trackingSubmodules: false]],
 								submoduleCfg: [],
@@ -58,7 +58,7 @@ pipeline {
 								[$class: 'SubmoduleOption', 
 								disableSubmodules: false,
 								parentCredentials: false,
-								recursiveSubmodules: true,
+								recursiveSubmodules: false,
 								reference: '',
 								trackingSubmodules: false]],
 								submoduleCfg: [],
@@ -91,6 +91,7 @@ pipeline {
 			}
 			steps {
 				
+				deleteDir()
 				checkout(
                     [$class: 'GitSCM', branches: [[name: "${env.BRANCH_NAME}"]],
                      doGenerateSubmoduleConfigurations: false,
@@ -98,12 +99,13 @@ pipeline {
                          [$class: 'SubmoduleOption', 
                          disableSubmodules: false,
                          parentCredentials: false,
-                         recursiveSubmodules: true,
+                         recursiveSubmodules: false,
                          reference: '',
                          trackingSubmodules: false]],
                          submoduleCfg: [],
                          userRemoteConfigs: [[url: 'https://github.com/EvilBeaver/OneScript.Web.git']]])
 				
+				sh 'dotnet clean src/OneScript.sln'
 				sh '''dotnet publish src/OneScript/OneScriptWeb.csproj \
 					/p:ReleaseNumber=${ReleaseNumber} \
 					-c Release \
@@ -146,7 +148,7 @@ pipeline {
                          [$class: 'SubmoduleOption', 
                          disableSubmodules: false,
                          parentCredentials: false,
-                         recursiveSubmodules: true,
+                         recursiveSubmodules: false,
                          reference: '',
                          trackingSubmodules: false]],
                          submoduleCfg: [],
@@ -155,8 +157,9 @@ pipeline {
 				unstash 'buildResults'
 
 				withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'dockerpassword', usernameVariable: 'dockeruser')]) {
-				sh "docker build -t evilbeaver/oscript-web:${ReleaseNumber} --file Dockerfile src"
-				sh "docker login -p $dockerpassword -u $dockeruser && docker push evilbeaver/oscript-web:${ReleaseNumber}"
+				sh "docker build -t evilbeaver/oscript-web:${ReleaseNumber} --file Dockerfile artifact/core/linux-x64"
+				sh "docker tag evilbeaver/oscript-web:${ReleaseNumber} evilbeaver/oscript-web:latest"
+				sh "docker login -p $dockerpassword -u $dockeruser && docker push evilbeaver/oscript-web:${ReleaseNumber} && docker push evilbeaver/oscript-web:latest"
 				}
 			}			
 		}
