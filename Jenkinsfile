@@ -158,6 +158,7 @@ pipeline {
 
 				withCredentials([usernamePassword(credentialsId: 'docker-hub', passwordVariable: 'dockerpassword', usernameVariable: 'dockeruser')]) {
 				sh "docker build -t evilbeaver/oscript-web:${ReleaseNumber} --file Dockerfile artifact/core/linux-x64"
+				sh "docker tag evilbeaver/oscript-web:${ReleaseNumber} evilbeaver/oscript-web:latest"
 				sh "docker login -p $dockerpassword -u $dockeruser && docker push evilbeaver/oscript-web:${ReleaseNumber} && docker push evilbeaver/oscript-web:latest"
 				}
 			}			
