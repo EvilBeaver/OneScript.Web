@@ -42,47 +42,60 @@ namespace OneScript.WebHost.Database
                             row.Set(ColIdx, ValueFactory.Create());
                             continue;
                         }
-                        
-                        if (record.GetFieldType(ColIdx) == typeof(Int32))
+
+                        var fieldType = record.GetFieldType(ColIdx);
+                        if (fieldType == typeof(Int32))
                         {
                             row.Set(ColIdx, ValueFactory.Create((int)record.GetValue(ColIdx)));
                         }
-                        if (record.GetFieldType(ColIdx) == typeof(Int64))
+                        else if (fieldType == typeof(Int64))
                         {
                             row.Set(ColIdx, ValueFactory.Create(record.GetInt64(ColIdx)));
                         }
-                        if (record.GetFieldType(ColIdx) == typeof(Boolean))
+                        else if (fieldType == typeof(Boolean))
                         {
                             row.Set(ColIdx, ValueFactory.Create(record.GetBoolean(ColIdx)));
                         }
-                        if (record.GetFieldType(ColIdx) == typeof(UInt64))
+                        else if (fieldType == typeof(UInt64))
                         {
                             row.Set(ColIdx, ValueFactory.Create(record.GetValue(ColIdx).ToString()));
                         }
-
-                        if (record.GetFieldType(ColIdx) == typeof(System.Double))
+                        else if (fieldType == typeof(System.Double))
                         {
                             double val = record.GetDouble(ColIdx);
                             row.Set(ColIdx, ValueFactory.Create(val.ToString()));
                         }
-                        if (record.GetFieldType(ColIdx) == typeof(Single))
+                        else if (fieldType == typeof(Single))
                         {
                             float val = record.GetFloat(ColIdx);
                             row.Set(ColIdx, ValueFactory.Create(val.ToString()));
                         }
-                        if (record.GetFieldType(ColIdx) == typeof(Decimal))
+                        else if (fieldType == typeof(Decimal))
                         {
                             row.Set(ColIdx, ValueFactory.Create(record.GetDecimal(ColIdx)));
                         }
-                        if (record.GetFieldType(ColIdx) == typeof(System.String))
-                        {
-                            row.Set(ColIdx, ValueFactory.Create(record.GetString(ColIdx)));
-                        }
-                        if (record.GetFieldType(ColIdx) == typeof(System.DateTime))
+                        else if (fieldType == typeof(System.DateTime)) 
                         {
                             row.Set(ColIdx, ValueFactory.Create(record.GetDateTime(ColIdx)));
                         }
-                        if (record.GetFieldType(ColIdx) == typeof(System.Byte[]))
+                        else if (record.GetDataTypeName(ColIdx) == "DATE")
+                        {
+                            var str = record.GetString(ColIdx);
+                            var success = DateTime.TryParse(str, out var parsed);
+                            if (success)
+                            {
+                                row.Set(ColIdx, ValueFactory.Create(parsed));
+                            }
+                            else
+                            {
+                                row.Set(ColIdx, ValueFactory.Create(str));
+                            }
+                        }
+                        else if (fieldType == typeof(System.String))
+                        {
+                            row.Set(ColIdx, ValueFactory.Create(record.GetString(ColIdx)));
+                        }
+                        else if (fieldType == typeof(System.Byte[]))
                         {
                             var data = (byte[])record[ColIdx];
                             var newData = new BinaryDataContext(data);
