@@ -78,19 +78,6 @@ namespace OneScript.WebHost.Database
                         {
                             row.Set(ColIdx, ValueFactory.Create(record.GetDateTime(ColIdx)));
                         }
-                        else if (record.GetDataTypeName(ColIdx) == "DATE")
-                        {
-                            var str = record.GetString(ColIdx);
-                            var success = DateTime.TryParse(str, out var parsed);
-                            if (success)
-                            {
-                                row.Set(ColIdx, ValueFactory.Create(parsed));
-                            }
-                            else
-                            {
-                                row.Set(ColIdx, ValueFactory.Create(str));
-                            }
-                        }
                         else if (fieldType == typeof(System.String))
                         {
                             row.Set(ColIdx, ValueFactory.Create(record.GetString(ColIdx)));
