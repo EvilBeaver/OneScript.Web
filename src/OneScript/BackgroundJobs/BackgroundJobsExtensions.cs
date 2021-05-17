@@ -81,10 +81,6 @@ namespace OneScript.WebHost.BackgroundJobs
                 
                 environment.InjectGlobalProperty(jobsManager, "РегламентныеЗадания", true);
                 environment.InjectGlobalProperty(jobsManager, "ScheduledJobs", true);
-
-                var bgJobsManager = new BackgroundJobsManagerContext(runtime);
-                environment.InjectGlobalProperty(bgJobsManager, "ФоновыеЗадания", true);
-                environment.InjectGlobalProperty(bgJobsManager, "BackgroundJobs", true);
             }
         }
     }
