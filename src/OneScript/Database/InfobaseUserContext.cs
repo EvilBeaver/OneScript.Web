@@ -8,7 +8,6 @@ using System;
 using Microsoft.AspNetCore.Identity;
 using OneScript.StandardLibrary.Collections;
 using OneScript.WebHost.Identity;
-using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 

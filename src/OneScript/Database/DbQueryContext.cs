@@ -7,7 +7,6 @@ at http://mozilla.org/MPL/2.0/.
 using System.Data.Common;
 using Microsoft.EntityFrameworkCore;
 using OneScript.StandardLibrary.Collections;
-using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 

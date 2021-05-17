@@ -6,7 +6,6 @@ at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
 using ScriptEngine.Environment;
 using ScriptEngine.Machine.Contexts;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Hangfire;
@@ -14,7 +13,6 @@ using Microsoft.AspNetCore.Builder;
 using OneScript.StandardLibrary.Collections;
 using OneScript.WebHost.BackgroundJobs;
 using OneScript.WebHost.Infrastructure;
-using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Application

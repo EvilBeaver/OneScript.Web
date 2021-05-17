@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc;
 using OneScript.WebHost.Application;
 using OneScript.WebHost.Database;
-using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure.Implementations
 {

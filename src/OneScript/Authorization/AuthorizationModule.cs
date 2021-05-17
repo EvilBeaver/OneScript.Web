@@ -12,7 +12,6 @@ using Microsoft.Extensions.FileProviders;
 using OneScript.StandardLibrary.Collections;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine.Environment;
-using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
 

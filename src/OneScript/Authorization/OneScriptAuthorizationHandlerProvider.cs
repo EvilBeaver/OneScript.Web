@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.FileProviders;
 using OneScript.WebHost.Infrastructure;
-using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Authorization
 {

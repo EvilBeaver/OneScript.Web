@@ -6,7 +6,6 @@ at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
 
 using OneScript.StandardLibrary.Collections;
-using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine.Contexts;
 
 namespace OneScript.WebHost.Application

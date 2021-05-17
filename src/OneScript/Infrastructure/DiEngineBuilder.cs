@@ -6,17 +6,7 @@
 // ----------------------------------------------------------*/
 
 using System;
-using System.IO;
-using System.Linq;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using OneScript.StandardLibrary.Collections;
-using ScriptEngine;
-using ScriptEngine.Compiler;
-using ScriptEngine.HostedScript.Extensions;
-using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Hosting;
-using ScriptEngine.Machine;
 
 namespace OneScript.WebHost.Infrastructure
 {

@@ -7,7 +7,6 @@ at http://mozilla.org/MPL/2.0/.
 #if NETCOREAPP
 using System.Text;
 #endif
-using System;
 using System.IO;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,12 +20,10 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using OneScript.DebugServices;
-using OneScript.Language.SyntaxAnalysis;
 using OneScript.StandardLibrary;
 using OneScript.WebHost.Authorization;
 using OneScript.WebHost.Infrastructure.Implementations;
 using ScriptEngine;
-using ScriptEngine.Compiler;
 using ScriptEngine.HostedScript;
 using ScriptEngine.HostedScript.Extensions;
 using ScriptEngine.Hosting;

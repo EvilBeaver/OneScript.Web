@@ -14,7 +14,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OneScript.WebHost.Database;
 using OneScript.WebHost.Infrastructure;
-using ScriptEngine;
 
 namespace OneScript.WebHost.BackgroundJobs
 {
