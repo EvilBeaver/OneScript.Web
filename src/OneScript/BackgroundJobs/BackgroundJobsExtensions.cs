@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 using OneScript.WebHost.Database;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
+using ScriptEngine.HostedScript.Library.Tasks;
 
 namespace OneScript.WebHost.BackgroundJobs
 {
@@ -82,7 +83,9 @@ namespace OneScript.WebHost.BackgroundJobs
                 environment.InjectGlobalProperty(jobsManager, "РегламентныеЗадания", true);
                 environment.InjectGlobalProperty(jobsManager, "ScheduledJobs", true);
 
-                var bgJobsManager = new BackgroundJobsManagerContext(environment);
+                var runtime = services.GetService<IApplicationRuntime>();
+                
+                var bgJobsManager = new BackgroundTasksManager(runtime.Engine);
                 environment.InjectGlobalProperty(bgJobsManager, "ФоновыеЗадания", true);
                 environment.InjectGlobalProperty(bgJobsManager, "BackgroundJobs", true);
             }
