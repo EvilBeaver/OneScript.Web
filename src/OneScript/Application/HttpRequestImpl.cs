@@ -5,6 +5,7 @@ was not distributed with this file, You can obtain one
 at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
 
+using System.Linq;
 using Microsoft.AspNetCore.Http;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.HostedScript.Library.Binary;
@@ -122,11 +123,16 @@ namespace OneScript.WebHost.Application
         [ContextMethod("ПараметрыЗапроса")]
         public MapImpl QueryParameters()
         {
-            MapImpl result = new MapImpl();
-            foreach (var kv in _realObject.Query)
+            var result = new MapImpl();
+            foreach (var (key, value) in _realObject.Query)
             {
-                result.Insert(ValueFactory.Create(kv.Key),
-                    ValueFactory.Create(kv.Value));
+                var valueToInsert = value.Count > 1 ? 
+                    new ArrayImpl(value.Select(ValueFactory.Create)) :
+                    ValueFactory.Create(value);
+
+                result.Insert(
+                    ValueFactory.Create(key),
+                    valueToInsert);
             }
 
             return result;

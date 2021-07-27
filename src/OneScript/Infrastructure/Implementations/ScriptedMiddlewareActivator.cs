@@ -34,21 +34,8 @@ namespace OneScript.WebHost.Infrastructure.Implementations
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var engine = _runtime.Engine;
-            var instance = new ScriptedMiddleware(_next, _module);
-            var machine = MachineInstance.Current;
-            machine.PrepareThread(engine.Environment);
-            try
-            {
-                _runtime.DebugCurrentThread();
-                engine.InitializeSDO(instance);
-                await instance.InvokeAsync(context);
-            }
-            finally
-            {
-                _runtime.StopDebugCurrentThread();
-            }
-            
+            var instance = new ScriptedMiddleware(_next, _module, _runtime);
+            await instance.InvokeAsync(context);
         }
     }
 }

@@ -8,6 +8,7 @@ at http://mozilla.org/MPL/2.0/.
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using OneScript.WebHost.Infrastructure;
 using ScriptEngine.HostedScript.Library;
 using ScriptEngine.Machine;
 using ScriptEngine.Machine.Contexts;
@@ -22,6 +23,7 @@ namespace OneScript.WebHost.Application
     public class ScriptedMiddleware : AutoScriptDrivenObject<ScriptedMiddleware>
     {
         private readonly RequestDelegate _next;
+        private readonly IApplicationRuntime _runtime;
         private HttpContext _context;
 
         #region Construction
@@ -31,9 +33,10 @@ namespace OneScript.WebHost.Application
         /// </summary>
         /// <param name="next">Следующий обработчик в конвейере</param>
         /// <param name="module">Скомпилированный модуль посредника</param>
-        public ScriptedMiddleware(RequestDelegate next, LoadedModule module) : base(module, true)
+        public ScriptedMiddleware(RequestDelegate next, LoadedModule module, IApplicationRuntime runtime) : base(module, true)
         {
             _next = next;
+            _runtime = runtime;
             InitOwnData();
         }
 
@@ -55,8 +58,27 @@ namespace OneScript.WebHost.Application
             HttpRequest = new HttpRequestImpl(_context.Request);
             HttpResponse = new HttpResponseImpl(_context.Response);
 
-            var parameters = new IValue[] { new ArrayImpl() };
-            await Task.Run(() => CallScriptMethod(mId, parameters));
+            await RunMethodInAsync(context, mId);
+        }
+
+        private Task RunMethodInAsync(HttpContext context, int methodId)
+        {
+            return Task.Run(() =>
+            {
+                var engine = _runtime.Engine;
+                var machine = MachineInstance.Current;
+                machine.PrepareThread(engine.Environment);
+                try
+                {
+                    _runtime.DebugCurrentThread();
+                    engine.InitializeSDO(this);
+                    CallScriptMethod(methodId, new [] {ValueFactory.Create()});
+                }
+                finally
+                {
+                    _runtime.StopDebugCurrentThread();
+                }
+            });
         }
 
         /// <summary>
