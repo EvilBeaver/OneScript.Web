@@ -10,7 +10,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using OneScript.WebHost.Application;
 using OneScript.WebHost.Infrastructure;
 using ScriptEngine;
 
@@ -22,9 +24,6 @@ namespace OneScript.WebHost.Database
 
         public static void AddDatabaseByConfiguration(this IServiceCollection services, IConfiguration config)
         {
-            if (!config.GetChildren().Any(item => item.Key == ConfigSectionName))
-                return;
-
             var dbSettings = config.GetSection(ConfigSectionName);
 
             // Делаем доступным для прочих частей приложения
@@ -70,9 +69,11 @@ namespace OneScript.WebHost.Database
 
         public static void PrepareDbEnvironment(IServiceProvider services, RuntimeEnvironment environment)
         {
+            var logger = services.GetService<ILogger<ApplicationInstance>>();
             var dbOptions = services.GetService<IOptions<OscriptDbOptions>>().Value;
             if (dbOptions != null && dbOptions.DbType != SupportedDatabase.Unknown)
             {
+                logger.LogDebug($"Database enabled: {dbOptions.DbType}");
                 var dbctx = services.GetService<ApplicationDbContext>();
                 dbctx.Database.EnsureCreated();
 
@@ -85,6 +86,10 @@ namespace OneScript.WebHost.Database
                 ib.DbContext = services.GetRequiredService<ApplicationDbContext>();
                 environment.InjectGlobalProperty(ib, "ИнформационнаяБаза", true);
                 environment.InjectGlobalProperty(ib, "InfoBase", true);
+            }
+            else
+            {
+                logger.LogDebug("No database configured");
             }
         }
     }
