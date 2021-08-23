@@ -56,7 +56,11 @@ namespace OneScript.WebHost
             var options = ConfigureHostingMode(builder, configInstance);
 
             builder.UseConfiguration(configInstance)
-                .UseKestrel(opts => opts.AllowSynchronousIO = true)
+                .UseKestrel(opts =>
+                {
+                    configInstance.Bind("Kestrel", opts);
+                    opts.AllowSynchronousIO = true;
+                })
                 .UseIISIntegration()
                 .UseStartup<Startup>()
                 .UseApplicationInsights()
