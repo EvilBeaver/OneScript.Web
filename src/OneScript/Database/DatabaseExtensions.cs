@@ -41,6 +41,7 @@ namespace OneScript.WebHost.Database
 
         private static DbContextOptions<ApplicationDbContext> ConfigureDbOptions(IServiceProvider serviceProvider)
         {
+            var logger = serviceProvider.GetService<ILogger<ApplicationInstance>>();
             var options = serviceProvider.GetRequiredService<IOptions<OscriptDbOptions>>().Value;
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
@@ -59,7 +60,8 @@ namespace OneScript.WebHost.Database
                     builder.UseMySql(options.ConnectionString);
                     break;
                 default:
-                    throw new InvalidOperationException("Unknown database type in configuration");
+                    logger.LogDebug("Unknown database type in configuration");
+                    break;
             }
 
             return builder.Options;
