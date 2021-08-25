@@ -27,7 +27,6 @@ namespace OneScript.WebHost
             var contentRoot = GetContentRoot(args);
 
             config.SetBasePath(contentRoot);
-            Directory.SetCurrentDirectory(contentRoot);
             config.AddJsonFile("appsettings.json", optional: true);
             config.AddEnvironmentVariables("OSWEB_");
             config.AddEnvironmentVariables("ASPNETCORE_");
@@ -72,7 +71,10 @@ namespace OneScript.WebHost
             var host = builder.Build();
 
             if (options.RunAsService)
+            {
+                Directory.SetCurrentDirectory(contentRoot);
                 host.RunAsService();
+            }
             else
                 host.Run();
 
