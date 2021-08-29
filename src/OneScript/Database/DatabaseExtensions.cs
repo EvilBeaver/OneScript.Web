@@ -58,8 +58,6 @@ namespace OneScript.WebHost.Database
                 case SupportedDatabase.MySQL:
                     builder.UseMySql(options.ConnectionString);
                     break;
-                default:
-                    throw new InvalidOperationException("Unknown database type in configuration");
             }
 
             return builder.Options;
