@@ -25,11 +25,12 @@ namespace OneScript.WebHost.Database
         public static void AddDatabaseByConfiguration(this IServiceCollection services, IConfiguration config)
         {
             var dbSettings = config.GetSection(ConfigSectionName);
-
-            // Делаем доступным для прочих частей приложения
-            services.Configure<OscriptDbOptions>(dbSettings);
-            
-            AddDatabaseOptions(services);
+            if (dbSettings.Exists())
+            {
+                // Делаем доступным для прочих частей приложения
+                services.Configure<OscriptDbOptions>(dbSettings);
+                AddDatabaseOptions(services);
+            }
         }
 
         private static void AddDatabaseOptions(IServiceCollection services)
@@ -58,6 +59,8 @@ namespace OneScript.WebHost.Database
                 case SupportedDatabase.MySQL:
                     builder.UseMySql(options.ConnectionString);
                     break;
+                default:
+                    throw new InvalidOperationException("Unknown database type in configuration");
             }
 
             return builder.Options;
