@@ -3,7 +3,7 @@ pipeline {
 	agent none
   
 	environment {
-        ReleaseNumber = '0.9.1'
+        ReleaseNumber = '0.9.2'
     }
 	stages {
 
