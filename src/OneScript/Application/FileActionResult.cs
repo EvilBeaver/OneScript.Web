@@ -24,7 +24,6 @@ namespace OneScript.WebHost.Application
             src = new FileStream(file, FileMode.Open, FileAccess.Read);
             ContentType = contentType ?? "application/octet-stream";
             LastModified = File.GetLastWriteTimeUtc(file);
-            IsLastModifiedSet = true;
         }
 
         public FileActionResult(BinaryDataContext binaryData, string contentType)
@@ -41,9 +40,6 @@ namespace OneScript.WebHost.Application
 
         [ContextProperty("ВремяИзменения")]
         public DateTime LastModified { get; set; }
-        
-        [ContextProperty("ВремяИзмененияУстановлено")]
-        public bool IsLastModifiedSet { get; set; }
 
         public Task ExecuteResultAsync(ActionContext context)
         {
@@ -60,7 +56,7 @@ namespace OneScript.WebHost.Application
             }
 
             result.FileDownloadName = this.DownloadFileName;
-            if (IsLastModifiedSet)
+            if (!LastModified.Equals(new DateTime(1, 1, 1, 0, 0, 0)))
                 result.LastModified = new DateTimeOffset(LastModified); 
             return result.ExecuteResultAsync(context);
         }
