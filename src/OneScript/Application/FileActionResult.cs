@@ -5,6 +5,7 @@ was not distributed with this file, You can obtain one
 at http://mozilla.org/MPL/2.0/.
 ----------------------------------------------------------*/
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,7 @@ namespace OneScript.WebHost.Application
         {
             src = new FileStream(file, FileMode.Open, FileAccess.Read);
             ContentType = contentType ?? "application/octet-stream";
+            LastModified = File.GetLastWriteTimeUtc(file);
         }
 
         public FileActionResult(BinaryDataContext binaryData, string contentType)
@@ -35,6 +37,9 @@ namespace OneScript.WebHost.Application
 
         [ContextProperty("ИмяПолучаемогоФайла")]
         public string DownloadFileName { get; set; }
+
+        [ContextProperty("ВремяИзменения")]
+        public DateTime LastModified { get; set; }
 
         public Task ExecuteResultAsync(ActionContext context)
         {
@@ -51,6 +56,8 @@ namespace OneScript.WebHost.Application
             }
 
             result.FileDownloadName = this.DownloadFileName;
+            if (!LastModified.Equals(new DateTime(1, 1, 1, 0, 0, 0)))
+                result.LastModified = new DateTimeOffset(LastModified); 
             return result.ExecuteResultAsync(context);
         }
 
