@@ -30,6 +30,8 @@ namespace OneScript.WebHost.Infrastructure
             _scripts = scripts;
             _webEng = webEng;
             _logger = appLog;
+            
+            SystemLogger.SetWriter(new StandardLogSystemLogWriter(_logger));
 
             var configSection = config?.GetSection("OneScript");
             var libRoot = configSection?["lib.system"];
