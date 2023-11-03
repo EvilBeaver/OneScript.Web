@@ -70,7 +70,7 @@ namespace OneScript.WebHost.Application
         public object UnderlyingObject => _options;
 
         [ScriptConstructor]
-        public CookieOptionsWraper Create()
+        public static CookieOptionsWraper Create()
         {
             return new CookieOptionsWraper();
         }
