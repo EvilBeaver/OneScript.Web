@@ -8,6 +8,6 @@ ENV ASPNETCORE_URLS=http://0.0.0.0:5000
 
 WORKDIR /app
 COPY . /var/osp.net
-ENTRYPOINT ["/var/osp.net/OneScript.WebHost"]
+ENTRYPOINT ["/var/osp.net/artifact/core/linux-x64/OneScript.WebHost"]
 
 EXPOSE 5000
